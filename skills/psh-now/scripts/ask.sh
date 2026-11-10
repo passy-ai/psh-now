@@ -176,6 +176,15 @@ for arg in "$@"; do
     --client=*) CLIENT="${arg#--client=}" ;;
     --agent) want_agent=1 ;;
     --agent=*) AGENT="${arg#--agent=}" ;;
+    -*)
+      # An unknown flag used to fall through into MESSAGE, so `psh ask "Deploy?" --title
+      # "Deploy"` quietly asked the human the single word "--title". Refuse it instead:
+      # the title is positional, and a malformed ask must never leave the machine.
+      echo "psh.now: unknown option: $arg" >&2
+      echo "usage: psh ask \"Title\" \"What you are about to do\" [channel]" >&2
+      echo "       options: --client <name>, --agent <name>" >&2
+      exit 2
+      ;;
     *)
       if [ -z "$TITLE" ]; then TITLE="$arg"
       elif [ -z "$MESSAGE" ]; then MESSAGE="$arg"
