@@ -1,6 +1,6 @@
 # psh.now skill
 
-![A request lands in the notch; one keystroke answers it](assets/demo.gif)
+![A request lands in the notch, a comment is typed and sent, and the next request arrives](assets/demo.gif)
 
 [![skills.sh](https://skills.sh/b/passy-ai/psh-now-skill)](https://www.skills.sh/passy-ai/psh-now-skill)
 

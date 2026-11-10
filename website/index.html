@@ -196,11 +196,22 @@
     .act.deny:hover { background: rgba(248, 113, 113, 0.1); }
     .notch-send { transition: transform 160ms ease; }
     .notch-send:hover { transform: scale(1.05); }
+    /* The send lands: the tile takes the press, so the eye follows the comment into the
+       answer instead of watching the field wink out. */
+    .notch-demo.is-sending .notch-send { animation: send-pop 520ms cubic-bezier(0.22, 0.72, 0.2, 1) both; }
+    @keyframes send-pop {
+      0% { transform: scale(1); }
+      30% { transform: scale(0.82); }
+      62% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    .notch-demo.is-sending .notch-field { color: rgba(255, 255, 255, 0.78); }
     .notch-dot { animation: dot-pulse 2.4s ease-in-out infinite; }
     @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
     @media (prefers-reduced-motion: reduce) {
       .notch-demo.is-detail .act, .notch-dot { animation: none; }
       .act, .notch-send { transition: none; }
+      .notch-demo.is-sending .notch-send { animation: none; }
     }
 
 
@@ -1019,22 +1030,84 @@
         });
       }
 
-      var STEP = ["idle", "list", "detail", "list"];
+      // One story, on a loop, slow enough to follow: a request lands, the comment field
+      // opens, a line is typed and sent, and the notch moves on to the next request. Each
+      // step carries its own hold, so the rhythm is readable here instead of being hidden
+      // in a counter. Hovering or clicking still takes over, and the story resumes on exit.
+      var COMMENT = "Go ahead, this one is fine";
+      var STORY = [
+        ["idle", 600], ["list", 1100], ["detail", 1200], ["field", 300],
+        ["type", 0], ["send", 750], ["next", 1600], ["list", 800]
+      ];
       var at = 0;
       var timer = null;
-
-      function tick() {
-        var state = STEP[at % STEP.length];
-        if (state === "detail") { shown += 1; paint(shown); }
-        show(state);
-        at += 1;
-        timer = setTimeout(tick, at % STEP.length === 1 ? 1500 : 2600);
-      }
+      var typer = null;
 
       function stop() {
         clearTimeout(timer);
+        clearInterval(typer);
         timer = null;
+        typer = null;
+        panels.forEach(function (panel) { panel.classList.remove("is-sending"); });
       }
+
+      // The typed line arrives a character at a time, the way it does when a person writes
+      // it: a comment that appears whole reads as a screenshot, not as a thing being sent.
+      function typeComment() {
+        var i = 0;
+        panels.forEach(function (panel) { if (panel.__field) panel.__field.value = ""; });
+        typer = setInterval(function () {
+          i += 1;
+          panels.forEach(function (panel) {
+            if (panel.__field) panel.__field.value = COMMENT.slice(0, i);
+          });
+          if (i >= COMMENT.length) {
+            clearInterval(typer);
+            typer = null;
+            timer = setTimeout(tick, 500);
+          }
+        }, 45);
+      }
+
+      function tick() {
+        var step = STORY[at % STORY.length];
+        var phase = step[0];
+        at += 1;
+        if (phase === "idle") {
+          show("idle");
+        } else if (phase === "list") {
+          paint(shown);
+          show("list");
+        } else if (phase === "detail") {
+          show("detail");
+        } else if (phase === "field") {
+          show("detail", true);
+        } else if (phase === "type") {
+          show("detail", true);
+          typeComment();
+          return;
+        } else if (phase === "send") {
+          panels.forEach(function (panel) { panel.classList.add("is-sending"); });
+        } else if (phase === "next") {
+          // The send has landed, so the field closes and the next request takes its place.
+          panels.forEach(function (panel) {
+            panel.classList.remove("is-sending");
+            if (panel.__field) panel.__field.value = "";
+          });
+          shown += 1;
+          paint(shown);
+          show("detail");
+        }
+        timer = setTimeout(tick, step[1]);
+      }
+
+      // Capture runs the same story at its own pace instead of racing a screenshot loop.
+      window.__pshDemo = {
+        reset: function () { stop(); shown = 0; at = 0; paint(0); show("idle"); },
+        start: function () { stop(); shown = 0; at = 0; paint(0); tick(); },
+        pause: stop,
+        comment: COMMENT
+      };
 
       panels.forEach(function (panel) {
         // Coming in stops the demo on the list, so the pointer picks from there rather
@@ -1119,7 +1192,9 @@
       });
 
       paint(0);
-      tick();
+      // ?capture=1 holds the first frame so a recorder can start the story itself.
+      if (/[?&]capture=1/.test(location.search)) show("idle");
+      else tick();
     })();
   </script>
 </body>
