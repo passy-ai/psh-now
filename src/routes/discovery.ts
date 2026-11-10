@@ -732,9 +732,10 @@ export const discoveryRoutes = new Elysia()
       headers: { "content-type": "text/markdown; charset=utf-8" },
     });
   })
-  .get("/openapi.json", ({ request }) =>
-    Response.redirect(new URL("/openapi/json", request.url).toString(), 308),
-  )
+  // Readiness scanners probe /openapi.json first. This used to build the redirect from
+  // request.url, which behind the proxy is http, so the Location was plain http and a strict
+  // client dropped it. `base` is the canonical https origin.
+  .get("/openapi.json", () => Response.redirect(`${base}/openapi/json`, 308))
   .get("/.well-known/api-catalog", () => ({
     linkset: [
       {

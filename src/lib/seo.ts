@@ -221,14 +221,27 @@ const DISALLOW = [
  * robots.txt.
  *
  * Content is open to every crawler, AI agents included; that is the point of
- * /llms.txt, and a blanket `User-agent: *` already covers them, so there is no
- * need for a block per crawler.
+ * /llms.txt. A blanket `User-agent: *` already covers them, but the major AI
+ * crawlers are named as well: a scanner that checks for an explicit allowance
+ * reads a bare wildcard as "not addressed", and naming them is one screen of
+ * text for a real signal.
  */
+const AI_CRAWLERS = [
+  "GPTBot",
+  "ClaudeBot",
+  "Claude-Web",
+  "PerplexityBot",
+  "Google-Extended",
+  "CCBot",
+  "Applebot-Extended",
+];
+
 export function robotsTxt(): string {
   return [
     "# psh.now",
     "# Content is open to every crawler, AI agents included. See /llms.txt.",
     "",
+    ...AI_CRAWLERS.map((agent) => `User-agent: ${agent}\nAllow: /\n`),
     "User-agent: *",
     "Allow: /",
     ...DISALLOW.map((p) => `Disallow: ${p}`),
