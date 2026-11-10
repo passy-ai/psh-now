@@ -308,8 +308,11 @@ function page(agent: Agent): string {
         <pre data-copyable>npx skills add ${SKILL} -g -y</pre>
         <pre data-copyable>curl -fsSL ${HOST}/install.sh | sh</pre>
         <p>
-          It lands in <code>${agent.dir}</code>${agent.dir === UNIVERSAL ? "" : `, so only ${esc(agent.name)} picks it up from there`}.
-          The shared directory is the fallback every harness reads, so the same install works everywhere else too.
+          ${
+            agent.dir === UNIVERSAL
+              ? `It lands in <code>${UNIVERSAL}</code> - the shared directory every harness reads, so the install is the setup.`
+              : `It lands in <code>${agent.dir}</code>, so only ${esc(agent.name)} picks it up from there. The shared directory is written too, which is why the same install works everywhere else.`
+          }
         </p>
 
         <h2>Connect a channel</h2>
