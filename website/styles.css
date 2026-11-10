@@ -2914,6 +2914,89 @@ pre:hover .pre-copy,
   margin-top: 56px;
 }
 
+/* ---------- Hairline feature grid ----------
+   Six claims separated by lines instead of six cards with their own borders: the
+   grid itself is the frame, so the eye reads one block, not six tiles. */
+.twotone {
+  margin: 0;
+  font-size: clamp(27px, 3.6vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+  color: var(--fg);
+}
+.twotone span {
+  display: block;
+  color: var(--muted-3);
+}
+.text-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 22px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--fg);
+  text-decoration: none;
+}
+.text-arrow svg {
+  transition: transform 0.16s ease;
+}
+.text-arrow:hover svg {
+  transform: translate(2px, -2px);
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 56px 0 0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+.tile {
+  padding: 40px 32px 44px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.tile-ic {
+  margin-bottom: 38px;
+  color: var(--fg);
+}
+.tile-ic svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+.tile h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+}
+.tile p {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
+  .tile {
+    padding: 26px 22px 30px;
+  }
+  .tile-ic {
+    margin-bottom: 20px;
+  }
+}
+
 /* ---------- Agent integration pages ---------- */
 .crumbs {
   margin: 0 0 20px;
