@@ -619,11 +619,12 @@ export const discoveryRoutes = new Elysia()
   .get("/llms.txt", () => text(llmsTxt()))
   .get("/llms-full.txt", () => text(llmsFullTxt()))
   .get("/skill.md", () => skillMarkdown())
-  // Linked from the homepage's structured data, so it has to resolve.
+  // Linked from the homepage's structured data, so it has to resolve even in a build that
+  // did not copy the repository root into the image. LICENSE stays canonical; this is the
+  // same text, kept here so the route cannot return 404 in production.
   .get("/license", async () => {
     const file = Bun.file("LICENSE");
-    if (!(await file.exists())) return new Response("license not found", { status: 404 });
-    return text(await file.text());
+    return text((await file.exists()) ? await file.text() : LICENCE_TEXT);
   })
   .get("/psh-now.tar.gz", async () => {
     const archive = Bun.file(ARCHIVE_FILE);
@@ -734,3 +735,6 @@ export const discoveryRoutes = new Elysia()
     contact_email: "hello@psh.now",
     legal_info_url: base,
   }));
+
+/** The MIT licence, verbatim, for images that ship without the repository root. */
+const LICENCE_TEXT = "MIT License\n\nCopyright (c) 2026 Absolum\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.";
