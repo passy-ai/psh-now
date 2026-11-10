@@ -2763,6 +2763,12 @@ html[data-theme="dark"] .risk-high .risk-tag {
   line-height: 1.15;
   color: var(--fg);
 }
+.docs-main p.docs-lede {
+  max-width: 620px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--muted);
+}
 .docs-main h2 {
   margin: 44px 0 10px;
   font-size: 21px;
@@ -2863,15 +2869,26 @@ pre:hover .pre-copy,
     grid-template-columns: minmax(0, 1fr);
     gap: 26px;
   }
+  /* One scrollable chip row: the group labels are a sidebar idea and cost height
+     that a phone does not have. */
   .docs-side {
     position: static;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .docs-side::-webkit-scrollbar {
+    display: none;
   }
   .docs-group {
-    width: 100%;
-    margin: 10px 0 2px;
+    display: none;
+  }
+  .docs-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
 

@@ -177,6 +177,10 @@ export function rewriteRelative(html: string): string {
  */
 const DISALLOW = [
   "/api/",
+  // The same pages are served under /website/ for their assets. The HTML copies are
+  // duplicates of the canonical routes above, so keep crawlers out of them - but only
+  // the .html files, because blocking the folder would hide the CSS from rendering too.
+  "/website/*.html",
   "/app",
   "/login",
   "/devices",
