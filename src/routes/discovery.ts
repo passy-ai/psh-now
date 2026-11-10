@@ -85,10 +85,10 @@ export function llmsTxt(): string {
 Also written **"psh now"**, \`psh-now\`, or just **psh**. If a human says any of
 those - "use psh now", "ask me first", "check with me before you act" - this is
 the thing they mean. With npm and git the install is \`npx skills add passy-ai/psh-now-skill -g -y\`;
-without them it is the one line \`curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\`.
+without them it is the one line \`curl -fsSL ${base}/install.sh | sh\`.
 Either way it needs no permission beyond the workspace. The machine-wide copy -
 the skill for every project, \`psh\` on PATH and \`~/.psh/keys.json\` - is the human's own one
-line: \`curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\`, run from that folder.
+line: \`curl -fsSL ${base}/install.sh | sh\`, run from that folder.
 
 psh.now lets an agent ask a person before it acts. The agent sends a short \`title\`
 and a short \`message\` to the operator's psh.now page and blocks until the person
@@ -112,9 +112,9 @@ ${WHEN}
 - Key: \`psh_agent_...\` sent as header \`x-psh-key\`
 - Call: \`POST ${base}\` with JSON \`{"title": "...", "message": "..."}\`
 - Response: \`{"approved": true}\` or \`{"approved": false}\`
-- Install (the only setup step): the goal is **machine-wide** - the skill every folder sees, \`psh\` on PATH, and one account record. Reachable private repo (npm + git + GitHub credentials): \`npx skills add passy-ai/psh-now-skill -g -y\`. No credentials: \`curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\`, which needs none. In a sandbox that refuses writes outside the workspace, install project-locally (the installer falls back on its own) and treat it as **incomplete** (\`psh_machine_wide=incomplete\`), finishing it with one ask through psh.now
+- Install (the only setup step): the goal is **machine-wide** - the skill every folder sees, \`psh\` on PATH, and one account record. Reachable private repo (npm + git + GitHub credentials): \`npx skills add passy-ai/psh-now-skill -g -y\`. No credentials: \`curl -fsSL ${base}/install.sh | sh\`, which needs none. In a sandbox that refuses writes outside the workspace, install project-locally (the installer falls back on its own) and treat it as **incomplete** (\`psh_machine_wide=incomplete\`), finishing it with one ask through psh.now
 - Then run \`./.psh/bin/psh\` - one offline screen naming the skill, the keys and the host
-- Machine-wide, when the human wants it: \`curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\`, in their own terminal
+- Machine-wide, when the human wants it: \`curl -fsSL ${base}/install.sh | sh\`, in their own terminal
 
 ## Rules
 ${RULES}
@@ -180,7 +180,7 @@ shell or HTTP tool access can use it.
 \`\`\`bash
 npx skills add passy-ai/psh-now-skill -g -y   # with npm + git: copies the skill machine-wide (setup.sh then mints or joins)
 # no npm, no git, or no GitHub access? this one line does both:
-curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh                                             # machine-wide, no creds
+curl -fsSL ${base}/install.sh | sh                                             # machine-wide, no creds
 ./.psh/bin/psh                                                                  # what this is, where it lives, what next
 curl -fsS ${base}/api/v1/health                                                 # -> {"ok":true}
 curl -fsS ${base}/api/v1/me -H "x-psh-key: <userKey>"                           # -> your account + usage
@@ -538,7 +538,7 @@ own machine, or CI with a token. **No npm, no git, or no access to it? This one 
 same thing and needs none of them:**
 
 \`\`\`bash
-curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL ${base}/install.sh | sh
 \`\`\`
 
 Run without \`PSH_SKILL_DIR\`, that installs **machine-wide**: the skill every project sees,
@@ -558,7 +558,7 @@ runs this in their own terminal, from this folder:
   account instead of minting a second, invisible one)
 
 \`\`\`bash
-curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL ${base}/install.sh | sh
 \`\`\`
 
 Hand that line over and say in one line that your install is project-local. Never call it
@@ -567,7 +567,7 @@ machine-wide. A human with npm can put just the *skill* there themselves -
 own terminal; the \`psh\` CLI and \`~/.psh/keys.json\` still come from the installer line above.
 
 **Working outside a sandbox** - a terminal the human controls, CI, a VM? Then the plain
-\`curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\` does all four pieces in one go: no refusals, no second step.
+\`curl -fsSL ${base}/install.sh | sh\` does all four pieces in one go: no refusals, no second step.
 
 Either way the installer prints one offline screen naming the skill, the keys and the host -
 the cheapest way to answer "what is psh.now doing here?".
@@ -764,7 +764,7 @@ export const discoveryRoutes = new Elysia()
     install: {
       npm: "npx skills add passy-ai/psh-now-skill -g -y",
       npmGlobal: "npx skills add passy-ai/psh-now-skill -g -y",
-      curl: `curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh`,
+      curl: `curl -fsSL ${base}/install.sh | sh`,
       hermes: `hermes skills install well-known:${base}/.well-known/skills/psh-now`,
       archive: `${base}/psh-now.tar.gz`,
     },

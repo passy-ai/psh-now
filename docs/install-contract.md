@@ -25,13 +25,15 @@ That is a working project-local install and an **unfinished** machine-wide one.
 npx skills add passy-ai/psh-now-skill -g -y
 
 # 2. the hosted installer — needs no credentials, and verifies every file it downloads
-curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL https://psh.now/install.sh | sh
 ```
 
 Route 2 is what an auditor can check: `public/psh-now.tar.gz` carries `install.sh` itself (F5),
 its digest is in `/.well-known/agent-skills/index.json`, and every file the installer downloads
 is checked against `/.well-known/agent-skills/files.json` (F11) — a mismatch is a refusal, not a
-warning. `PSH_NO_VERIFY=1` is the documented override. The report template is inside the package
+warning. Piping to `sh` runs the installer before you have read it; to check it first, hash it
+against its published digest without writing anything to disk:
+`curl -fsSL https://psh.now/install.sh | sha256sum`. `PSH_NO_VERIFY=1` is the documented override. The report template is inside the package
 (F7): nothing that instructs an agent is fetched at run time.
 
 ## When the machine-wide writes are refused

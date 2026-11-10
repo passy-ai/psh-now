@@ -128,21 +128,21 @@
 If not, do this instead: curl -fsSL https://psh.now/install.sh
 
 After installing, send me a test request.</pre>
-        <p>No npm, no git, or no GitHub access? The fallback line in the prompt
-          above does the same thing and mints your keys too: it installs the skill
-          machine-wide, puts <code>psh</code> on your PATH and writes the machine's account
-          record. If a sandbox refuses those writes it falls back to this folder and says so,
+        <p>No npm, no git, or no GitHub access? Run the installer directly - it mints
+          your keys too: it installs the skill machine-wide, puts <code>psh</code> on your
+          PATH and writes the machine's account record. If a sandbox refuses those writes it
+          falls back to this folder and says so,
           <code>psh_machine_wide=incomplete</code>:</p>
-        <pre data-copyable>curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh</pre>
+        <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
           That also leaves the project its own <code>./.psh/bin/psh</code>, so an agent
           that hears "use psh now" always has a command to run: one screen naming the
           skill, the host, the keys and the next command. <code>./.psh/bin/psh doctor</code>
           checks it end to end. The machine-wide copy - the skill every project sees plus a
-          <code>psh</code> on your PATH - is your own terminal line:
-          <code>curl -fsSL https://psh.now/install.sh | sh</code>, run from the folder.
-          Until you run it the install is project-local, and the agent says so rather than
-          calling it finished. (Also written "psh now" or psh-now.)
+          <code>psh</code> on your PATH - is that same line run by you in your own terminal
+          rather than by an agent inside a sandbox. Until it has run the install is
+          project-local, and the agent says so rather than calling it finished. (Also written
+          "psh now" or psh-now.)
         </p>
         <p>After installing, you can have the agent send one test question through
           psh.now whenever you want to see it work end to end.</p>

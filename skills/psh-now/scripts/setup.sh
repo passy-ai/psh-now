@@ -660,7 +660,7 @@ POSTs a short title + message; the human taps Approve or Deny on their phone.
   command       psh            (this screen)   psh doctor   psh status   psh ask "Title" "Message"
   how to ask    sh $SKILL_DIR/scripts/ask.sh "Title" "What you are about to do"
   attach more   dashboard → the channel card → "Copy prompt for agent"
-  install       curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+  install       curl -fsSL $HOST/install.sh | sh
   docs          $HOST/setup.md
 
 Rules: never start a second account for a human who already has one - if a
@@ -719,7 +719,7 @@ If a human says "use psh now" / "ask me first", run this first:
   psh doctor     # connectivity + credentials
 
   skill         ${GLOBAL_DEST:-$HOME/.agents/skills/psh-now}
-  install       curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+  install       curl -fsSL $HOST/install.sh | sh
   docs          $HOST/setup.md
 
 Keys are **per project**: each project keeps its own in <project>/.psh/keys.json,
@@ -754,7 +754,7 @@ elif [ "$PSH_DIR" != "$GLOBAL_DIR" ]; then
     echo "psh.now: note: this project's only. Approve and I will install them machine-wide.\"" >&2
     echo "psh.now: note: - and re-run with the permissions granted. Or the human runs this in" >&2
     echo "psh.now: note: their own terminal, from this folder:" >&2
-    echo "psh.now: note:   cd \"$(dirname "$PSH_DIR")\" && curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh" >&2
+    echo "psh.now: note:   cd \"$(dirname "$PSH_DIR")\" && curl -fsSL $HOST/install.sh | sh" >&2
   fi
 fi
 
@@ -833,7 +833,7 @@ agent re-runs the install with the permissions granted. That is the fastest way.
 **Or one line**, in your own terminal, from this folder, so the same account is kept:
 
 \`\`\`bash
-cd \"$proj_dir\" && curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+cd \"$proj_dir\" && curl -fsSL $HOST/install.sh | sh
 \`\`\`
 
 Then all three should pass:
@@ -916,7 +916,7 @@ else
   echo "psh.now: account key   ${user:-<held by the account owner>}"
   echo "psh.now: channel key   ${channel:--}"
   echo "psh.now: ask with      $psh_cmd ask \"Title\" \"What you are about to do\""
-  [ "$mw_done" = 1 ] || echo "psh.now: project-local install - the machine-wide copy is the human's line: cd \"$(dirname "$PSH_DIR")\" && curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh"
+  [ "$mw_done" = 1 ] || echo "psh.now: project-local install - the machine-wide copy is the human's line: cd \"$(dirname "$PSH_DIR")\" && curl -fsSL $HOST/install.sh | sh"
   echo "psh.now: open + approve ${accessurl:-$HOST/app}"
 fi
 

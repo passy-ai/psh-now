@@ -49,7 +49,7 @@ the skill.
   Without `-y` the skills CLI waits on a prompt, installs nothing and exits 1 (measured
   2026-10-18, cold cache, no TTY). `-g` is the machine-wide copy into
   `~/.agents/skills/psh-now`; the line mints nothing, so `scripts/setup.sh` runs once after it
-  to create `~/.psh/keys.json` and put `psh` on PATH. The `curl …/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh` fallback
+  to create `~/.psh/keys.json` and put `psh` on PATH. The `curl …/install.sh | sh` fallback
   needs no credentials and finishes the join in the same command when it is handed a channel
   link (`| bash`; the link travels in the sentence, never as an installer argument - that
   re-installs a machine that only needed to join). Never write an environment variable into a

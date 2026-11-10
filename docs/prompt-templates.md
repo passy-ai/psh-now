@@ -124,7 +124,7 @@ the curl line: it installs *and* joins/mints in one step and needs no credential
 what a pasted prompt has to guarantee.
 
 The machine-wide copy - the skill for every project, `psh` on PATH and `~/.psh/keys.json` - stays
-the human's own line `curl -fsSL <host>/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh`. `npx … -g` alone installs only the skill:
+the human's own line `curl -fsSL <host>/install.sh | sh`. `npx … -g` alone installs only the skill:
 it leaves no `psh` on PATH and no machine record, so it does not replace that line.
 
 Measured, in a container, 2026-10-17: a fresh box with **no** credentials fails the package install

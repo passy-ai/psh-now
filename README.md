@@ -255,7 +255,7 @@ Install the skill (same shape as here.now's):
 npx skills add passy-ai/psh-now-skill -g -y
 
 # no npm? the hosted installer (works in a sandbox too, no credentials needed)
-curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL https://psh.now/install.sh | sh
 ```
 
 Then give the agent a host and key (environment or `agents.md`):

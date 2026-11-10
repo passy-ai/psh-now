@@ -41,7 +41,7 @@ the install is one command with npm and git (your GitHub credentials, only if th
 
 ```bash
 npx skills add passy-ai/psh-now-skill -g -y
-curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh   # no npm, no git, no access needed
+curl -fsSL https://psh.now/install.sh | sh   # no npm, no git, no access needed
 ```
 
 The `skills add` line copies the skill machine-wide and mints nothing, so run `scripts/setup.sh`
@@ -94,7 +94,7 @@ it. There are exactly three.
 ```text
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL https://psh.now/install.sh | sh
 
 After installing, send me a test request.
 ```
@@ -113,7 +113,7 @@ only needed to join is what mints a second account.
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 and join https://psh.now/c/<channel-id>
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL https://psh.now/install.sh | sh
 ```
 
 The paste command is one line on purpose, and it carries `-y`: the skills CLI waits on a
@@ -152,9 +152,9 @@ setup only mints a key locally and calls the host. Everything needed is here.
    npx skills add passy-ai/psh-now-skill -g -y
    # no npm/git, or no GitHub access? the hosted installer does both, and needs no
    # permission at all inside the folder:
-   #   curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+   #   curl -fsSL https://psh.now/install.sh | sh
    #   ↳ machine-wide (skill for every project + `psh` on PATH + ~/.psh/keys.json) is the
-   #     human's own terminal line: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+   #     human's own terminal line: curl -fsSL https://psh.now/install.sh | sh
    ```
 
 
@@ -298,7 +298,7 @@ hosted installer does the same job - it mints the keys too, and verifies every f
 against the published digests:
 
 ```bash
-curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL https://psh.now/install.sh | sh
 ```
 
 Both routes install **machine-wide**: the skill every project sees, `psh` on PATH, and

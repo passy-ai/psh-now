@@ -54,7 +54,7 @@ human                          agent                              host
    record. With the private repo (npm + git + GitHub credentials):
    `npx skills add passy-ai/psh-now-skill -g -y`, then
    `sh ~/.agents/skills/psh-now/scripts/setup.sh` — the `-g` copy is what the second line runs.
-   Without credentials: `curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh` (it verifies every file
+   Without credentials: `curl -fsSL https://psh.now/install.sh | sh` (it verifies every file
    against `/.well-known/agent-skills/files.json` and mints the keys too).
 2. `curl -fsS https://psh.now/api/v1/health` — `{"ok":true}`.
 3. Report the account key and the three links.
