@@ -18,25 +18,6 @@ function int(name: string, fallback: number): number {
   return parsed;
 }
 
-/**
- * A hostname this project used to run on, mapped to the one it runs on now.
- *
- * PUBLIC_BASE_URL is the canonical host: every link, canonical tag, sitemap entry and prompt is
- * built from it. When a deployment's environment still names the old host, the app should not
- * keep advertising it, so this rewrites it at startup. A self hosted instance sets its own
- * value and never hits this; the mapping is a migration for our own instance only.
- */
-const LEGACY_HOSTS: Record<string, string> = {
-  "https://psh.abslm.nl": "https://psh.now",
-  "http://psh.abslm.nl": "https://psh.now",
-  "https://www.psh.abslm.nl": "https://psh.now",
-};
-
-function canonicalise(raw: string): string {
-  const trimmed = raw.replace(/\/$/, "");
-  return LEGACY_HOSTS[trimmed] ?? trimmed;
-}
-
 export const env = (() => {
   const nodeEnv = process.env.NODE_ENV ?? "development";
   const isProduction = nodeEnv === "production";
@@ -56,7 +37,7 @@ export const env = (() => {
     isProduction,
     port: int("PORT", 3000),
     host: process.env.HOST ?? "0.0.0.0",
-    publicBaseUrl: canonicalise(required("PUBLIC_BASE_URL", "http://localhost:3000")),
+    publicBaseUrl: required("PUBLIC_BASE_URL", "http://localhost:3000").replace(/\/$/, ""),
     databaseUrl: required("DATABASE_URL", "postgres://localhost:5432/psh.now"),
     defaultTimeoutMs: int("DEFAULT_TIMEOUT_MS", 90 * 1000),
     pairingTtlMs: int("PAIRING_TTL_MS", 10 * 60 * 1000),
