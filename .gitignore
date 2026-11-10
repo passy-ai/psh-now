@@ -43,3 +43,8 @@ credentials*.json
 _*.mjs
 _*.png
 pushlab/
+pushlab/
+.worktrees/
+
+# design-review scratch pages, never shipped
+website/preview-*.html
