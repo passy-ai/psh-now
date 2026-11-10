@@ -34,6 +34,18 @@ export async function createPairing(tenantId: string): Promise<CreatedPairing> {
   };
 }
 
+/**
+ * Pairing links are single-use and short-lived. The dashboard mints one when it
+ * loads so the QR button is instant, so the rows need clearing up on a schedule.
+ */
+export async function sweepExpiredPairings(): Promise<number> {
+  const gone = await db
+    .delete(pairingTokens)
+    .where(lt(pairingTokens.expiresAt, new Date()))
+    .returning({ tenantId: pairingTokens.tenantId });
+  return gone.length;
+}
+
 export interface ConsumePairingInput {
   token: string;
   deviceName?: string;

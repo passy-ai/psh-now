@@ -51,6 +51,9 @@ import { createSession, getSessionById } from "../services/sessions";
 import { createClaim, verifyClaim, verifyClaimByEmail } from "../services/claims";
 import { onlineDeviceCount } from "../lib/realtime";
 
+/** Rendered QR codes, keyed by their payload. Bounded: these are URLs, not data. */
+const qrCache = new Map<string, string>();
+
 export const authRoutes = new Elysia({ prefix: "/api/v1" })
   /**
    * Create a workspace/channel. Used by `psh init` and by agents provisioning
@@ -351,16 +354,29 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/qr",
     async ({ query }) => {
-      const svg = await QRCode.toString(query.data, {
-        type: "svg",
-        margin: 1,
-        width: 240,
-        color: { dark: "#0b0d12", light: "#ffffff" },
-      });
+      /**
+       * Rendering the SVG is pure CPU and the deployed host takes the better part of a
+       * second over it, while the dashboard asks for the same pairing code from the
+       * modal and from every channel card. One render per distinct string.
+       */
+      let svg = qrCache.get(query.data);
+      if (!svg) {
+        svg = await QRCode.toString(query.data, {
+          type: "svg",
+          margin: 1,
+          width: 240,
+          color: { dark: "#0b0d12", light: "#ffffff" },
+        });
+        if (qrCache.size >= 200) {
+          const oldest = qrCache.keys().next().value;
+          if (oldest !== undefined) qrCache.delete(oldest);
+        }
+        qrCache.set(query.data, svg);
+      }
       return new Response(svg, {
         headers: {
           "content-type": "image/svg+xml",
-          "cache-control": "private, max-age=60",
+          "cache-control": "private, max-age=600",
         },
       });
     },

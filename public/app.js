@@ -83,6 +83,8 @@ const state = {
   channelConnect: {},
   /** Device-pairing QR (account-scoped) shared by every channel card header. */
   pairQr: null,
+  /** The pairing link itself, kept until it is close to expiring. */
+  pairLink: null,
   pairQrUnavailable: false,
   /** Account SECRET key (manage). Memory only - never persisted, never in a URL. */
   secretKey: null,
@@ -212,10 +214,11 @@ function rel(ts) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-function api(path, { method = "GET", body, silent = false } = {}) {
+function api(path, { method = "GET", body, silent = false, signal } = {}) {
   const doFetch = (key) =>
     fetch(path, {
       method,
+      signal,
       headers: {
         "Content-Type": "application/json",
         ...(store.token ? { "x-psh-device": store.token } : {}),
@@ -350,21 +353,81 @@ $("menuTheme")?.addEventListener("click", (e) => {
 function closePairModal() {
   $("pairModal")?.classList.add("hide");
 }
+
+/**
+ * Pairing links cost two round trips (mint the token, render the QR) and the deployed
+ * host takes seconds over each. Mint one in the background when the dashboard loads so
+ * the modal opens with a code already in it, and keep it until it is close to expiring.
+ */
+const PAIR_LINK_TIMEOUT_MS = 8000;
+const PAIR_LINK_REFRESH_MS = 60_000;
+let pairLinkPending = null;
+
+async function getPairLink(force = false) {
+  const fresh =
+    state.pairLink && state.pairLink.expiresAt - Date.now() > PAIR_LINK_REFRESH_MS;
+  if (!force && fresh) return state.pairLink;
+  if (pairLinkPending) return pairLinkPending;
+  pairLinkPending = (async () => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), PAIR_LINK_TIMEOUT_MS);
+    try {
+      // `silent` on purpose: a 403 here used to open window.prompt, which blocks the
+      // whole page and reads as "Generating…" forever.
+      const data = await api("/api/v1/devices/pairing", {
+        method: "POST",
+        silent: true,
+        signal: ctrl.signal,
+      });
+      const qr = `/api/v1/qr?data=${encodeURIComponent(data.url)}`;
+      state.pairLink = {
+        url: data.url,
+        qr,
+        expiresAt: Date.parse(data.expiresAt) || Date.now() + 10 * 60_000,
+      };
+      // Warm the image too, so the modal has pixels to show the moment it opens.
+      new Image().src = qr;
+      return state.pairLink;
+    } finally {
+      clearTimeout(timer);
+      pairLinkPending = null;
+    }
+  })();
+  return pairLinkPending;
+}
+async function showPairLink() {
+  const retry = $("pairModalRetry");
+  retry?.classList.add("hide");
+  $("pairModalQr").removeAttribute("src");
+  $("pairModalQr").classList.add("hide");
+  $("pairModalUrl").textContent = "Generating…";
+  try {
+    const link = await getPairLink();
+    const img = $("pairModalQr");
+    img.src = link.qr;
+    // Wait for the pixels: revealing the box first is what made the modal look empty
+    // while the QR was still on its way.
+    await img.decode?.().catch(() => {});
+    img.classList.remove("hide");
+    $("pairModalUrl").textContent = link.url;
+  } catch (err) {
+    const offline = err?.name === "AbortError" || /failed to fetch|network/i.test(err?.message || "");
+    $("pairModalUrl").textContent = offline
+      ? "No answer from the server - retry"
+      : err.message || "Couldn't create a pairing link";
+    retry?.classList.remove("hide");
+  }
+}
+
 $("pairQrBtn")?.addEventListener("click", async () => {
   const modal = $("pairModal");
   if (!modal) return;
   modal.classList.remove("hide");
-  $("pairModalQr").removeAttribute("src");
-  $("pairModalUrl").textContent = "Generating…";
-  try {
-    const data = await api("/api/v1/devices/pairing", { method: "POST" });
-    $("pairModalQr").src = `/api/v1/qr?data=${encodeURIComponent(data.url)}`;
-    $("pairModalUrl").textContent = data.url;
-  } catch (err) {
-    $("pairModalUrl").textContent = "-";
-    toast(err.message || "Couldn't create a pairing link");
-    closePairModal();
-  }
+  await showPairLink();
+});
+$("pairModalRetry")?.addEventListener("click", async () => {
+  $("pairModalRetry")?.classList.add("hide");
+  await showPairLink();
 });
 $("pairModalClose")?.addEventListener("click", closePairModal);
 $("pairModal")?.addEventListener("click", (e) => {
@@ -808,6 +871,9 @@ function connect() {
   // Pull the account secret into memory up front so pairing a device (and any
   // other manage action) never interrupts with a prompt.
   void loadSecretKey();
+  // Mint the pairing link now, not when the QR button is pressed: the two round
+  // trips are seconds apart from the click on a small host, which read as a hang.
+  void getPairLink().catch(() => {});
 
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${proto}://${location.host}/ws?token=${encodeURIComponent(credential)}`);
@@ -2202,8 +2268,7 @@ async function setChannelPairQr(channelId, force = false) {
   if (!q) return null;
   try {
     if (force || !state.pairQr) {
-      const data = await api("/api/v1/devices/pairing", { method: "POST" });
-      state.pairQr = `/api/v1/qr?data=${encodeURIComponent(data.url)}`;
+      state.pairQr = (await getPairLink(force)).qr;
     }
     const el = document.getElementById(`cqr-${channelId}`);
     if (el) {

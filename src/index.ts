@@ -15,6 +15,7 @@ import { findDeviceByToken } from "./services/devices";
 import { startPubSub, stopPubSub } from "./lib/pubsub";
 import { handleDecisionEvent } from "./services/decisions";
 import { sweepExpiredTenants } from "./services/tenants";
+import { sweepExpiredPairings } from "./services/devices";
 import { expireStalePrompts } from "./services/prompts";
 import { sql } from "./db";
 import { authRoutes, agentAuthRoutes } from "./routes/auth";
@@ -612,6 +613,7 @@ void startPubSub(handleDecisionEvent).catch((err) => console.error("[pubsub] fai
 const sweeper = setInterval(() => {
   void sweepExpiredTenants().catch((err) => console.error("[sweep] tenants:", err));
   void expireStalePrompts().catch((err) => console.error("[sweep] prompts:", err));
+  void sweepExpiredPairings().catch((err) => console.error("[sweep] pairings:", err));
 }, DECISION_SWEEP_MS);
 sweeper.unref();
 
