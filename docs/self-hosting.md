@@ -63,3 +63,7 @@ tunnel, and an upgrade over an existing database with data in it. Those are trac
 The hosted instance runs at `https://psh.now` and deploys from this repository. Nothing in the
 code assumes that hostname: every URL is built from `PUBLIC_BASE_URL`, so a hardcoded host is
 a bug worth reporting.
+
+`PUBLIC_BASE_URL` is also the canonical host. A request for HTML on any other hostname is
+answered with a 301 to the same path there, and `/api/` is exempt so an agent can always reach
+the API on the host it was configured with. Set it once, to the name you want indexed.

@@ -619,6 +619,12 @@ export const discoveryRoutes = new Elysia()
   .get("/llms.txt", () => text(llmsTxt()))
   .get("/llms-full.txt", () => text(llmsFullTxt()))
   .get("/skill.md", () => skillMarkdown())
+  // Linked from the homepage's structured data, so it has to resolve.
+  .get("/license", async () => {
+    const file = Bun.file("LICENSE");
+    if (!(await file.exists())) return new Response("license not found", { status: 404 });
+    return text(await file.text());
+  })
   .get("/psh-now.tar.gz", async () => {
     const archive = Bun.file(ARCHIVE_FILE);
     if (!(await archive.exists())) {

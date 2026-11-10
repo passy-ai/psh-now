@@ -407,12 +407,34 @@ function loopbackRedirect(request: Request): Response | null {
   return Response.redirect(`${canonicalHost}${url.pathname}${url.search}`, 302);
 }
 
+/**
+ * One canonical host, always.
+ *
+ * Every page is reachable on whatever hostname the client typed, which means the same bytes are
+ * served under two names and a crawler has to pick one. Rather than trust a canonical tag to
+ * settle that, a request for HTML on a host that is not `PUBLIC_BASE_URL` is answered with a
+ * permanent redirect. API paths are exempt: an agent must be able to reach the API on the host
+ * it was configured with, and a redirect there would be a silent latency tax on every call.
+ */
+function canonicalRedirect(request: Request): Response | null {
+  if (canonicalHost === null) return null;
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+  const accept = request.headers.get("accept") ?? "";
+  if (!accept.includes("text/html")) return null;
+  const url = new URL(request.url);
+  if (url.pathname === "/api/v1/health" || url.pathname.startsWith("/api/")) return null;
+  const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "::1";
+  if (loopback && process.env.PSH_ALLOW_LOCAL_ORIGIN === "1") return null;
+  if (url.host === new URL(canonicalHost).host) return null;
+  return Response.redirect(`${canonicalHost}${url.pathname}${url.search}`, 301);
+}
+
 const app = new Elysia({ serve: { reusePort: false } })
   .onRequest(({ request }) => {
     if (process.env.PSH_TIMING === "1") {
       (request as Request & { _t0?: number })._t0 = performance.now();
     }
-    return loopbackRedirect(request) ?? undefined;
+    return loopbackRedirect(request) ?? canonicalRedirect(request) ?? undefined;
   })
   .onAfterHandle(({ request }) => {
     if (process.env.PSH_TIMING !== "1") return;

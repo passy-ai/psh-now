@@ -94,9 +94,28 @@ export function seoHead(html: string, path: string, robots?: string): string {
     `<meta name="twitter:title" content="${t}" />`,
     `<meta name="twitter:description" content="${d}" />`,
     `<meta name="twitter:image" content="${OG_IMAGE}" />`,
+    path === "/" ? `<script type="application/ld+json">${JSON.stringify(softwareLd(html)).replace(/</g, "\\u003c")}</script>` : "",
   ]
     .filter(Boolean)
     .join("\n    ");
+}
+
+/** The homepage's structured data, derived from the page so it cannot drift. */
+function softwareLd(html: string): Record<string, unknown> {
+  const { description } = readMeta(html);
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: SITE_NAME,
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "macOS, Linux, Windows",
+    description,
+    url: `${base}/`,
+    license: `${base}/license`,
+    isAccessibleForFree: true,
+    offers: [{ "@type": "Offer", price: "0", priceCurrency: "EUR", name: "Self hosted" }],
+    publisher: { "@type": "Organization", name: "Absolum", url: `${base}/` },
+  };
 }
 
 /** Insert the generated tags into a page's head. */
