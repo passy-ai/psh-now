@@ -200,7 +200,7 @@ const FOOTER = `      <footer class="site-footer">
       </footer>`;
 
 function head(agent: Agent): string {
-  const title = `${agent.name} + psh.now — ask before it acts, from anywhere`;
+  const title = `${agent.name} + psh.now, ask before it acts, from anywhere`;
   const description = `${agent.name} integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. ${agent.tagline}`;
   const crumbs = {
     "@context": "https://schema.org",
@@ -402,7 +402,7 @@ function hub(): string {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="${esc(description)}" />
-    <title>Agent integrations — Claude Code, Codex, Cursor, Cline and more | psh.now</title>
+    <title>Agent integrations. Claude Code: Codex, Cursor, Cline and more | psh.now</title>
     <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
     <link rel="stylesheet" href="/website/styles.css" />

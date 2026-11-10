@@ -24,13 +24,13 @@ That is a working project-local install and an **unfinished** machine-wide one.
 # 1. the package repo - needs npm + git (credentials only if it is private), and it is the global one
 npx skills add passy-ai/psh-now-skill -g -y
 
-# 2. the hosted installer — needs no credentials, and verifies every file it downloads
+# 2. the hosted installer: needs no credentials, and verifies every file it downloads
 curl -fsSL https://psh.now/install.sh | sh
 ```
 
 Route 2 is what an auditor can check: `public/psh-now.tar.gz` carries `install.sh` itself (F5),
 its digest is in `/.well-known/agent-skills/index.json`, and every file the installer downloads
-is checked against `/.well-known/agent-skills/files.json` (F11) — a mismatch is a refusal, not a
+is checked against `/.well-known/agent-skills/files.json` (F11), a mismatch is a refusal, not a
 warning. Piping to `sh` runs the installer before you have read it; to check it first, hash it
 against its published digest without writing anything to disk:
 `curl -fsSL https://psh.now/install.sh | sha256sum`. `PSH_NO_VERIFY=1` is the documented override. The report template is inside the package
@@ -38,7 +38,7 @@ against its published digest without writing anything to disk:
 
 ## When the machine-wide writes are refused
 
-1. Say it in one line — this project works, the machine does not yet.
+1. Say it in one line, this project works, the machine does not yet.
 2. Send **one** ask: `psh ask "Install psh.now globally?" "The skill and the psh CLI are this
    project's only. Approve and I will install them machine-wide."`
 3. Approved → re-run the install line with the permissions granted.

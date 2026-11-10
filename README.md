@@ -154,7 +154,7 @@ PUBLIC_BASE_URL=https://psh.now
 ```
 
 With that set, every generated pairing link becomes
-`https://psh.now/pair/<code>` — openable from any phone, anywhere. The
+`https://psh.now/pair/<code>`, openable from any phone, anywhere. The
 agent endpoint is simply the same origin:
 
 ```bash
@@ -182,7 +182,7 @@ That's it. Put it under systemd (or `tmux`/`pm2`), and you have a host node.
 
 ### HTTPS / WSS without Caddy
 
-Bun terminates TLS itself — no Caddy, no nginx. Get a cert (e.g. from Let's
+Bun terminates TLS itself, no Caddy, no nginx. Get a cert (e.g. from Let's
 Encrypt) and point psh.now at it:
 
 ```bash
@@ -199,12 +199,12 @@ renew, or any certificate you already manage.
 
 > A reverse proxy is only useful if you *already* run one, want to host many
 > services on one IP, or need automatic cert renewal without touching psh.
-> `deploy/Caddyfile` is provided for that case — it is optional.
+> `deploy/Caddyfile` is provided for that case, it is optional.
 
 > **Blocking vs proxy timeouts.** `POST /` holds the connection open until a
 > human answers. Cloudflare and many proxies cut an origin response off at
 > ~100s (Cloudflare returns **524**). Keep `DEFAULT_TIMEOUT_MS` below your
-> proxy's limit — the default is **90s** — or run psh.now directly / self-hosted
+> proxy's limit (the default is **90s**) or run psh.now directly / self-hosted
 > without a CDN. The agent must treat a 524/timeout as **not approved** (the
 > skill says so).
 
@@ -270,9 +270,9 @@ The server hosts the skill and installer itself: `/skill.md`, `/install.sh`,
 
 That is the entire integration surface for an arbitrary agent:
 
-- **ask** — the model follows `agents.md` / the skill and calls the host. Any
+- **ask**: the model follows `agents.md` / the skill and calls the host. Any
   LLM with shell or HTTP tool access can do this.
-- **gate** — `psh hook` wired into a harness's pre-tool hook, which cannot be
+- **gate**: `psh hook` wired into a harness's pre-tool hook, which cannot be
   skipped. Optional, and only where the harness supports it.
 
 > The API key in `agents.md` is a secret. If that file is committed, gitignore
@@ -289,7 +289,7 @@ That is the entire integration surface for an arbitrary agent:
    (`rm -rf`, `--force`, `sudo`, `curl | sh`, `DROP TABLE`, force-push, …) and
    bucketed `low → critical` with human-readable reasons.
 3. **Hold.** The request's promise is parked in an in-process waiter registry
-   with a timeout. The HTTP connection stays open — the terminal freezes.
+   with a timeout. The HTTP connection stays open, the terminal freezes.
    **Async option:** send `wait:false` and the call returns at once with a
    `pollUrl`, so nothing blocks and no proxy/CDN timeout can cut it off. Poll
    with `GET /api/v1/prompts/:id?wait=30`.
@@ -312,14 +312,14 @@ has passed are swept to `expired` (async requests have no waiter to time out).
 | -------- | --------------------------------- | ------------- | -------------------------------------- |
 | `POST`   | `/` · `/api/v1/hook`              | `x-psh-key`  | Approval request (blocking, or `wait:false`) |
 | `POST`   | `/mcp`                            | `x-psh-key`  | MCP: one tool, `psh_ask` (streamable HTTP, JSON) |
-| `GET`    | `/.well-known/mcp.json`           | —             | MCP descriptor for clients and scanners |
-| `POST`   | `/api/v1/channels`                | —             | Provision workspace (+ `pair:true` for a pairing link) |
+| `GET`    | `/.well-known/mcp.json`           | - | MCP descriptor for clients and scanners |
+| `POST`   | `/api/v1/channels`                | - | Provision workspace (+ `pair:true` for a pairing link) |
 | `POST`   | `/api/v1/claims`                  | key / device  | Request a claim code for an anonymous workspace |
-| `POST`   | `/api/v1/claims/:id/verify`       | —             | Verify the code; makes the workspace permanent |
+| `POST`   | `/api/v1/claims/:id/verify`       | - | Verify the code; makes the workspace permanent |
 | `POST`   | `/api/v1/pairing`                 | key / device  | Mint a pairing link/QR                 |
-| `GET`    | `/api/v1/qr`                      | —             | Render any string as an SVG QR code    |
-| `GET`    | `/api/v1/pairing/:token`          | —             | Validate a pairing token               |
-| `POST`   | `/api/v1/pairing/:token/claim`    | —             | Exchange token for a device token      |
+| `GET`    | `/api/v1/qr`                      | - | Render any string as an SVG QR code    |
+| `GET`    | `/api/v1/pairing/:token`          | - | Validate a pairing token               |
+| `POST`   | `/api/v1/pairing/:token/claim`    | - | Exchange token for a device token      |
 | `GET`    | `/api/v1/me`                      | `x-psh-key`  | Workspace overview                     |
 | `GET`    | `/api/v1/prompts`                 | key / device  | List prompts (`?status=`, `?limit=`)   |
 | `GET`    | `/api/v1/prompts/:id`             | key / device  | Fetch a prompt; `?wait=<s>` long-polls   |
@@ -336,7 +336,7 @@ has passed are swept to `expired` (async requests have no waiter to time out).
 | `POST`   | `/api/v1/keys`                    | key / device  | Mint a recoverable agent key           |
 | `GET`    | `/api/v1/keys/:id/reveal`         | key / device  | Reveal a key's raw value to the operator |
 | `DELETE` | `/api/v1/keys/:id`                | key / device  | Revoke an agent key                    |
-| `GET`    | `/api/v1/health`                  | —             | Health probe                           |
+| `GET`    | `/api/v1/health`                  | - | Health probe                           |
 | `WS`     | `/ws?token=<deviceToken>`         | device token  | Live prompt stream + decisions         |
 
 Interactive docs at **`/docs`** (Swagger).
@@ -401,7 +401,7 @@ Phone → server:
 The blocked promise lives on the node that accepted the agent request; the
 phone may be connected to a different node. `NOTIFY psh_decisions` broadcasts
 every decision to all nodes, and each node resolves any matching local waiter.
-No sticky sessions, no Redis required — Postgres is the only coordination
+No sticky sessions, no Redis required. Postgres is the only coordination
 primitive.
 
 ---

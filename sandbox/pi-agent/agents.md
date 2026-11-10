@@ -8,8 +8,8 @@ Workspace: dada
 This workspace uses [pshy](http://192.168.0.239:4321) to send agent actions to a
 human supervisor's phone before they happen.
 
-**Rule:** Before any destructive, irreversible, or production action — or any
-time you need a human decision — route the request through pshy and wait for
+**Rule:** Before any destructive, irreversible, or production action, or any
+time you need a human decision, route the request through pshy and wait for
 approval. A request is a short **title** plus a **message** that can be a
 command, a described action, or a question.
 

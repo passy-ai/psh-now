@@ -1,16 +1,16 @@
 # psh.now homepage (`/website`)
 
-A static, standalone homepage for **psh.now** — the hub for agents that need you
-— modeled closely on the [here.now](https://here.now) landing page (same layout,
+A static, standalone homepage for **psh.now**, the hub for agents that need you,
+modeled closely on the [here.now](https://here.now) landing page (same layout,
 typography, spacing, light/dark theme, CTA, and FAQ patterns).
 
-Everything here is self-contained — no build step, no framework, no external
+Everything here is self-contained, no build step, no framework, no external
 CDNs. Fonts and agent icons are vendored into this folder.
 
 `/llms.txt`, `/robots.txt`, and `/sitemap.xml` are **generated** by the gateway
 (`src/lib/seo.ts`) rather than stored here, so the origin in them always matches
 `PUBLIC_BASE_URL`. The canonical, Open Graph, and Twitter tags are generated the
-same way, from each page's own `<title>` and description — do not hardcode them.
+same way: from each page's own `<title>` and description, do not hardcode them.
 
 ## Files
 
@@ -39,7 +39,7 @@ python3 -m http.server 8899   # or: bun serve.ts  →  http://localhost:4322
 
 ## Serve it at `/` (own port + own zrok share)
 
-This is fully additive — it does **not** touch the main gateway
+This is fully additive, it does **not** touch the main gateway
 (`bun src/index.ts`), its routes, or the existing `pshyweb` zrok tunnel:
 
 ```bash
@@ -54,11 +54,11 @@ aren't already running. Logs land in `/tmp/psh-website.log` and
 
 ## Notes
 
-- **Positioning:** the copy leads with the core pain — agents stalling at the
-  terminal — and the fix: one hub where you or a teammate **approve, deny, or
+- **Positioning:** the copy leads with the core pain (agents stalling at the
+  terminal) and the fix: one hub where you or a teammate **approve, deny, or
   clarify** from any device. Hero, how-it-works, feature tabs, team section,
   testimonials, FAQ and CTA all follow that narrative.
-- **White mode is forced** — the page ignores the OS dark preference (verified
+- **White mode is forced**: the page ignores the OS dark preference (verified
   with a dark system setting). The dark palette is still in `styles.css`; add
   `data-theme="dark"` to `<html>` to opt back in.
 - The hero reads **"Never lose an agent / to a waiting prompt / in the
@@ -71,7 +71,7 @@ aren't already running. Logs land in `/tmp/psh-website.log` and
 - The header, main content and footer share one boundary (`--page-max` /
   `--page-pad`), so the navbar items line up with the content column.
 - Body copy, feature cards, FAQ entries, and testimonials are placeholder
-  content written for psh.now — swap in real copy/testimonials before shipping.
+  content written for psh.now, swap in real copy/testimonials before shipping.
 - The footer links to `Docs`, `llms.txt`, `Terms`, `Privacy`, and `Absolum`
   (https://absolum.nl). The server also maps extensionless routes
   (`/privacy` → `privacy.html`).

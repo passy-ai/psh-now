@@ -50,7 +50,7 @@ export interface ConsumePairingInput {
   token: string;
   deviceName?: string;
   userAgent?: string | null;
-  /** Where the device paired from — shown on the Devices page. */
+  /** Where the device paired from, shown on the Devices page. */
   ip?: string | null;
   country?: string | null;
 }
@@ -133,7 +133,7 @@ export async function touchDevice(deviceId: string): Promise<void> {
   // One write a minute per device is plenty: `online` is a two-minute window, so a
   // finer heartbeat changes nothing. Writing on every inbound WebSocket frame put an
   // UPDATE of the same row behind every frame, and ten pooled connections all sat in
-  // that queue — every other query (mint, sign-in, reads) waited behind a row lock on
+  // that queue, every other query (mint, sign-in, reads) waited behind a row lock on
   // one device while the database ran at 100% CPU doing nothing useful.
   const now = Date.now();
   const previous = lastTouch.get(deviceId);

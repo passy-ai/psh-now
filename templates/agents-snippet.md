@@ -2,8 +2,8 @@
 ## Ask before you act
 
 Some actions need a human. Before any destructive, irreversible, or production
-action — deleting or overwriting files, `--force`, `sudo`, force-push, dropping
-data, installing or upgrading dependencies, deploying, or spending money — ask
+action, deleting or overwriting files, `--force`, `sudo`, force-push, dropping
+data, installing or upgrading dependencies, deploying, or spending money, ask
 first:
 
 ```bash
@@ -21,7 +21,7 @@ The response is `{"approved":true}` or `{"approved":false}`.
 
 The first response includes a `connectionId`; pass it as `connection` on later
 calls. A connection is named after the project so I can find it. Ask every
-question through psh.now — never in the terminal.
+question through psh.now, never in the terminal.
 
 Do not end your turn with a question you could ask here. Carry the task through
 to completion; ask anything you need from me before you finish, so one trip to

@@ -186,7 +186,7 @@ export async function resolveSession(
     name?: string | null;
     agent?: string | null;
     /**
-     * Set when `id` was a *reference* the caller cannot invent — the channel a
+     * Set when `id` was a *reference* the caller cannot invent, the channel a
      * key is bound to, or a handle-shaped string (channel id / URL ending). If
      * such a reference resolves to nothing, the request fails with this message
      * instead of falling through to the name/create path: silently creating a

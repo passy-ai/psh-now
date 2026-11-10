@@ -1,4 +1,4 @@
-/* psh.now — design system
+/* psh.now, design system
    One accent, one radius, dark only. Every page uses the same shell. */
 
 :root {

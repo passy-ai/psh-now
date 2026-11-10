@@ -31,7 +31,7 @@ export interface CreatedInvite {
  *
  * One link serves both audiences, and who opens it decides what they become:
  * a **person** who signs in joins as a member (approver), while an **agent**
- * that fetches the link redeems it for an ask-only key — a requester. See
+ * that fetches the link redeems it for an ask-only key, a requester. See
  * `redeemInviteToken()` and `acceptInviteByToken()`.
  */
 export async function createChannelInvite(
@@ -93,7 +93,7 @@ export async function activeChannelInvite(ownerId: string, channelId: string) {
 /**
  * Retire a live invite whose raw token was never stored (minted before that
  * column existed) so a fresh, showable link can take its place. Returns the
- * number of rows retired — one at most, in practice.
+ * number of rows retired, one at most, in practice.
  */
 export async function retireUnshowableInvite(
   ownerId: string,
@@ -133,7 +133,7 @@ export async function revokeChannelInvites(
 }
 
 /**
- * Revoke one invite row — what the share panel's remove does to a pending
+ * Revoke one invite row, what the share panel's remove does to a pending
  * invite (and to a stale/expired one, so the list can be tidied up). An invite
  * someone already accepted is a membership, not an invite, and is never
  * revoked here; removing that person goes through `unshareChannel`.
@@ -284,7 +284,7 @@ export async function acceptInviteByToken(
  * Redeem an invite link as an **agent**: a fresh ask-only key on the owner's
  * account, bound to the invited channel.
  *
- * Unlike `acceptInviteByToken()` this does **not** consume the invite — several
+ * Unlike `acceptInviteByToken()` this does **not** consume the invite, several
  * agents (and, until someone signs in, a person) can use the same live link,
  * which is what makes one link enough. Ask-only means a requester: it can send
  * requests to the channel but can never read or approve anything.

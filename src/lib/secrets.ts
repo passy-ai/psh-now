@@ -1,7 +1,7 @@
 import { env } from "../env";
 
 /**
- * Reversible encryption for secrets we must be able to show again — namely the
+ * Reversible encryption for secrets we must be able to show again, namely the
  * agent API key, so a paired operator can retrieve it. We still store the
  * SHA-256 hash for authentication; this encrypted copy exists only to reveal.
  *

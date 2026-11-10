@@ -1,7 +1,7 @@
 # Agent-to-agent approval (autonomous)
 
 Make one agent answer another agent's questions, so a pipeline runs with **no
-human in the loop** — or with a human only for the risky bits.
+human in the loop**, or with a human only for the risky bits.
 
 ## The model
 
@@ -10,7 +10,7 @@ human in the loop** — or with a human only for the risky bits.
 | **Requester** | channel key (`scope: ask`) | create requests, read its own |
 | **Approver** | account key (`scope: manage`) | list pending, approve/deny |
 
-An `ask` key can **never** approve — that's the whole point of the scope split.
+An `ask` key can **never** approve, that's the whole point of the scope split.
 So the approver needs the **account key** (or a paired device). Give the approver
 key only to a box you control.
 
@@ -27,14 +27,14 @@ requester ── POST / (channel key) ──▶ psh.now ──▶ approver polls
 3. **Approver** gets the **account key** (account card → copy) and runs the loop
    below.
 
-That's it — no new accounts, no extra services.
+That's it, no new accounts, no extra services.
 
 ## The approver loop
 
 Save as `approver.mjs`. It long-polls pending requests and applies your policy.
 
 ```js
-// approver.mjs — answer psh.now requests autonomously.
+// approver.mjs: answer psh.now requests autonomously.
 const HOST = process.env.PSH_BASE_URL ?? "https://psh.now";
 const KEY = process.env.PSH_ACCOUNT_KEY;        // the ACCOUNT key (manage scope)
 const CHANNEL = process.env.PSH_CHANNEL ?? "";  // optional: only this channelId
@@ -82,7 +82,7 @@ PSH_ACCOUNT_KEY="psh_user_…" node approver.mjs
 
 ## Escalation (keep the human in the loop for some things)
 
-`decide()` returning `null` leaves the request **pending** — it stays on the
+`decide()` returning `null` leaves the request **pending**, it stays on the
 user's page and they can still approve it. So the pattern is:
 
 - **Auto-approve** the boring, reversible stuff.
@@ -102,11 +102,11 @@ the minimal setup; the socket is the low-latency one.
 
 ## Multi-agent patterns
 
-- **One approver, many requesters** — all requesters use channel keys on one
+- **One approver, many requesters**: all requesters use channel keys on one
   channel; one approver handles the channel. Simplest.
-- **One approver per channel** — give each approver the account key and set
+- **One approver per channel**: give each approver the account key and set
   `PSH_CHANNEL=<channelId>` so it only touches its own channel.
-- **Chained approval** — a request that's approved can itself trigger the next
+- **Chained approval**: a request that's approved can itself trigger the next
   request; each step is one binary.
 
 ## Security notes (read before shipping)
@@ -127,5 +127,5 @@ the minimal setup; the socket is the low-latency one.
 ## Why not just give the requester the account key?
 
 Because then one compromised agent has the whole account. Keeping requesters on
-`ask` keys means a prompt-injected requester can only *ask* — it can never
+`ask` keys means a prompt-injected requester can only *ask*, it can never
 approve itself. The approver is the one place that decides.

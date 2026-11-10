@@ -79,7 +79,7 @@ const state = {
   channelConnOpen: {},
   channelSetOpen: {},
   channelConnect: {},
-  /** Account SECRET key (manage). Memory only — never persisted, never in a URL. */
+  /** Account SECRET key (manage). Memory only, never persisted, never in a URL. */
   secretKey: null,
   welcome: new URLSearchParams(location.search).has("welcome"),
 };
@@ -94,9 +94,9 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
-/** `psh_live_abc…xyz4` — prefix + last 4, middle blurred. */
+/** `psh_live_abc…xyz4`, prefix + last 4, middle blurred. */
 function maskedKey(key) {
-  if (!key) return "—";
+  if (!key) return "-";
   const m = /^psh_[a-z]+_/.exec(key);
   const prefix = m ? m[0] : "";
   const rest = key.slice(prefix.length);
@@ -276,7 +276,7 @@ $("menuCopySecret")?.addEventListener("click", async (e) => {
   e.stopPropagation();
   let v = state.secretKey;
   if (!v) {
-    // Not in memory this session — ask the server to reveal it.
+    // Not in memory this session, ask the server to reveal it.
     try {
       const data = await api("/api/v1/me/secret/reveal", { method: "POST" });
       v = data.secretKey;
@@ -370,7 +370,7 @@ function connect() {
   }
   status("", "Connecting…");
 
-  // Load data over HTTP right away — don't wait for the WebSocket `hello`,
+  // Load data over HTTP right away, don't wait for the WebSocket `hello`,
   // which can be slow through a tunnel.
   if (PAGE === "approvals") {
     void loadApprovals();
@@ -633,7 +633,7 @@ function channelSection(c) {
         <button class="btn pill" data-cpnew="${esc(c.id)}">${icon("copy", 15)} Connect an agent</button>
         <button class="icon-btn sm" data-cpeye="${esc(c.id)}" aria-label="Show">${icon("eye", 15)}</button>
       </div>
-      <pre class="ch-prompt" id="cprompt-${esc(c.id)}">—</pre>
+      <pre class="ch-prompt" id="cprompt-${esc(c.id)}">-</pre>
 
       <button class="ch-sec" data-req="${esc(c.id)}">
         <span>Requests${items.length ? ` · ${items.length} pending` : ""}</span>
@@ -687,11 +687,11 @@ function recentTable(list) {
       ${list
         .map(
           (p) => `<div class="req-row">
-            <span class="req-agent">${esc(p.agent || "—")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
+            <span class="req-agent">${esc(p.agent || "-")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
             <span class="req-title">${esc(p.title || "Request")}</span>
             <span class="req-desc" title="${esc(p.message || "")}">${esc(p.message || "")}</span>
             <span class="req-desc">${esc(relTime(p.decidedAt || p.createdAt))}</span>
-            <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "—")}</span>
+            <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "-")}</span>
             <span class="req-status"><span class="status-pill ${esc(p.status)}">${esc(p.status)}</span></span>
           </div>`,
         )
@@ -869,11 +869,11 @@ async function loadHistory(channelId) {
           ${prev
             .map(
               (p) => `<div class="req-row">
-                <span class="req-agent">${esc(p.agent || "—")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
+                <span class="req-agent">${esc(p.agent || "-")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
                 <span class="req-title">${esc(p.title || "Request")}</span>
                 <span class="req-desc" title="${esc(p.message || p.command || "")}">${esc(p.message || p.command || "")}</span>
                 <span class="req-desc">${esc(relTime(p.createdAt))}</span>
-                <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "—")}</span>
+                <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "-")}</span>
                 <span class="req-status"><span class="status-pill ${esc(p.status)}">${esc(p.status)}</span></span>
               </div>`,
             )
@@ -1179,7 +1179,7 @@ async function newChannelKey(channelId) {
   }
 }
 
-/** Template §3 — Join Account. Keep in sync with docs/prompt-templates.md. */
+/** Template §3. Join Account. Keep in sync with docs/prompt-templates.md. */
 function joinPrompt(url) {
   const host = shareHost();
   return (
@@ -1188,7 +1188,7 @@ function joinPrompt(url) {
   );
 }
 
-/** Template §4 — Connect Channel. Shared by every "add agent" producer. */
+/** Template §4. Connect Channel. Shared by every "add agent" producer. */
 function channelPrompt(channelName, url, { html = false } = {}) {
   const host = shareHost();
   if (!html) {
@@ -1248,7 +1248,7 @@ async function ensureChannelConnect(channelId, force = false) {
     return state.channelConnect[channelId];
   } catch {
     const e = el();
-    if (e) e.textContent = "(couldn't create a link — open Connections)";
+    if (e) e.textContent = "(couldn't create a link, open Connections)";
     return null;
   }
 }
@@ -1259,7 +1259,7 @@ async function addAgentToChannel(channelId) {
   if (!entry) return;
   try {
     await navigator.clipboard.writeText(entry.text);
-    toast("Connect link copied — paste it to your agent");
+    toast("Connect link copied, paste it to your agent");
   } catch {
     toast("Connect link ready");
   }
@@ -1287,7 +1287,7 @@ async function shareChannel(channelId) {
   try {
     const data = await api(`/api/v1/channels/${channelId}/invites`, { method: "POST", body });
     if (data.inviteUrl) {
-      toast("No account yet — invite link copied");
+      toast("No account yet, invite link copied");
       try {
         await navigator.clipboard.writeText(data.inviteUrl);
       } catch {
@@ -1395,7 +1395,7 @@ async function maybeWelcomeTest() {
   history.replaceState({}, "", "/app");
   if (state.pending.size === 0) {
     await sendTest(true);
-    toast("Sent a test approval — tap Approve");
+    toast("Sent a test approval, tap Approve");
   }
 }
 
@@ -1407,7 +1407,7 @@ const kvRow = (label, value) =>
 let pendingClaim = null;
 
 function fmtUsage(u) {
-  if (!u) return "—";
+  if (!u) return "-";
   const limit = u.limit == null ? "unlimited" : u.limit;
   return `${u.requestsToday} / ${limit}`;
 }
@@ -1506,7 +1506,7 @@ function renderSecret(hasSecret) {
   if (!hint || !create) return;
   create.classList.toggle("hide", !!hasSecret);
   hint.textContent = hasSecret
-    ? "Created. It administers the account — keep the copy you saved safe."
+    ? "Created. It administers the account, keep the copy you saved safe."
     : "Not created. It administers the account (keys, devices, channels).";
 }
 
@@ -1516,7 +1516,7 @@ function renderAccountKey(key) {
   if (!el) return;
   el.classList.remove("revealed");
   if (!key) {
-    el.textContent = "(device session — no key)";
+    el.textContent = "(device session, no key)";
     return;
   }
   if (key.length <= 20) {
@@ -1565,13 +1565,13 @@ async function newJoinLink() {
 }
 
 $("acctRevealKey")?.addEventListener("click", () => {
-  $("acctKeyValue").textContent = store.apiKey || "(device session — no key)";
+  $("acctKeyValue").textContent = store.apiKey || "(device session, no key)";
 });
 $("acctCopyKey")?.addEventListener("click", async () => {
   if (!store.apiKey) return toast("No account key in this session");
   try {
     await navigator.clipboard.writeText(store.apiKey);
-    toast("Account key copied — paste it into any new environment");
+    toast("Account key copied, paste it into any new environment");
   } catch {
     toast("Copy failed");
   }
@@ -1585,9 +1585,9 @@ $("secretCreate")?.addEventListener("click", async () => {
     state.secretKey = data.secretKey; // hold in memory so manage actions work now
     $("secretValue").textContent = data.secretKey;
     $("secretResult").classList.remove("hide");
-    $("secretHint").textContent = "Shown once — store it somewhere safe, never on an agent box.";
+    $("secretHint").textContent = "Shown once, store it somewhere safe, never on an agent box.";
     btn.classList.add("hide");
-    toast("Secret key created — save it");
+    toast("Secret key created, save it");
   } catch (err) {
     toast(err.message || "Couldn't create secret");
   } finally {
@@ -1614,7 +1614,7 @@ $("rotateBtn")?.addEventListener("click", async () => {
     $("rotateUserKey").textContent = data.userKey;
     $("rotateSecretKey").textContent = data.secretKey;
     $("rotateBox").classList.remove("hide");
-    toast("Keys rotated — save them");
+    toast("Keys rotated, save them");
   } catch (err) {
     toast(err.message || "Couldn't rotate");
   } finally {
@@ -1689,7 +1689,7 @@ $("regVerifyBtn")?.addEventListener("click", async () => {
       method: "POST",
       body: { claimId: pendingClaim, code },
     });
-    toast("Registered — this account is now yours");
+    toast("Registered, this account is now yours");
     loadAccount();
   } catch (err) {
     toast(err.message || "Invalid code");
@@ -1727,7 +1727,7 @@ $("topupBtn")?.addEventListener("click", async () => {
 /* --------------------------------- boot -------------------------------- */
 
 // The account key lives in the URL (?key=…) so the account is shareable and
-// bookmarkable — that is the whole "anonymous, no login" model.
+// bookmarkable, that is the whole "anonymous, no login" model.
 function adoptKeyFromUrl() {
   const q = new URLSearchParams(location.search);
   const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -1752,7 +1752,7 @@ document.addEventListener("visibilitychange", () => {
 
 if (!store.apiKey && !store.token) {
   els.unpaired.classList.remove("hide");
-  // No account yet — the sign-in screen keeps just the brand + Docs.
+  // No account yet, the sign-in screen keeps just the brand + Docs.
   document.querySelector(".avatar-wrap")?.classList.add("hide");
   document.querySelector(".nav-links")?.classList.add("hide");
 } else {
@@ -1898,7 +1898,7 @@ $("authUseKey")?.addEventListener("click", () => {
 $("keyLoginBtn")?.addEventListener("click", () => {
   const key = $("keyInput").value.trim();
   if (!key) return;
-  store.apiKey = key; // kept in localStorage only — never in the URL
+  store.apiKey = key; // kept in localStorage only, never in the URL
   location.reload();
 });
 $("keyInput")?.addEventListener("keydown", (e) => {

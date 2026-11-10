@@ -1,4 +1,4 @@
-# Caddy reverse proxy for psh.now — automatic HTTPS + WebSocket passthrough.
+# Caddy reverse proxy for psh.now: automatic HTTPS + WebSocket passthrough.
 #
 # 1. Point psh.now's DNS A/AAAA record at this server.
 # 2. Set PUBLIC_BASE_URL=https://psh.now in .env

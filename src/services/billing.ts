@@ -120,8 +120,8 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutSess
  * `${id}.${timestamp}.${body}`, base64, sent as `webhook-signature: v1,<sig>`
  * (several signatures may be present when a secret is rotating).
  *
- * The raw body is required — re-serialising the JSON changes the bytes and the
- * signature with it — which is why the route reads text, not JSON.
+ * The raw body is required, re-serialising the JSON changes the bytes and the
+ * signature with it, which is why the route reads text, not JSON.
  */
 export function verifyWebhook(
   rawBody: string,

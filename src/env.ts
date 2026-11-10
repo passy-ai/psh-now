@@ -23,7 +23,7 @@ export const env = (() => {
   const isProduction = nodeEnv === "production";
 
   // The encryption key for recoverable secrets. Must never be the dev default
-  // in production — a DB dump plus a known key would expose every agent key.
+  // in production, a DB dump plus a known key would expose every agent key.
   const DEV_SECRET = "dev-insecure-secret-change-me";
   const secret = process.env.PSH_SECRET ?? DEV_SECRET;
   if (isProduction && (secret === DEV_SECRET || secret.length < 16)) {
@@ -77,12 +77,12 @@ export const env = (() => {
     directTokensMax: int("PSH_DIRECT_TOKENS_MAX", 1000),
     /**
      * Dev only: return the claim/verify code in the API response instead of
-     * emailing it. Fail-closed in production — only on if explicitly set.
+     * emailing it. Fail-closed in production, only on if explicitly set.
      */
     devClaim: devFlag("PSH_DEV_CLAIM"),
     /**
      * Dev only: print verification codes to the server console, so a local run
-     * can be signed into without a mail provider. Hard-off in production — this
+     * can be signed into without a mail provider. Hard-off in production, this
      * one cannot be switched on in the deployed environment at all.
      */
     logCode: devFlag("PSH_LOG_CODE"),

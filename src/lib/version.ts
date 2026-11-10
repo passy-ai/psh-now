@@ -1,7 +1,7 @@
 // The product version has exactly one source of truth: the skill's frontmatter.
 //
-// It used to be written out by hand in three places — the OpenAPI document, the agent manifest and
-// /api/skill/version — and they had already drifted ("0.1.0" everywhere while the skill said
+// It used to be written out by hand in three places, the OpenAPI document, the agent manifest and
+// /api/skill/version, and they had already drifted ("0.1.0" everywhere while the skill said
 // 0.2.1), so the API reference advertised a version the product did not have.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

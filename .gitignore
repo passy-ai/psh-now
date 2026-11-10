@@ -7,10 +7,10 @@ dist/
 *.log
 .DS_Store
 
-# Market research — working notes, not shipped. See research/README.md
+# Market research: working notes, not shipped. See research/README.md
 research/
 
-# Secrets minted by the skill's setup.sh — never commit these.
+# Secrets minted by the skill's setup.sh: never commit these.
 .keys.json
 .host
 skills/**/.keys.json

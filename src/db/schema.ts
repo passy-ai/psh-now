@@ -58,7 +58,7 @@ export interface RouteOption {
   label: string;
   /** Why this option, in one line. */
   detail?: string;
-  /** The route this option represents — the collapsed asks. */
+  /** The route this option represents, the collapsed asks. */
   asks?: RouteAsk[];
   /** Marks the option the agent recommends. Exactly one should be true. */
   recommended?: boolean;
@@ -321,7 +321,7 @@ export const pairingTokens = pgTable(
  *  - addressed to an email that has no account yet, or
  *  - **open**: no email at all, so the link itself is the invite (the owner
  *    copies it from the share menu). Whoever opens it signs up and accepts.
- * On acceptance a channel_share is created — the same grant an email invite
+ * On acceptance a channel_share is created, the same grant an email invite
  * creates directly.
  */
 export const channelInvites = pgTable(
@@ -341,14 +341,14 @@ export const channelInvites = pgTable(
     tokenHash: text("token_hash").notNull(),
     /**
      * The raw token, so the owner can be shown their own live link again (the
-     * panel has no "create" step — the link is simply there). Null on rows
+     * panel has no "create" step, the link is simply there). Null on rows
      * minted before this existed; the route rotates those once. Lookup still
      * goes through the hash, so a DB reader cannot *find* a channel by token.
      */
     token: text("token"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     acceptedAt: timestamp("accepted_at", { withTimezone: true }),
-    /** Who accepted it — this is how "joined using the link" is known. */
+    /** Who accepted it, this is how "joined using the link" is known. */
     acceptedBy: text("accepted_by").references(() => tenants.id, {
       onDelete: "set null",
     }),
@@ -476,7 +476,7 @@ export const prompts = pgTable(
     /**
      * The human's own words, when they answered instead of approving/denying
      * (`status = "answered"`). A clarification, a partial yes, a constraint to
-     * respect — anything that is not a bare yes or no.
+     * respect, anything that is not a bare yes or no.
      */
     answer: text("answer"),
     metadata: jsonb("metadata")

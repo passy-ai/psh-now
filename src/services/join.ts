@@ -38,7 +38,7 @@ export async function peekChannelUrl(idOrSlug: string): Promise<boolean> {
 
 /**
  * Redeem a channel URL (`/c/<id-or-slug>`) for a fresh ask-only key bound to
- * that channel. Reusable — many agents can connect through the same one.
+ * that channel. Reusable, many agents can connect through the same one.
  */
 export async function redeemChannelUrl(
   idOrSlug: string,

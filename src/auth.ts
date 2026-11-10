@@ -9,7 +9,7 @@ import { sha256 } from "./lib/crypto";
 
 /**
  * better-auth owns identity: email + one-time code. Everything else in psh.now
- * stays key-based — after sign-in we hand the browser its account key back.
+ * stays key-based, after sign-in we hand the browser its account key back.
  *
  * In dev (PSH_DEV_CLAIM) the generated code is logged and returned to the UI so
  * a human can copy it. In production it is only ever emailed.

@@ -5,7 +5,7 @@ import { generateApiKey } from "../lib/crypto";
 import { decryptSecret, encryptSecret } from "../lib/secrets";
 
 export interface CreatedApiKey {
-  /** Raw key — shown to the caller exactly once. */
+  /** Raw key, shown to the caller exactly once. */
   key: string;
   record: ApiKey;
 }

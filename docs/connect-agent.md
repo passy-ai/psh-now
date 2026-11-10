@@ -1,4 +1,4 @@
-# Connect an agent — prompt templates
+# Connect an agent: prompt templates
 
 > **Canonical source: [`prompt-templates.md`](prompt-templates.md).** This file is
 > the longer explanation; if the wording here differs from the templates doc, the
@@ -10,17 +10,17 @@ installs psh.now when it is missing) or with a channel key you paste directly.
 
 ---
 
-## 1. The channel link (recommended — one prompt)
+## 1. The channel link (recommended: one prompt)
 
 **Get it:** `/app` → the channel card → **Copy prompt for agent**. The link is
-`https://psh.now/c/<channel>` — the channel's id by default, or a custom name
+`https://psh.now/c/<channel>`, the channel's id by default, or a custom name
 you set in **Settings** → **Channel URL**. It is **reusable** and ask-only.
 
 **Paste this into the second agent** (this is exactly what the button copies):
 
 ```
 Please use psh.now for the "<CHANNEL>" channel: https://psh.now/c/<channel>
-Open that link first: it is this channel's instructions. If this folder is not set up yet, these two lines set it up and join this channel — nothing new is minted:
+Open that link first: it is this channel's instructions. If this folder is not set up yet, these two lines set it up and join this channel, nothing new is minted:
 
 ```bash
 sh ~/.agents/skills/psh-now/scripts/setup.sh https://psh.now/c/<channel>
@@ -30,7 +30,7 @@ Already set up there? Then just fetch the link above and use it as it is.
 ```
 
 The agent opens the link, gets the instructions as markdown, installs the skill if
-needed, and redeems the link for a **channel key bound to that channel** — on the
+needed, and redeems the link for a **channel key bound to that channel**, on the
 account that already owns the channel. No second account is created.
 
 If psh.now is already installed, `psh` on its own answers "what is this and where
@@ -38,7 +38,7 @@ is it" in one call: skill path, host, keys, workspace, next command.
 
 **Measured:** ~9 turns / ~60s cold (install + connect); 2–4 turns / ~10s when the
 skill is already installed. Confirming end to end costs one extra request plus one
-tap — see `docs/prompt-templates.md` §6.
+tap, see `docs/prompt-templates.md` §6.
 
 ---
 
@@ -65,7 +65,7 @@ Add one line if you want proof: *"Send a quick test request so I can see it in t
 | An agent that can ask in a channel | **Channel link** (§1) | channel card → Copy prompt for agent |
 | An installed agent, one specific channel | **Channel key** (§2) | channel → Settings → Channel key |
 | A new agent **and** a new channel | **＋** button | top-right of `/app` |
-| Several agents in one channel | hand out the same link or key | — |
+| Several agents in one channel | hand out the same link or key | - |
 | Another project on this machine | nothing to do | the first install records the account in `~/.psh/keys.json`; later projects adopt it |
 
 ---

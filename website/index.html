@@ -308,7 +308,7 @@
     @media (max-width: 560px) { .ask-grid { grid-template-columns: 1fr; } }
     .ask-item { background: var(--bg, #fff); padding: 20px 20px 22px; }
     .ask-item strong { display: block; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
-    /* The icon is a span too, and this rule was beating .ask-ico's display: grid —
+    /* The icon is a span too, and this rule was beating .ask-ico's display: grid,
        which dropped every glyph into the top-left corner of its tile. */
     .ask-item span:not(.ask-ico) { display: block; margin-top: 6px; font-size: 13.5px; line-height: 1.5; color: rgba(0, 0, 0, 0.55); }
     .hub {

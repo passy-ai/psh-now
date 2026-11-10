@@ -1,7 +1,7 @@
-# Webhooks — design (not implemented yet)
+# Webhooks: design (not implemented yet)
 
 > Status: **not implemented.** The marketing site (`website/`) advertises "every
-> decision fires a signed webhook" — that is aspirational. This doc is the spec to
+> decision fires a signed webhook", that is aspirational. This doc is the spec to
 > build it later. Until then, the real mechanisms are the **WebSocket** (`/ws`)
 > and **`wait:false` + `pollUrl`**.
 
@@ -97,7 +97,7 @@ before any re-serialisation.
 
 - `POST` the JSON, `Content-Type: application/json`, timeout **10s**.
 - Treat **2xx** as success. Anything else (or timeout) is a failure.
-- Retries: exponential backoff — ~10s, 1m, 5m, 30m, 2h (5 attempts), then give
+- Retries: exponential backoff, ~10s, 1m, 5m, 30m, 2h (5 attempts), then give
   up and mark `failed`. A background sweeper (like `expireStalePrompts`) drives
   `next_attempt_at`.
 - Idempotency: `X-Psh-Delivery` is stable per attempt-set, so receivers can
@@ -137,7 +137,7 @@ test" button, and a delivery log. Mirrors the marketing mock.
 
 - Do we sign with a per-endpoint secret, or one account-wide secret? (Per-endpoint
   is safer; account-wide is fewer things to manage.)
-- Minimal payload vs full payload — default to full, offer minimal.
-- Should `created` be on by default? (Probably not — noisy.)
-- Deliver from the request path or a queue? (Queue/outbox — never block a decision
+- Minimal payload vs full payload, default to full, offer minimal.
+- Should `created` be on by default? (Probably not, noisy.)
+- Deliver from the request path or a queue? (Queue/outbox, never block a decision
   on a third-party POST.)

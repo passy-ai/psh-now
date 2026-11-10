@@ -1,4 +1,4 @@
-# psh.now — self-hosted stack: Postgres + the Elysia gateway.
+# psh.now self-hosted stack: Postgres + the Elysia gateway.
 #
 #   cp .env.example .env
 #   # set PUBLIC_BASE_URL to the URL your agents/phones will reach

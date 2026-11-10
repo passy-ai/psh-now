@@ -58,7 +58,7 @@ export const newPairingToken = () => shortId(ID_LENGTHS.pairingToken);
 /** A long-lived device session token held by the phone. */
 export const newDeviceToken = () => shortId(ID_LENGTHS.deviceToken);
 /**
- * A channel's public URL ending (`/c/<channelUrl>`) — 16 random base62
+ * A channel's public URL ending (`/c/<channelUrl>`). 16 random base62
  * characters, minted once when the channel is created and never changed. The
  * link is what the owner hands to an agent, so it has to survive renames and
  * every later edit.

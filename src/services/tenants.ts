@@ -10,12 +10,12 @@ export type KeyScope = "ask" | "approve" | "manage";
 
 export interface CreatedTenant {
   tenant: Tenant;
-  /** Raw account key (scope `approve`) — shown to the caller exactly once. */
+  /** Raw account key (scope `approve`), shown to the caller exactly once. */
   apiKey: string;
   /**
    * Raw account SECRET key (scope `manage`). Minted with the account so every
    * account can pair devices and administer itself from the first minute.
-   * Deliberately NOT returned by the install/mint responses — the owner reads
+   * Deliberately NOT returned by the install/mint responses, the owner reads
    * it from the dashboard (`/api/v1/me/secret/reveal`), so it never lands in an
    * agent's terminal output.
    */
@@ -28,7 +28,7 @@ export async function createTenant(name?: string): Promise<CreatedTenant> {
   // The SECRET key is minted here too: pairing a device and administering the
   // account both need `manage` scope, and a brand-new account has no way to
   // create one. It is stored hashed + encrypted and only ever revealed to the
-  // signed-in dashboard — never through `/mint` or an install report.
+  // signed-in dashboard, never through `/mint` or an install report.
   const secret = generateApiKey("admin");
   const [tenant] = await db
     .insert(tenants)
@@ -124,7 +124,7 @@ export async function sweepExpiredTenants(): Promise<number> {
  * Add a prepaid token package. **The plan does not move**: prepaid requests sit
  * *beside* the free allowance, so a workspace that has bought credits still
  * reads Free (owner, 2026-10-15: *"My status says token but it should always
- * remain free"*). The balance is a meter, not a plan — and `checkLimit()` already
+ * remain free"*). The balance is a meter, not a plan, and `checkLimit()` already
  * spends it once the free rack is empty.
  */
 /**
@@ -233,7 +233,7 @@ const ADOPT_MAX_REQUESTS = 5;
  *
  * A new project's install mints its own anonymous workspace, so an agent in a
  * second project ends up asking from an account the human cannot see. When that
- * human — already signed in — opens the link, this moves the agent's channel
+ * human (already signed in) opens the link, this moves the agent's channel
  * and its pending requests into their account: the agent keeps its channel key
  * and its questions start arriving in the dashboard they already use.
  *
@@ -434,7 +434,7 @@ export async function explainKeyRejection(rawKey: string): Promise<string> {
     const tenant = await getTenant(keyRow.tenantId);
     return tenant
       ? "row + tenant both present (scope/session mismatch?)"
-      : `tenant ${keyRow.tenantId} missing — workspace was deleted`;
+      : `tenant ${keyRow.tenantId} missing, workspace was deleted`;
   }
   const [acct] = await db
     .select({ id: tenants.id })
@@ -448,7 +448,7 @@ export async function explainKeyRejection(rawKey: string): Promise<string> {
     .where(eq(tenants.secretKeyHash, hash))
     .limit(1);
   if (secret) return "secret key row present (unexpected)";
-  return "no matching row — key not issued here (workspace/DB was removed)";
+  return "no matching row, key not issued here (workspace/DB was removed)";
 }
 
 /** Update the public profile bio + link. */

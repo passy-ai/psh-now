@@ -3265,7 +3265,7 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// The live feed is the primary path: `prompt.decided` removes a card the moment
     /// anyone answers it. But a frame can be dropped (socket reconnecting, Mac asleep,
     /// server restarted), and until now the card then stayed on screen until something
-    /// else moved it — which reads as the notch being slow rather than as a lost event.
+    /// else moved it, which reads as the notch being slow rather than as a lost event.
     ///
     /// This asks the server what is still pending while there is anything to show, and
     /// drops whatever is no longer there. 1.5s, not a poll loop: it runs only while asks

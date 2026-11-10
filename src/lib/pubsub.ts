@@ -21,7 +21,7 @@ export interface DecisionEvent {
   decision?: string | null;
   /** The human's own words, when they answered instead of deciding. */
   answer?: string | null;
-  /** The channel the prompt lives on — lets every node fan the frame out to accounts the channel is shared with. */
+  /** The channel the prompt lives on, lets every node fan the frame out to accounts the channel is shared with. */
   sessionId?: string | null;
 }
 

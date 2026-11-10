@@ -210,7 +210,7 @@ async function ensureConfig(): Promise<Config> {
       await api("/api/v1/me", { apiKey: config.apiKey, baseUrl: config.baseUrl });
       return config;
     } catch {
-      warn("⚠ Existing key is invalid — minting a new anonymous workspace.");
+      warn("⚠ Existing key is invalid, minting a new anonymous workspace.");
     }
   }
 
@@ -224,7 +224,7 @@ async function ensureConfig(): Promise<Config> {
     workspaceName: "Anonymous",
   };
   const saved = await writeConfig(fresh, true);
-  warn(`✨ Minted an anonymous workspace — key saved to ${saved}`);
+  warn(`✨ Minted an anonymous workspace, key saved to ${saved}`);
   return fresh;
 }
 
@@ -357,7 +357,7 @@ async function cmdHook(): Promise<void> {
   try {
     payload = raw ? JSON.parse(raw) : {};
   } catch {
-    // Not JSON — pass through untouched.
+    // Not JSON, pass through untouched.
     return;
   }
 
@@ -569,7 +569,7 @@ const COMMANDS: Record<string, () => Promise<void>> = {
 async function main() {
   if (!command || command === "help" || command === "--help" || command === "-h") {
     say(`
-${c.bold}psh.now${c.reset} — approve your agent's commands from your phone.
+${c.bold}psh.now${c.reset}, approve your agent's commands from your phone.
 
 ${c.bold}Usage${c.reset}
   psh init                    Create a workspace + pairing QR

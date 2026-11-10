@@ -565,7 +565,7 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
   /**
  * The one-per-account free entry pack: 100 requests, no card. It exists so a claimed
  * workspace can watch the paid flow work before paying anything, so it is deliberately
- * an account power — an anonymous workspace claims first, and claiming is free too.
+ * an account power, an anonymous workspace claims first, and claiming is free too.
  */
 .post("/me/tokens/free", async ({ request }) => {
   const { tenant } = await requireTenantOrDevice(request.headers);

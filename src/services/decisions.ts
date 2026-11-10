@@ -67,7 +67,7 @@ export async function recordDecision(event: DecisionEvent): Promise<DecisionResu
 /**
  * Invoked for every decision received over LISTEN/NOTIFY (including ones this
  * node published). Unblocks any local waiter and pushes a live frame to every
- * device watching the channel — the owner's devices and, since the channel is
+ * device watching the channel, the owner's devices and, since the channel is
  * shared with them, each shared account's devices too.
  */
 export async function handleDecisionEvent(event: DecisionEvent): Promise<void> {

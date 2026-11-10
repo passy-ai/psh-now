@@ -21,18 +21,18 @@ sh scripts/build-tarball.sh
 
 cd skill-repo
 if [ ! -d .git ]; then
-  echo "publish-skill: skill-repo/ is not a git checkout — run:" >&2
+  echo "publish-skill: skill-repo/ is not a git checkout, run:" >&2
   echo "  gh repo create passy-ai/psh-now-skill --public --source=. --push" >&2
   exit 1
 fi
 
 if [ -z "$(git status --porcelain)" ]; then
-  echo "publish-skill: nothing changed — the repo already matches skills/psh-now"
+  echo "publish-skill: nothing changed, the repo already matches skills/psh-now"
   exit 0
 fi
 
 git add -A
 git commit -q -m "$msg"
 git push -q origin HEAD:main
-echo "publish-skill: pushed $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
+echo "publish-skill: pushed $(git rev-parse --short HEAD), $(git log -1 --pretty=%s)"
 echo "publish-skill: installed copies update with: npx -y skills update psh-now"

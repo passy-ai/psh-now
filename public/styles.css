@@ -1,4 +1,4 @@
-/* psh.now — design system
+/* psh.now, design system
    One accent, one radius, dark only. Every page uses the same shell. */
 
 :root {
@@ -41,7 +41,7 @@
      split evenly instead of leaving one long empty run to the right. */
   --notice-max: 680px;
 }
-/* Light mode — toggled from the account menu, persisted in localStorage. */
+/* Light mode, toggled from the account menu, persisted in localStorage. */
 :root[data-theme="light"] {
 --bg: #ffffff;
   --surface: #f6f7f9;
@@ -451,7 +451,7 @@ border-color: var(--red);
 }
 /* The Answer button: a soft tint carries the meaning and the ink does the
    signalling, so the fill alone defines the button and no border is needed.
-   Its hover is declared here too — `.btn:hover` only changes border-color,
+   Its hover is declared here too, `.btn:hover` only changes border-color,
    which would flash a grey edge onto a borderless button. */
 .btn.answer {
   border-color: transparent;
@@ -617,7 +617,7 @@ border-color: var(--red);
  * of card actions.
  *
  * `resize: none` is deliberate. The native grip sits in the bottom-right corner
- * — exactly where the buttons now are — and would be both unreachable and
+ * (exactly where the buttons now are) and would be both unreachable and
  * covered. The field grows with its text instead, which is all the grip was for.
  */
 /* One rounded rectangle for the input, with the send as its own square beside
@@ -1780,7 +1780,7 @@ display: flex;
   border-bottom: 1px solid var(--line-soft);
 }
 /* ---------- channel card ---------- */
-/* A channel is a line item, not a card: no fill, no border box — just the
+/* A channel is a line item, not a card: no fill, no border box, just the
    content and a hairline, so a long list reads as one clean column. */
 .channel-card {
   /* No hairline between rows: spacing alone separates the channels, so the list
@@ -1904,7 +1904,7 @@ margin: 0;
   border-radius: 999px;
 }
 /* Pickr ships `transition: background .3s` on the swatch, so it animates in
-   from transparent on every render — visible as a colour fade-in. The colour
+   from transparent on every render, visible as a colour fade-in. The colour
    is already known when the swatch is built, so paint it immediately. */
 .ch-head .pcr-button,
 .ch-head .pcr-button::before,
@@ -1941,7 +1941,7 @@ margin: 0;
   outline: none;
 }
 /* The prompt caret sits INSIDE the copy pill, so a stray hover never
-   triggers it — only a deliberate click on the caret does. */
+   triggers it, only a deliberate click on the caret does. */
 .ch-copy {
   display: inline-flex;
   align-items: center;
@@ -2166,7 +2166,7 @@ white-space: normal;
 margin-left: auto;
   flex: none;
 }
-/* "Show the full prompt" — same control as the marketing site. */
+/* "Show the full prompt", same control as the marketing site. */
 .prompt-toggle {
 margin-top: 14px;
   display: inline-flex;
@@ -2405,7 +2405,7 @@ display: inline-flex;
 .nav-docs svg {
 color: var(--dim);
 }
-/* Inline notice card — claim prompt and usage warnings share one style.
+/* Inline notice card, claim prompt and usage warnings share one style.
    Kept deliberately neutral (no accent colour): it is a label, a line of copy
    and at most one action. */
 .app-notices {
@@ -2574,7 +2574,7 @@ border-radius: 999px;
   padding: 9px 16px;
 }
 /* Nav pills (New channel / Pair device) are deliberately compact. They need
-   their own rule because `.pill` — the small plan badge further up — sets a
+   their own rule because `.pill` (the small plan badge further up) sets a
    font-size, and `.btn.pill`'s padding outranks `.btn.sm`'s, so `sm` alone did
    not actually shrink the New channel button. Scoped to the nav so the card's
    "Copy prompt for agent" pill keeps its size.

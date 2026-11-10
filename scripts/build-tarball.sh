@@ -3,7 +3,7 @@
 #
 #   sh scripts/build-tarball.sh
 #
-# Built from skill-repo/ — the exact bytes `npx skills add passy-ai/psh-now-skill -g -y` installs —
+# Built from skill-repo/ (the exact bytes `npx skills add passy-ai/psh-now-skill -g -y` installs) 
 # so the audited artifact and the installed artifact are the same file, and the archive digest
 # published at /.well-known/agent-skills/index.json covers the installer too (audit F5: the
 # digest used to skip install.sh, the script that does the installing). Run

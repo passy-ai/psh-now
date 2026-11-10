@@ -1,4 +1,4 @@
-# Positioning notes — source of truth for site copy
+# Positioning notes: source of truth for site copy
 
 Captured from the founder. Re-read this before editing any marketing copy.
 This is the authority for *what we claim*; `src/` is the authority for *what is true*.
@@ -16,7 +16,7 @@ Both must be visible in the hero. Neither alone is the pitch.
 
 - **Installable and usable immediately.** No setup theatre, no waiting on a
   platform to provision something. Start answering in a minute.
-- **A skill as a service — not a platform with a skill.** This is the structural
+- **A skill as a service, not a platform with a skill.** This is the structural
   difference. We are not a platform that also ships a skill; the skill *is* the
   product surface.
 - **Agent-first.** Designed from the agent's side of the wire outward.
@@ -25,7 +25,7 @@ Both must be visible in the hero. Neither alone is the pitch.
 - **Free without a trial.** No trial clock, no card, no account required. A real
   differentiator against trial-gated competitors.
 
-## Delivery reality — do not overclaim
+## Delivery reality: do not overclaim
 
 - **No APN / push notifications yet.** Do not promise push, notifications,
   background alerts, or "your phone buzzes".
@@ -43,7 +43,7 @@ ours should match it.
 
 The valuable case is **not** complicated reviews or open-ended questions. It is
 the opposite: **a flow that pushes five questions into one recommended route.**
-Five separate asks should collapse into a single decision the human taps once —
+Five separate asks should collapse into a single decision the human taps once,
 the agent has already done the reasoning, the human just confirms the route.
 
 ### Hard constraint to resolve before writing this copy
@@ -55,12 +55,12 @@ throws `badRequest` when a message contains:
 - `>= 2` option markers (`A)`, `B.`, `C)`, `D.`), or
 - `>= 3` occurrences of "or"
 
-with the message: *"psh.now has only Approve and Deny — ask one yes/no on your
+with the message: *"psh.now has only Approve and Deny, ask one yes/no on your
 recommendation. Do not list options (zsh/bash/fish, A/B/C, several questions).
 Pick one and ask to proceed."*
 
 So "five questions into one recommended route" is **already the enforced
-contract for a single request** — the agent must collapse the options itself and
+contract for a single request**, the agent must collapse the options itself and
 ask one yes/no on its recommendation. What does *not* exist yet is true
 multi-question batching inside one decision.
 

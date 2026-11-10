@@ -7,7 +7,7 @@
  * The free ladder: one allowance, **no daily cap**. An anonymous workspace gets
  * 20 requests from the first ask. Claiming takes the allowance to 100 (that is
  * +80) and buys the account its dashboard/shares/purchase powers. A claimed
- * account may also take the €1 entry pack once for nothing — another 100 — so the
+ * account may also take the €1 entry pack once for nothing (another 100) so the
  * whole free road is 200 requests before anyone pays. Past that, packs are bought
  * from the dashboard, which (never email) surfaces the wall early.
  */
@@ -50,7 +50,7 @@ export const CLAIMED_REQUESTS = env.claimedRequests;
 /** Trial workspaces keep living as long as they were used in the last 120d. */
 export const TRIAL_KEEP_ALIVE_MS = 120 * DAY;
 
-/** The three prepaid packs — the only things that cost money. */
+/** The three prepaid packs, the only things that cost money. */
 export const TOKEN_PACKAGES = [
   {
     // The entry pack. Cheap on purpose: the first one is free (see FREE_PACK),
@@ -61,7 +61,7 @@ export const TOKEN_PACKAGES = [
   },
   {
     // The test pack: 20 requests, no money. It is the only pack the deployed host offers, so the
-    // press is the signal — how many times people ask for more is the number worth watching.
+    // press is the signal, how many times people ask for more is the number worth watching.
     id: "test20",
     requests: 20,
     priceEur: 0,
@@ -141,7 +141,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "token",
     name: "Token",
     // History only: nothing assigns this plan any more (a prepaid purchase keeps
-    // a workspace on `free` — addTokens() no longer touches `plan`). Kept so old
+    // a workspace on `free`, addTokens() no longer touches `plan`). Kept so old
     // rows still resolve to something sane.
     // No daily cap in v2: the prepaid balance is the only meter.
     requestsPerDay: null,
@@ -206,7 +206,7 @@ export function checkLimit(
   cost = REQUESTS_PER_APPROVAL,
   /**
    * Public base URL of the deployment. When given, every blocked message ends
-   * with the top-up link — an agent that relays the message relays the link, and
+   * with the top-up link, an agent that relays the message relays the link, and
    * the human has somewhere to click (owner: a limit report with no link is
    * "a bit sad").
    */
@@ -214,7 +214,7 @@ export function checkLimit(
 ): LimitCheck {
   const withLink = (message: string) =>
     baseUrl ? `${message} Add requests: ${topUpUrl(baseUrl)}` : message;
-  // One total rack, no daily cap — the wall arrives once, at rack-empty time.
+  // One total rack, no daily cap, the wall arrives once, at rack-empty time.
   if (plan.requestsTotal !== null) {
     if (used + cost <= plan.requestsTotal) {
       return { allowed: true, limit: plan.requestsTotal, used, via: "allowance", plan };
@@ -224,7 +224,7 @@ export function checkLimit(
     }
     const next = withLink(
       plan.id === "anonymous" && CLAIMED_REQUESTS > plan.requestsTotal
-        ? `Free allowance reached (${plan.requestsTotal} requests). Register this workspace to top up to ${CLAIMED_REQUESTS} — no card, no daily cap.`
+        ? `Free allowance reached (${plan.requestsTotal} requests). Register this workspace to top up to ${CLAIMED_REQUESTS}, no card, no daily cap.`
         : `Free allowance reached (${plan.requestsTotal} requests). ${PACKS_LINE}`,
     );
     return {

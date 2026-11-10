@@ -44,7 +44,7 @@ CMD ["sh", "-c", "for i in 1 2 3 4 5 6 7 8 9 10; do bun src/db/migrate.ts && bre
 
 # Probe loopback by address, not by name. Inside the alpine runtime the `bun -e`
 # probe did not resolve `localhost`, so the healthcheck failed while the server
-# was up and listening on 0.0.0.0:3000 — Swarm then killed a healthy task every
+# was up and listening on 0.0.0.0:3000. Swarm then killed a healthy task every
 # ~85 seconds and the domain never kept a backend. src/index.ts probes
 # 127.0.0.1 for the same reason. The probe now also says *why* it failed
 # instead of exiting silently.

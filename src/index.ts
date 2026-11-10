@@ -403,7 +403,7 @@ function loopbackRedirect(request: Request): Response | null {
   // The healthcheck is not a browser session, so there is no origin to unify: it
   // asks this very process whether it is serving yet. Redirecting it sends the
   // probe out to the public hostname and back through the tunnel, which answers
-  // 502 exactly when the service has no healthy task — the state the probe is
+  // 502 exactly when the service has no healthy task, the state the probe is
   // meant to detect. Loop it back and the probe can only ever report "down".
   if (url.pathname === "/api/v1/health") return null;
   return Response.redirect(`${canonicalHost}${url.pathname}${url.search}`, 302);

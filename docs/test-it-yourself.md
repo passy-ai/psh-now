@@ -17,7 +17,7 @@ curl -s -o /dev/null -w "public %{http_code}\n" https://psh.now/api/v1/health
 ```
 
 Both should say `200`. If the public one says `502`, the Cloudflare Tunnel's
-session expired — restart it:
+session expired, restart it:
 
 ```bash
 cd psh-now && bun src/index.ts
@@ -41,7 +41,7 @@ https://psh.now/setup.md and follow them for a quick install.
 **Expect** (~35s):
 - The agent reads `/setup.md`, inspects the installer, runs it, and reports the keys.
 - It installs and stops there: the confirmation is step 2 of the guide, and it only
-  runs when you ask for it. This is a test, so ask — *“send me one test question
+  runs when you ask for it. This is a test, so ask, *“send me one test question
   through psh.now”* (template §6).
 
 **Check:**
@@ -71,8 +71,8 @@ it while the install command was still running.
 - [ ] No channels yet → *"No channels yet. An agent's first request creates one."*
 
 **Try:**
-- [ ] Tap the **eye** — the key un-blurs. Tap again — re-blurs.
-- [ ] Tap **copy** — the key is on your clipboard.
+- [ ] Tap the **eye** (the key un-blurs. Tap again) re-blurs.
+- [ ] Tap **copy**, the key is on your clipboard.
 - [ ] Add the page to your phone's home screen (it's a PWA).
 
 ---
@@ -89,8 +89,8 @@ You're already in the app from the approve link.
 - [ ] The channel from the test request (named `Default`, or after your project).
 
 **Try:**
-- [ ] Tap the **eye** — the key un-blurs. Tap again — re-blurs.
-- [ ] Tap **copy** — the key is on your clipboard.
+- [ ] Tap the **eye** (the key un-blurs. Tap again) re-blurs.
+- [ ] Tap **copy**, the key is on your clipboard.
 - [ ] Add the page to your phone's home screen (it's a PWA).
 
 **Claim a username:** tap **Claim a username**.
@@ -105,19 +105,19 @@ You're already in the app from the approve link.
 
 ## 4. Connect a second agent to a channel
 
-**Option A — channel key (recommended).**
+**Option A, channel key (recommended).**
 In the app: tap **＋** (top right) → name it e.g. `Research Agent` → **Create**.
 It prints a prompt. Copy it.
 
 Open a **second** agent session and paste that prompt. **Expect** in ~10s:
-- [ ] The agent says it is connected and ready — the prompt itself asks for no test.
+- [ ] The agent says it is connected and ready, the prompt itself asks for no test.
 - [ ] Ask it for one: *"Send me a test request through psh.now"* → the request
       appears in the app under **Research Agent**.
 
-**Option B — join link.**
+**Option B, join link.**
 In the app: **Connect another agent** → **Copy link** → paste into a second agent
 with *"install the skill if needed, then join."* It gets an **ask-only** key on the
-**same account** — it can ask, never approve.
+**same account**, it can ask, never approve.
 
 **Check:**
 - [ ] A second agent's requests show up on **your** account, in the right channel.
@@ -165,7 +165,7 @@ Open the channel → **Members**.
 **Check:**
 - [ ] It lists the owner (you).
 - [ ] **Invite someone** → by `@handle` or email.
-- [ ] Inviting an email with no account returns an **invite link** (copied) — open
+- [ ] Inviting an email with no account returns an **invite link** (copied), open
       it in a private window and accept it after signing in.
 
 ---
@@ -212,8 +212,8 @@ Open the channel → **Members**.
       `/invite/<token>`, `/@handle`, `/pair/<token>`; a dead `/j/<token>` redirects
       browsers to `/app` and answers agents with `410`)
 - [ ] Phone width (390px): does the request table stack cleanly?
-- [ ] Is the first-run experience clear? (Arrive with a claim link and no channels
-      — do you know what to do?)
+- [ ] Is the first-run experience clear? (Arrive with a claim link and no channels,
+      do you know what to do?)
 - [ ] Anything that reads like AI-generated filler?
 
 ---

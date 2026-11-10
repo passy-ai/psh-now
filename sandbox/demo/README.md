@@ -28,7 +28,7 @@ Open your agent in *this folder* and say:
 
 > Read agents.md and follow it. Then list the files here.
 
-This should **not** ask for approval — it's read-only.
+This should **not** ask for approval, it's read-only.
 
 ## 3. Trigger an approval
 

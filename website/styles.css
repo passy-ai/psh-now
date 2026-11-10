@@ -1,4 +1,4 @@
-/* psh.now homepage — design inspired by here.now */
+/* psh.now homepage, design inspired by here.now */
 
 @font-face {
   font-family: "Inter";
@@ -67,7 +67,7 @@
      so a single blue does the pointing. */
   --accent: #2f6bff;
   --accent-hover: #2259e6;
-  /* A soft grey pill for the hero's copy button — see .copy-prompt. */
+  /* A soft grey pill for the hero's copy button, see .copy-prompt. */
   --btn-soft-bg: #e4e4e7;
   --btn-soft-hover: #d4d4d8;
 
@@ -85,7 +85,7 @@
   --page-pad: 24px;
 }
 
-/* Light (white) mode is the default. The dark theme is kept for later —
+/* Light (white) mode is the default. The dark theme is kept for later,
    add data-theme="dark" to <html> to enable it. */
 html[data-theme="dark"] {
     --bg: #131316;
@@ -623,7 +623,7 @@ main {
     height: 0.98em;
   }
 }
-/* The hero headline is static — the rotating word lived here. */
+/* The hero headline is static, the rotating word lived here. */
 
 .hero-sub {
   margin: 22px auto 0;
@@ -701,7 +701,7 @@ main {
   transition: grid-template-rows 0.3s ease, padding-top 0.3s ease;
   /*
    * Closing waits a beat before it starts. A transition takes its delay from the
-   * state being entered, so this delays only the close — every opening rule below
+   * state being entered, so this delays only the close, every opening rule below
    * resets it to 0. Without it the panel snaps shut the instant the pointer slips
    * off the button, which reads as a flicker; with it, brushing past the button
    * leaves the prompt where it is.
@@ -720,8 +720,8 @@ main {
  * than behind a second control.
  *
  * Only the button opens it. `.copy-block` spans the whole column so the panel can
- * be full width, and targeting the block would make the whole row — including the
- * empty space to the right of the button — a trigger. The panel is a trigger too,
+ * be full width, and targeting the block would make the whole row, including the
+ * empty space to the right of the button, a trigger. The panel is a trigger too,
  * so the pointer can move down and select the text.
  */
 .copy-block {
@@ -776,7 +776,7 @@ main {
   margin-top: 40px;
   min-width: 0;
 }
-/* A quiet, muted label — it introduces the row rather than competing with it. */
+/* A quiet, muted label, it introduces the row rather than competing with it. */
 .eyebrow {
   margin: 0 0 20px;
   font-size: 13px;
@@ -1573,7 +1573,7 @@ html[data-theme="dark"] .risk-high .risk-tag {
   height: 14px;
 }
 
-/* Each beat: time, verdict, then what happened — left to right. */
+/* Each beat: time, verdict, then what happened, left to right. */
 .tl-steps {
   list-style: none;
   margin: 0;

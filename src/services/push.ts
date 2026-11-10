@@ -5,7 +5,7 @@ import { pushSubscriptions, settings } from "../db/schema";
 import { env } from "../env";
 
 /**
- * Real Web Push (VAPID), so alerts reach a **closed** tab or phone — not just
+ * Real Web Push (VAPID), so alerts reach a **closed** tab or phone, not just
  * an open page. Works on Android/desktop/Firefox natively; on iOS the site must
  * be installed to the Home Screen first.
  */

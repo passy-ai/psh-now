@@ -149,7 +149,7 @@ export async function countAlerts(
  *
  * The out-of-requests state is a live check, never a snapshot. A request that
  * was recorded while the workspace was blocked has to become actionable again
- * the moment the workspace can pay for it — tokens added, or the free window
+ * the moment the workspace can pay for it, tokens added, or the free window
  * rolled over. `prompts.metadata.limitReached` records only *why* a request was
  * held, so the dashboard re-checks affordability on every read.
  */
@@ -174,7 +174,7 @@ export interface DecisionInput {
   decision?: string | null;
   /**
    * The human's own words. When this is a non-empty string the prompt is
-   * `answered` rather than approved/denied — the agent reads it and acts.
+   * `answered` rather than approved/denied, the agent reads it and acts.
    */
   answer?: string | null;
 }

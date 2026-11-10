@@ -1,4 +1,4 @@
-# How psh.now works — the full flow
+# How psh.now works: the full flow
 
 Everything lives in one repo: **this repository**
 → `https://psh.now` (public host, Cloudflare Tunnel).
@@ -37,7 +37,7 @@ human                          agent                              host
  …/setup.md and follow them
  for a quick install."   ───►  curl …/setup.md
                                curl …/install.sh        ───►  serves the guide
-                               (inspects them — good)         and installer
+                               (inspects them, good)         and installer
                                curl …/install.sh | sh   ───►  installs the skill
                                                               into
                                                               ~/.agents/skills/psh-now
@@ -50,13 +50,13 @@ human                          agent                              host
 
 **The install guide** (`/setup.md`) is the single source of truth. It says:
 
-1. The goal is **machine-wide** — the skill every folder sees, `psh` on PATH, one account
+1. The goal is **machine-wide**, the skill every folder sees, `psh` on PATH, one account
    record. With the private repo (npm + git + GitHub credentials):
    `npx skills add passy-ai/psh-now-skill -g -y`, then
-   `sh ~/.agents/skills/psh-now/scripts/setup.sh` — the `-g` copy is what the second line runs.
+   `sh ~/.agents/skills/psh-now/scripts/setup.sh`, the `-g` copy is what the second line runs.
    Without credentials: `curl -fsSL https://psh.now/install.sh | sh` (it verifies every file
    against `/.well-known/agent-skills/files.json` and mints the keys too).
-2. `curl -fsS https://psh.now/api/v1/health` — `{"ok":true}`.
+2. `curl -fsS https://psh.now/api/v1/health`, `{"ok":true}`.
 3. Report the account key and the three links.
 4. If the sandbox refused the machine-wide writes, setup.sh's last line says
    `psh_machine_wide=incomplete`: say so, send **one** ask through psh.now, re-run on approval
@@ -87,7 +87,7 @@ and on the first install on a machine:
 
 | Key | What it is | Who holds it |
 |---|---|---|
-| `userKey` | the **account key** — the login, and the identity while anonymous | the human |
+| `userKey` | the **account key**, the login, and the identity while anonymous | the human |
 | `channelKey` | what the **agent** sends (`x-psh-key`) | the agent |
 
 ---
@@ -126,13 +126,13 @@ can be shared with another account.
 
 ## 4. Approve flow (the human side)
 
-1. Open **`https://psh.now/app?key=<userKey>`** — the key is in the
+1. Open **`https://psh.now/app?key=<userKey>`**, the key is in the
    URL, so no sign-in step.
 2. The **account card** shows your name (or the anon key) + Anonymous/Free badge.
 3. **Open Channels** lists pending requests: `Request · Description · Received ·
    Action` with **Approve / Deny**.
 4. **Claim** a username at `/claim?key=<userKey>` (first/last/email → emailed code).
-5. **Connect another agent** with the channel's reusable link (`/c/<channel>`) — the
+5. **Connect another agent** with the channel's reusable link (`/c/<channel>`), the
    channel card's **Copy prompt for agent** button hands it over, instructions included.
 
 ---
@@ -150,7 +150,7 @@ can be shared with another account.
 | Devices | `devices` + `pairing_tokens` |
 
 **Scopes:** `ask` keys (agents, channel keys, join links) can create/read their own
-approvals but get **403** on decisions, keys, devices, profile, tokens — and are
+approvals but get **403** on decisions, keys, devices, profile, tokens, and are
 refused on the dashboard WebSocket. The account key and paired devices are `manage`.
 
 ---

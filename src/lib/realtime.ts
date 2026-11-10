@@ -65,7 +65,7 @@ export function broadcast(tenantId: string, payload: unknown): number {
  * Without this, a decision on a shared channel only appears live for its
  * owner; everyone else has to refresh to see it.
  *
- * Owner-only on any share lookup failure — one frame beats no frame.
+ * Owner-only on any share lookup failure, one frame beats no frame.
  */
 export async function broadcastToWatchers(
   ownerTenantId: string,
@@ -78,7 +78,7 @@ export async function broadcastToWatchers(
       const { sharedTenantIds } = await import("../services/sessions");
       for (const t of await sharedTenantIds(sessionId)) targets.add(t);
     } catch (err) {
-      console.error("[realtime] share lookup failed — broadcasting owner only", err);
+      console.error("[realtime] share lookup failed, broadcasting owner only", err);
     }
   }
   let delivered = 0;
