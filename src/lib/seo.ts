@@ -35,6 +35,7 @@ const OG_IMAGE = `${base}/website/og.png`;
 const PAGES = [
   { rel: "index.html", path: "/", file: "website/index.html", priority: "1.0", changefreq: "weekly" },
   { rel: "docs.html", path: "/docs", file: "public/docs.html", priority: "0.8", changefreq: "weekly" },
+  { rel: "self-hosting.html", path: "/self-hosting", file: "public/self-hosting.html", priority: "0.7", changefreq: "monthly" },
   { rel: "privacy.html", path: "/privacy", file: "website/privacy.html", priority: "0.3", changefreq: "yearly" },
   { rel: "terms.html", path: "/terms", file: "website/terms.html", priority: "0.3", changefreq: "yearly" },
 ] as const;

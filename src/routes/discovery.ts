@@ -83,6 +83,7 @@ ${RULES}
 ## Discovery
 - Homepage: ${base}
 - Docs: ${base}/docs
+- Self hosting: ${base}/self-hosting
 - Setup guide (agents): ${base}/setup.md
 - Skill: ${base}/skill.md
 - Pricing: ${base}/pricing
