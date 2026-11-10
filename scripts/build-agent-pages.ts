@@ -176,6 +176,7 @@ const FOOTER = `      <footer class="site-footer">
             <a href="/teams">Teams</a>
             <a href="/alternatives">Alternatives</a>
             <a href="/self-hosting">Self hosting</a>
+            <a href="/listed-on">Listed on</a>
             <a href="/llms.txt">llms.txt</a>
           </div>
           <div class="footer-col">

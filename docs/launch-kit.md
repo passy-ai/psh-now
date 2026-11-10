@@ -113,9 +113,13 @@ cheapest route in hours. It is a purchase, so it needs your card, not mine.
 | `/agents` (10 pages) | One page per harness, each with HowTo structured data |
 | `/openapi.json`, `/.well-known/mcp.json` | Machine-readable descriptions of the same product |
 
-**Not available yet:** awesome lists. `awesome-claude-code` requires either 14 days of commits or 100
-stars before a submission is even read, and closing the PR is automatic otherwise. Both are worth
-revisiting in a fortnight — the repo is 0 stars and days old today.
+**Awesome lists.** `awesome-claude-code` requires either 14 days of commits or 100 stars before a
+submission is read at all — it auto-closes anything else, so that one waits a fortnight.
+
+`awesome-mcp-servers` has no such gate and explicitly fast-tracks agent PRs, so that is open now:
+[PR #19131](https://github.com/punkpeye/awesome-mcp-servers/pull/19131), one line under Developer
+Tools on branch `add-psh-now`. A matching entry in `awesome-remote-mcp-servers` is the next one if a
+hosted-first server is judged a better fit there.
 
 ---
 
@@ -126,6 +130,7 @@ revisiting in a fortnight — the repo is 0 stars and days old today.
 | GitHub | yes | yes | https://github.com/passy-ai/psh-now |
 | GitHub Releases | yes | yes | https://github.com/passy-ai/psh-now/releases |
 | skills.sh | yes | yes | https://www.skills.sh/svliantiss/psh-now-skill |
+| awesome-mcp-servers | PR open | pending review | https://github.com/punkpeye/awesome-mcp-servers/pull/19131 |
 | SourceForge | no | no | — |
 | 1–20 above | no | no | — |
 
