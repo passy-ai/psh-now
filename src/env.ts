@@ -32,12 +32,28 @@ export const env = (() => {
     );
   }
 
+  /**
+   * Is this instance serving a public host or a laptop? `NODE_ENV` is the honest
+   * signal and it was not set on the deployed host, which turned every dev-only path
+   * back on: codes printed into the sign-in screen and uncapped token grants. So the
+   * default now also needs the base URL to look local - a public host is never
+   * "development" just because nobody exported the variable.
+   */
+  const publicBaseUrl = required("PUBLIC_BASE_URL", "http://localhost:3000").replace(/\/$/, "");
+  const localBase = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(publicBaseUrl);
+  /** Dev conveniences default on for a laptop, and require an explicit 1 anywhere else. */
+  const devDefaultsOn = !isProduction && localBase;
+  const devFlag = (name: string): boolean =>
+    devDefaultsOn ? (process.env[name] ?? "1") !== "0" : process.env[name] === "1";
+
   return {
     nodeEnv,
     isProduction,
+    /** True when the public base URL points at this machine. */
+    localBase,
     port: int("PORT", 3000),
     host: process.env.HOST ?? "0.0.0.0",
-    publicBaseUrl: required("PUBLIC_BASE_URL", "http://localhost:3000").replace(/\/$/, ""),
+    publicBaseUrl,
     databaseUrl: required("DATABASE_URL", "postgres://localhost:5432/psh.now"),
     defaultTimeoutMs: int("DEFAULT_TIMEOUT_MS", 90 * 1000),
     pairingTtlMs: int("PAIRING_TTL_MS", 10 * 60 * 1000),
@@ -53,18 +69,23 @@ export const env = (() => {
     freeRequests: int("PSH_FREE_REQUESTS", 20),
     claimedRequests: int("PSH_CLAIMED_REQUESTS", 100),
     /**
+     * Requests one workspace may add for nothing while no payment provider is
+     * approved. The checkout link is the blocker, not the intent to charge, so this
+     * keeps the top-up button usable until Dodo is live - capped, because a host that
+     * cannot take money must not quietly become unlimited free capacity.
+     */
+    directTokensMax: int("PSH_DIRECT_TOKENS_MAX", 1000),
+    /**
      * Dev only: return the claim/verify code in the API response instead of
      * emailing it. Fail-closed in production — only on if explicitly set.
      */
-    devClaim: isProduction
-      ? process.env.PSH_DEV_CLAIM === "1"
-      : (process.env.PSH_DEV_CLAIM ?? "1") !== "0",
+    devClaim: devFlag("PSH_DEV_CLAIM"),
     /**
      * Dev only: print verification codes to the server console, so a local run
      * can be signed into without a mail provider. Hard-off in production — this
      * one cannot be switched on in the deployed environment at all.
      */
-    logCode: !isProduction && (process.env.PSH_LOG_CODE ?? "1") !== "0",
+    logCode: devFlag("PSH_LOG_CODE"),
     /** Secret used to encrypt recoverable agent keys at rest. */
     secret,
     /**

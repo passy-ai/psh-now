@@ -46,6 +46,21 @@ export async function createClaim(
   const code = claimCode();
   const expiresAt = new Date(Date.now() + env.claimTtlMs);
 
+  /**
+   * A resend supersedes the code before it: two live codes for one address is two
+   * ways in, and the older one is the one nobody is looking at any more.
+   */
+  await db
+    .update(claims)
+    .set({ consumedAt: new Date() })
+    .where(
+      and(
+        eq(claims.tenantId, tenantId),
+        eq(claims.email, normalized),
+        isNull(claims.consumedAt),
+      ),
+    );
+
   const [row] = await db
     .insert(claims)
     .values({

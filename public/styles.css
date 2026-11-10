@@ -1580,13 +1580,34 @@ margin: -6px 0 0;
   color: var(--dim);
   font-size: 13.5px;
 }
-/* Dev-only code helper shown above the code field. */
+/* "Didn't get it? Resend code" - the honest control on a host that emails codes. */
+.code-resend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.code-resend .linklike {
+  padding: 0;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.code-resend .linklike[disabled] {
+  color: var(--dim);
+  text-decoration: none;
+  cursor: default;
+}
+/* Dev-only code helper, shown only to a request from this machine. */
 .code-tools {
-display: flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-top: 14px;
   flex-wrap: wrap;
 }
 .code-tools code {

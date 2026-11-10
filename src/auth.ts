@@ -75,11 +75,18 @@ export const auth = betterAuth({
         // `PSH_LOG_CODE=1` in .env prints the code to the local console. It is
         // hard-off in production, so unlike PSH_DEV_CLAIM it cannot be switched
         // on in the deployed environment.
+        /**
+         * Printing the code is a local convenience, not a substitute for sending it: a
+         * deployed host with PSH_LOG_CODE=1 used to print here and return, which left
+         * every remote sign-in with a code that only existed in its own console.
+         */
         if (env.logCode) {
           console.log(`\n  psh.now code for ${email} (${type}): ${otp}\n`);
-          return;
         }
         if (!mailConfigured()) {
+          // Printed above, so a local run still works; anywhere else this is the only
+          // way the caller learns the mail was never sent.
+          if (env.logCode) return;
           // Fail loudly rather than return 200 for an email that was never sent:
           // the alternative is a user staring at a code field that can never fill.
           throw new Error(

@@ -31,6 +31,34 @@ async function smtpTransport(): Promise<import("nodemailer").Transporter> {
   return smtp;
 }
 
+/**
+ * The claim code, by email. Claims used to be handed to the browser instead - a code
+ * on the sign-in screen is a code anyone reading the screen can use, so a public host
+ * now emails it and refuses when no transport is configured.
+ */
+export async function sendClaimCodeEmail(input: {
+  to: string;
+  code: string;
+  minutes: number;
+}): Promise<void> {
+  const { to, code, minutes } = input;
+  await sendMail({
+    to,
+    subject: `${code} is your psh.now claim code`,
+    text:
+      `Your psh.now claim code is ${code}.\n\n` +
+      `It expires in ${minutes} minutes and can be used once.\n` +
+      `If you did not ask for this, ignore this email and the code expires on its own.\n\n` +
+      `${env.publicBaseUrl}\n`,
+    html:
+      `<p>Your psh.now claim code:</p>` +
+      `<p style="font-size:28px;letter-spacing:6px;font-family:ui-monospace,monospace">${code}</p>` +
+      `<p>It expires in ${minutes} minutes and can be used once.</p>` +
+      `<p>If you did not ask for this, ignore this email - the code expires on its own.</p>` +
+      `<p><a href="${env.publicBaseUrl}">${env.publicBaseUrl}</a></p>`,
+  });
+}
+
 export interface MailMessage {
   to: string;
   subject: string;

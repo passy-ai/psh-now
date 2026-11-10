@@ -21,8 +21,10 @@ bun run dev                   # http://localhost:3000
 bun run typecheck             # must pass before you open a PR
 ```
 
-Local sign-in needs no mail provider: with `NODE_ENV` not set to production, the code prints to
-the console and comes back in the API response.
+Local sign-in needs no mail provider: on a `localhost` base URL the code prints to the console
+and comes back in the API response - but only to a request from this machine. Any other host
+(or any request that arrives over the network) is emailed, so a deployed instance never shows a
+code on screen. `PSH_LOG_CODE=0` turns the local shortcut off.
 
 ## What a pull request needs
 

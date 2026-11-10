@@ -89,12 +89,18 @@
             </div>
 
             <div id="authCodeStep" class="hide">
-              <div id="authCodeTools" class="code-tools hide">
-                <button id="authCopyCode" class="btn sm" type="button"><span data-icon="copy"></span> Copy code</button>
-                <span class="muted">Dev code: <code id="authDevCode"></code></span>
-              </div>
               <label class="field-label" for="authCode">Verification code</label>
               <input id="authCode" class="field" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" />
+              <div class="code-resend">
+                <span class="muted">Didn't get it?</span>
+                <button id="authResend" class="linklike" type="button">Resend code</button>
+              </div>
+              <!-- Local development only: the server returns a code exclusively to a
+                   request from this machine. A deployed host emails it instead. -->
+              <div id="authCodeTools" class="code-tools hide">
+                <button id="authCopyCode" class="btn sm" type="button"><span data-icon="copy"></span> Copy code</button>
+                <span class="muted">Local dev code: <code id="authDevCode"></code></span>
+              </div>
             </div>
 
             <button id="authSubmit" class="btn primary block" type="submit">Continue</button>

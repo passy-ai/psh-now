@@ -4,7 +4,7 @@ import { db } from "../db";
 import { auditLog, tenants } from "../db/schema";
 import { HttpError, badRequest, forbidden, notFound } from "../lib/http";
 import { requireTenantOrDevice } from "../lib/tenant-auth";
-import { TOKEN_PACKAGES, pickTokenPackage } from "../lib/plans";
+import { TEST_PACK_ID, TOKEN_PACKAGES, pickTokenPackage } from "../lib/plans";
 import { addTokens } from "../services/tenants";
 import {
   billingConfigured,
@@ -21,14 +21,26 @@ import {
  * never trusted, because it is a URL the user controls.
  */
 export const billingRoutes = new Elysia({ prefix: "/api/v1" })
-  /** What can be bought, in money, as packs. No per-request arithmetic anywhere. */
-  .get("/billing/status", () => ({
-    mode: billingMode(),
-    packs: TOKEN_PACKAGES.filter((p) => p.priceEur > 0 && productFor(p.requests)).map((p) => ({
-      requests: p.requests,
-      priceEur: p.priceEur,
-    })),
-  }))
+  /**
+   * What can be bought, in money, as packs. No per-request arithmetic anywhere.
+   * With no provider approved the list is not empty and the packs are not for sale:
+   * they are granted directly, and `free` says so, because an empty list is what made
+   * the buy button look broken.
+   */
+  .get("/billing/status", () => {
+    const live = billingConfigured();
+    return {
+      mode: billingMode(),
+      free: !live,
+      packs: TOKEN_PACKAGES.filter((p) =>
+        live ? p.priceEur > 0 && productFor(p.requests) : p.id !== TEST_PACK_ID,
+      ).map((p) => ({
+        requests: p.requests,
+        priceEur: p.priceEur,
+        free: !live,
+      })),
+    };
+  })
 
   .post(
     "/billing/checkout",

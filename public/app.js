@@ -444,7 +444,11 @@ async function addRequests(count, btn) {
       method: "POST",
       body: count ? { requests: count } : {},
     });
-    toast(`${data.added.toLocaleString()} requests added`);
+    toast(
+      data.direct
+        ? `${data.added.toLocaleString()} requests added - free while payments are being approved`
+        : `${data.added.toLocaleString()} requests added`,
+    );
     // A request held back for the limit is actionable again now: refetch so the
     // card unlocks instead of staying disabled until the next page load.
     await loadMenu();
@@ -480,14 +484,32 @@ function renderPacks(me, ws) {
   const host = $("menuPacks");
   if (!host) return;
   const freeAvailable = !!ws.claimed && !ws.freePackClaimed;
-  host.innerHTML = (me.packs || [])
+  const packs = me.packs || [];
+  /**
+   * No packs and nothing left to give: say so. An empty menu is what made the button
+   * look broken in the first place.
+   */
+  if (!packs.length) {
+    const spent = me.directRemaining === 0;
+    host.innerHTML = `<span class="menu-item muted" style="cursor:default">${icon("cart", 16)}${
+      spent
+        ? "Free requests used - packs go on sale when checkout is approved"
+        : "No packs available on this workspace"
+    }</span>`;
+    return;
+  }
+  host.innerHTML = packs
     .map((p) => {
       const free = p.freeOnce && freeAvailable;
+      // `free` on a pack means no provider is live yet: the pack settles on the spot,
+      // so the label must not promise a checkout that does not exist.
       const label = free
-        ? `Get ${p.requests} requests free`
-        : p.priceEur > 0
-          ? `Buy ${p.requests.toLocaleString()} requests (€${p.priceEur})`
-          : `Get ${p.requests.toLocaleString()} requests (free)`;
+        ? `Get ${p.requests.toLocaleString()} requests free`
+        : p.free
+          ? `Add ${p.requests.toLocaleString()} requests (free for now)`
+          : p.priceEur > 0
+            ? `Buy ${p.requests.toLocaleString()} requests (€${p.priceEur})`
+            : `Get ${p.requests.toLocaleString()} requests (free)`;
       return `<button class="menu-item" data-pack="${p.requests}" data-free="${free ? "1" : "0"}">${icon("cart", 16)}${label}</button>`;
     })
     .join("");
@@ -2715,10 +2737,10 @@ $("regBtn")?.addEventListener("click", async () => {
     pendingClaim = data.claimId;
     $("acctRegisterVerify").classList.remove("hide");
     if (data.code) {
-      $("regCode").value = data.code;
-      toast(`Dev code: ${data.code}`);
+      // Local development only: filling the field would make verification a formality.
+      toast(`Local dev code: ${data.code}`);
     } else {
-      toast("Check your inbox for a code");
+      toast(data.message || "Check your inbox for a code");
     }
   } catch (err) {
     toast(err.message || "Couldn't send code");
@@ -2907,6 +2929,12 @@ function resetAuth() {
   if ($("authSubmit")) $("authSubmit").textContent = "Continue";
   if ($("authHint")) $("authHint").textContent = "We'll email you a 6-digit verification code.";
   if ($("authCode")) $("authCode").value = "";
+  codeEmail = "";
+  resendAt = 0;
+  if ($("authResend")) {
+    $("authResend").disabled = false;
+    $("authResend").textContent = "Resend code";
+  }
 }
 
 /**
@@ -2944,7 +2972,32 @@ function showAuth() {
   $("authEmail")?.focus();
 }
 
+/** Seconds before the code can be resent; the server mints a fresh one each time. */
+const RESEND_COOLDOWN_MS = 30_000;
+let codeEmail = "";
+let resendAt = 0;
+
+/** Count down on the resend control so a double click cannot spray codes. */
+function startResendCooldown() {
+  const btn = $("authResend");
+  if (!btn) return;
+  resendAt = Date.now() + RESEND_COOLDOWN_MS;
+  const tick = () => {
+    const left = Math.ceil((resendAt - Date.now()) / 1000);
+    if (left > 0) {
+      btn.disabled = true;
+      btn.textContent = `Resend in ${left}s`;
+      setTimeout(tick, 500);
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Resend code";
+    }
+  };
+  tick();
+}
+
 async function sendCode(email) {
+  codeEmail = email;
   const res = await api("/api/v1/auth/otp", { method: "POST", body: { email } });
   if (res?.devCode) {
     // Local dev: surface the code so it can be copied (never on remote).
@@ -3031,6 +3084,20 @@ $("authCopyCode")?.addEventListener("click", async () => {
     toast("Code copied");
   } catch {
     toast("Copy failed");
+  }
+});
+$("authResend")?.addEventListener("click", async () => {
+  if (!codeEmail || Date.now() < resendAt) return;
+  const btn = $("authResend");
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  try {
+    await sendCode(codeEmail);
+    toast("New code sent");
+  } catch (err) {
+    toast(err.message || "Couldn't resend the code");
+    btn.disabled = false;
+    btn.textContent = "Resend code";
   }
 });
 $("authUseKey")?.addEventListener("click", () => {

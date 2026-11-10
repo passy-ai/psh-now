@@ -7,6 +7,7 @@ import {
 } from "../services/devices";
 import {
   addTokens,
+  directGrantsUsed,
   claimFreePack,
   adoptWorkspace,
   claimTenant,
@@ -22,8 +23,11 @@ import {
 import { peekChannelUrl, redeemChannelUrl } from "../services/join";
 import { peekInvite, redeemInviteToken } from "../services/invites";
 import { requireTenant, requireTenantOrDevice } from "../lib/tenant-auth";
+import { billingConfigured } from "../services/billing";
+import { mailConfigured, sendClaimCodeEmail } from "../services/mail";
+import { isLocalRequest } from "../lib/plans";
 import { clientOrigin } from "../lib/client";
-import { badRequest, conflict, forbidden, gone, notFound, unauthorized } from "../lib/http";
+import { HttpError, badRequest, conflict, forbidden, gone, notFound, unauthorized } from "../lib/http";
 import {
   checkLimit,
   getPlan,
@@ -37,6 +41,7 @@ import {
 } from "../lib/plans";
 import { env } from "../env";
 import { db } from "../db";
+import { auditLog } from "../db/schema";
 import { pairingTokens, sessions } from "../db/schema";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { apiKeyFromHeaders, sha256 } from "../lib/crypto";
@@ -258,15 +263,44 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
         firstName: body.firstName,
         lastName: body.lastName,
       });
+      /**
+       * The code has to reach a human, and the response body is not a mailbox: it is
+       * whatever is on their screen. On a public host the code is emailed, and an
+       * instance that cannot send email says so instead of answering 200 with a code
+       * only the browser ever saw. Only a request from this machine gets the code back.
+       */
+      const local = isLocalRequest(request);
+      if (!local) {
+        if (!mailConfigured()) {
+          throw new HttpError(
+            503,
+            "This instance cannot send email yet, so no claim code can be delivered: set " +
+              "SMTP_URL and MAIL_FROM, or RESEND_API_KEY and MAIL_FROM.",
+            "mail_unconfigured",
+          );
+        }
+        try {
+          await sendClaimCodeEmail({
+            to: claim.email,
+            code: claim.code,
+            minutes: Math.round(env.claimTtlMs / 60_000),
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Email delivery failed";
+          console.error("[claim] send failed:", message);
+          throw new HttpError(502, `Could not send the code: ${message}`, "upstream");
+        }
+      }
       return {
         claimId: claim.id,
         email: claim.email,
         expiresAt: claim.expiresAt,
-        // Dev convenience until an email provider is wired up.
-        ...(env.devClaim ? { code: claim.code } : {}),
-        message: env.devClaim
-          ? "Dev mode: use `code` to verify."
-          : "Check your inbox for a claim code.",
+        /** Local only: a code in a response is a code on a screen. */
+        ...(local && env.devClaim ? { code: claim.code } : {}),
+        message:
+          local && env.devClaim
+            ? "Dev mode: use `code` to verify."
+            : `We emailed a code to ${claim.email}. It can be resent.`,
       };
     },
     {
@@ -426,6 +460,15 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
     ]);
     const used = alerts * REQUESTS_PER_APPROVAL;
     const limit = checkLimit(plan, used, tenant.tokenBalance);
+    /**
+     * While no provider is approved the packs are free, so the allowance decides what
+     * can be offered: a 10,000 pack the account could never take is a button that only
+     * ever produces a refusal.
+     */
+    const livePayments = billingConfigured();
+    const freeLeft = livePayments
+      ? 0
+      : Math.max(0, env.directTokensMax - (await directGrantsUsed(tenant.id)));
     return {
       /**
        * What can be bought, so no surface has to hardcode a price. `freeOnce` marks
@@ -435,14 +478,22 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
       // keeps the real packs, so the paid flow can be exercised without them being on offer
       // publicly. This keys on the environment, not the caller's address: reached through a
       // tunnel, a dev server looked remote and quietly offered the test pack alone.
+      /**
+       * With a live provider these are the packs that have a product id. Without one
+       * the same packs are given away - which is why they carry `free`: a surface must
+       * label them honestly instead of showing a price it cannot charge.
+       */
       packs: TOKEN_PACKAGES.filter((p) =>
-        env.isProduction ? p.id === TEST_PACK_ID : p.id !== TEST_PACK_ID,
+        livePayments ? p.priceEur > 0 : p.id !== TEST_PACK_ID && p.requests <= freeLeft,
       ).map((p) => ({
         id: p.id,
         requests: p.requests,
         priceEur: p.priceEur,
         freeOnce: p.id === FREE_PACK_ID,
+        free: !livePayments,
       })),
+      /** Free requests still available on this workspace; null once money is live. */
+      directRemaining: livePayments ? null : freeLeft,
       workspace: {
         id: tenant.id,
         name: tenant.name,
@@ -527,14 +578,47 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
     "/me/tokens",
     async ({ request, body }) => {
       const { tenant } = await requireTenantOrDevice(request.headers);
-      if (!env.devClaim) {
+      /**
+       * Refused only when a checkout can actually be created. While no payment provider
+       * is approved there is nothing to redirect to, so a 403 here was a dead end: the
+       * browser fell through to /billing/checkout, which answered "not configured".
+       */
+      if (!env.devClaim && billingConfigured()) {
         throw forbidden("Token purchases are handled by the billing provider");
       }
       // The pack is the caller's choice. This used to ignore it and always grant, and
       // bill, the one pack, so 100 requests cost the same invoice as 10,000.
       const pack = pickTokenPackage(body?.requests);
       if (!pack) throw badRequest("Unknown request pack");
+      /**
+       * No provider means no money to collect, so the pack settles immediately - the
+       * button does what it says instead of opening a checkout that does not exist.
+       * Capped per workspace, because "checkout is not live" must not read as unlimited
+       * free capacity. Dev keeps its uncapped path, since that is what it is for.
+       */
+      const direct = !env.devClaim;
+      let used = 0;
+      if (direct) {
+        used = await directGrantsUsed(tenant.id);
+        if (used + pack.requests > env.directTokensMax) {
+          throw forbidden(
+            `Payments are not live yet, so requests are free while they are not: ` +
+              `${env.directTokensMax.toLocaleString()} per workspace, ${used.toLocaleString()} taken.`,
+          );
+        }
+      }
       const tokenBalance = await addTokens(tenant.id, pack.requests);
+      if (direct) {
+        await db.insert(auditLog).values({
+          tenantId: tenant.id,
+          action: "tokens.direct",
+          detail: {
+            requests: pack.requests,
+            priceEur: pack.priceEur,
+            reason: "no-payment-provider",
+          },
+        });
+      }
       // VAT: reverse charge (0%) when a VAT number is given, else 21%.
       const reverseCharge = !!body?.vatNumber;
       const net = pack.priceEur;
@@ -542,9 +626,16 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
       return {
         added: pack.requests,
         tokenBalance,
+        /** True when the pack was granted here, not paid for at a provider. */
+        direct,
+        directRemaining: direct ? Math.max(0, env.directTokensMax - used - pack.requests) : null,
         // Reported for convenience only: the purchase never changes the plan.
         plan: tenant.plan,
-        invoice: {
+        /**
+         * No money moved, so there is no invoice to show. Printing €9 net plus VAT for
+         * a pack that was granted here would be a receipt for a payment nobody made.
+         */
+        invoice: direct ? null : {
           companyName: body?.companyName ?? null,
           vatNumber: body?.vatNumber ?? null,
           country: body?.country ?? null,

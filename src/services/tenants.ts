@@ -1,8 +1,8 @@
 import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../db";
-import { apiKeys, devices, prompts, sessions, tenants, type Tenant } from "../db/schema";
+import { apiKeys, auditLog, devices, prompts, sessions, tenants, type Tenant } from "../db/schema";
 import { generateApiKey, sha256 } from "../lib/crypto";
-import { memo } from "../lib/memo";
+import { forget, memo } from "../lib/memo";
 import { decryptSecret, encryptSecret } from "../lib/secrets";
 import { env } from "../env";
 
@@ -127,6 +127,20 @@ export async function sweepExpiredTenants(): Promise<number> {
  * remain free"*). The balance is a meter, not a plan — and `checkLimit()` already
  * spends it once the free rack is empty.
  */
+/**
+ * Requests this workspace was already given for nothing while no payment provider was
+ * live. Derived from the audit log, so the grant and the record of it cannot disagree.
+ */
+export async function directGrantsUsed(tenantId: string): Promise<number> {
+  const [row] = await db
+    .select({
+      total: sql<string>`coalesce(sum((${auditLog.detail}->>'requests')::int), 0)`,
+    })
+    .from(auditLog)
+    .where(and(eq(auditLog.tenantId, tenantId), eq(auditLog.action, "tokens.direct")));
+  return Number(row?.total ?? 0);
+}
+
 export async function addTokens(
   tenantId: string,
   count: number,
@@ -139,6 +153,12 @@ export async function addTokens(
     })
     .where(eq(tenants.id, tenantId))
     .returning({ balance: tenants.tokenBalance });
+  /**
+   * The dashboard refetches itself the moment the balance changes, and a cached key
+   * lookup would hand it the number from before the grant - the meter not moving is
+   * indistinguishable from the purchase having failed.
+   */
+  forget("keyauth:");
   return row?.balance ?? 0;
 }
 

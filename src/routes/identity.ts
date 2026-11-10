@@ -6,6 +6,7 @@ import { auth, lastOtp } from "../auth";
 import { env } from "../env";
 import { mailConfigured } from "../services/mail";
 import { HttpError, badRequest, unauthorized } from "../lib/http";
+import { isLocalRequest } from "../lib/plans";
 import { encryptSecret } from "../lib/secrets";
 import {
   claimTenant,
@@ -41,8 +42,13 @@ export const identityRoutes = new Elysia({ prefix: "/api/v1/auth" })
   /** Send (or resend) the one-time code. */
   .post(
     "/otp",
-    async ({ body }) => {
+    async ({ body, request }) => {
       const email = body.email.trim().toLowerCase();
+      // better-auth answers INVALID_EMAIL, which surfaced here as a 500 "Something went
+      // wrong" for a typo the caller can fix.
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw badRequest("Enter a valid email address");
+      }
       // better-auth deliberately answers "ok" even when the send throws, so that a caller
       // cannot probe which addresses exist. That makes a missing mail transport invisible
       // to the person trying to sign in, so the one case that is ours to report is checked
@@ -59,7 +65,12 @@ export const identityRoutes = new Elysia({ prefix: "/api/v1/auth" })
       // Dev only: hand the code back so the UI can offer a copy button. Keyed on
       // logCode, not devClaim: refusing the free token grant (PSH_DEV_CLAIM=0, which is how
       // the payment path is tested) must not also take away the ability to sign in.
-      const devCode = env.logCode ? lastOtp.get(email) : undefined;
+      /**
+       * Even with dev codes switched on, only a request from this machine gets one: a
+       * public host that was never marked production must not print a sign-in code into
+       * a stranger's browser. The deployed host did exactly that.
+       */
+      const devCode = env.logCode && isLocalRequest(request) ? lastOtp.get(email) : undefined;
       return { ok: true, devCode };
     },
     { body: t.Object({ email: t.String({ minLength: 3, maxLength: 200 }) }) },
