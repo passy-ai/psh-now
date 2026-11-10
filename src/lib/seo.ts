@@ -49,6 +49,7 @@ const PAGES = [
   { rel: "agents/hermes-agent.html", path: "/agents/hermes-agent", file: "website/agents/hermes-agent.html", priority: "0.7", changefreq: "monthly" },
   { rel: "agents/warp.html", path: "/agents/warp", file: "website/agents/warp.html", priority: "0.7", changefreq: "monthly" },
   { rel: "agents/qwen-code.html", path: "/agents/qwen-code", file: "website/agents/qwen-code.html", priority: "0.7", changefreq: "monthly" },
+  { rel: "listed-on.html", path: "/listed-on", file: "website/listed-on.html", priority: "0.5", changefreq: "monthly" },
   { rel: "self-hosting.html", path: "/self-hosting", file: "public/self-hosting.html", priority: "0.7", changefreq: "monthly" },
   { rel: "privacy.html", path: "/privacy", file: "website/privacy.html", priority: "0.3", changefreq: "yearly" },
   { rel: "terms.html", path: "/terms", file: "website/terms.html", priority: "0.3", changefreq: "yearly" },

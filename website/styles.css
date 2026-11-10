@@ -2909,6 +2909,11 @@ pre:hover .pre-copy,
   }
 }
 
+/* A sub page that opens on a heading instead of the centred hero needs its own air. */
+.subpage > .docs-main > h1:first-child {
+  margin-top: 56px;
+}
+
 /* ---------- Agent integration pages ---------- */
 .crumbs {
   margin: 0 0 20px;

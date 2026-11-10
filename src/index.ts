@@ -554,6 +554,7 @@ const app = new Elysia({ serve: { reusePort: false } })
       : notFound(),
   )
   .get("/alternatives", () => websiteResponse("alternatives.html"))
+  .get("/listed-on", () => websiteResponse("listed-on.html"))
   .get("/privacy", () => websiteResponse("privacy.html"))
   .get("/terms", () => websiteResponse("terms.html"))
   .get("/claim", () => pageHtml("public/claim.html", injectNoIndex))

@@ -125,6 +125,7 @@ ${POSITIONING}
 - Homepage: ${base}
 - Docs: ${base}/docs
 - Agent integrations (one page per harness): ${base}/agents
+- Where psh.now is listed, and its listing kit: ${base}/listed-on
 - Teams: ${base}/teams
 - Open source alternatives: ${base}/alternatives
 - Source (MIT): https://github.com/passy-ai/psh-now
