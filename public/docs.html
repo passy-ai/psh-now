@@ -129,20 +129,19 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh
 
 After installing, send me a test request.</pre>
         <p>No npm, no git, or no GitHub access? Run the installer directly - it mints
-          your keys too: it installs the skill machine-wide, puts <code>psh</code> on your
-          PATH and writes the machine's account record. If a sandbox refuses those writes it
-          falls back to this folder and says so,
+          your keys too. It installs the skill in every agent folder it finds, writes a
+          <code>psh</code> command into the first writable directory on your PATH, and
+          records the machine's account in <code>~/.psh/keys.json</code>. A sandbox that
+          refuses those writes leaves the skill in this folder and says so,
           <code>psh_machine_wide=incomplete</code>:</p>
         <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
-          That also leaves the project its own <code>./.psh/bin/psh</code>, so an agent
-          that hears "use psh now" always has a command to run: one screen naming the
-          skill, the host, the keys and the next command. <code>./.psh/bin/psh doctor</code>
-          checks it end to end. The machine-wide copy - the skill every project sees plus a
-          <code>psh</code> on your PATH - is that same line run by you in your own terminal
-          rather than by an agent inside a sandbox. Until it has run the install is
-          project-local, and the agent says so rather than calling it finished. (Also written
-          "psh now" or psh-now.)
+          Joining a channel - the connect prompt below - is what gives the folder its own
+          <code>./.psh/bin/psh</code> and <code>./.psh/keys.json</code>: one screen naming
+          the skill, the host, the keys and the next command, and
+          <code>./.psh/bin/psh doctor</code> checks it end to end. Until the machine-wide
+          copy has run the install is project-local, and the agent says so rather than
+          calling it finished. (Also written "psh now" or psh-now.)
         </p>
         <p>After installing, you can have the agent send one test question through
           psh.now whenever you want to see it work end to end.</p>
@@ -174,9 +173,10 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         <p>
           The link decides the account <em>and</em> the channel, so nothing new is
           minted and the agent stays <strong>ask-only</strong>. It is the channel's
-          reusable <code>/c/&lt;channel&gt;</code> URL: find it in the channel's
-          <strong>Settings</strong> tab, in <code>.psh/keys.json</code> of an
-          already-connected folder, or by running <code>psh status</code>. Joining
+          reusable <code>/c/&lt;channel&gt;</code> URL: find it in <strong>More
+          actions</strong> → <strong>Channel settings</strong>, in
+          <code>.psh/keys.json</code> of an already-connected folder, or by running
+          <code>psh status</code>. Joining
           with it already set is what keeps the work on <em>your</em> account.
         </p>
         <p class="muted">
@@ -186,10 +186,11 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
 
         <h2 id="approve">Approving requests</h2>
         <p>
-          Requests appear under <strong>Open Channels</strong>, grouped by channel, in
-          a table of <em>Request, Description, Received, Action</em>. Tap
-          <strong>Approve</strong> or <strong>Deny</strong>. A channel with nothing
-          waiting drops into the <strong>Channels</strong> dropdown.
+          Waiting requests appear at the top of the dashboard, one card each: the
+          title, the message, and three buttons - <strong>Deny</strong>,
+          <strong>Answer</strong> and <strong>Approve</strong>. Answer replies in your
+          own words when the question needs more than a yes or no; otherwise Approve or
+          Deny settles it and the card disappears.
         </p>
         <p>
           An agent proceeds <strong>only</strong> on <code>{"approved":true}</code>.
@@ -198,27 +199,28 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
 
         <h2 id="channels">Channels</h2>
         <p>
-          A channel is a named tab (e.g. <code>my-project</code>). Each has three
-          tabs:
+          A channel is one project's bucket (e.g. <code>my-project</code>), and it is a
+          card on the dashboard. Everything it needs lives on that card:
         </p>
         <ul>
-          <li><strong>Requests</strong> - what's waiting, plus history.</li>
-          <li><strong>Members</strong> - who can approve; invite a registered account by email.</li>
-          <li><strong>Settings</strong> - title, description, channel key, a connect link, and archive.</li>
+          <li><strong>Copy prompt for agent</strong> - the ready-to-paste prompt, with the channel's link inside it.</li>
+          <li><strong>Who's in this channel</strong> - the people and agents on it, and a reusable invite link.</li>
+          <li><strong>More actions</strong> - <em>Channel settings</em> (who has joined, each agent's key, Archive), Rename, Export history (CSV), Delete.</li>
         </ul>
-        <p>Create one with <strong>＋ New channel</strong>. Unnamed requests land in
-          <code>Default</code>.</p>
+        <p>Create one with <strong>＋ New channel</strong>. Requests that never named a
+          channel land in <code>Default</code>.</p>
 
         <h2 id="account">Account &amp; billing</h2>
         <p>
           Your <strong>account key</strong> is your login - it signs you in at
           <code>/app?key=…</code> and <em>is</em> your identity while anonymous.
-          <strong>Register</strong> a username (first name, last name, email → a
-          code) to keep the account and get 20 requests/day.
+          <strong>Claim account</strong> with an email to keep it, sign in from any
+          device, and lift the allowance from 20 requests to 100.
         </p>
         <p>
-          Out of requests? <strong>Top up</strong> - 100 requests for €1, then bigger packs, from the dashboard.
-          VAT, with a company-details option for the invoice.
+          Out of requests? <strong>Top up</strong> from the dashboard: 100 for €1, then
+          1,000 for €9, 10,000 for €50, 100,000 for €450. VAT, with a company-details
+          option for the invoice.
         </p>
 
         <h2 id="api">API</h2>
@@ -239,9 +241,9 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
 
         <h2 id="limits">Limits</h2>
         <ul>
-          <li><strong>Anonymous</strong> - 20 requests total, 24h history.</li>
-          <li><strong>Free</strong> (registered) - 20 requests/day, 48h history.</li>
-          <li><strong>Token</strong> - 20/day + prepaid, 30d history.</li>
+          <li><strong>Anonymous</strong> - 20 requests total, 7-day history.</li>
+          <li><strong>Claimed</strong> (email) - 100 requests total, 30-day history.</li>
+          <li><strong>Prepaid</strong> - packs on top of the allowance, 30-day history.</li>
         </ul>
         <p>One approval costs 2 requests (inbound + outbound).</p>
       </main>
