@@ -886,7 +886,7 @@ fi
 # ONE prompt, handed to any agent - a chat or a sandbox. The link is the whole instruction:
 # an installed agent joins it, an uninstalled one installs and then joins. No env vars, no key
 # in the text, and the whole thing stays copyable in one go.
-cp="I'd like you to use psh.now and join ${channelurl:-<channel-link>}."
+cp="I'd like you to use psh.now and join this channel: ${channelurl:-<channel-link>}"
 
 # The report template ships inside the skill (F7): the text that instructs an agent must be
 # versioned with the skill and covered by its digest, not fetched at run time from the host,

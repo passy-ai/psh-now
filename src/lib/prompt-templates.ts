@@ -42,7 +42,8 @@ After installing, send me a test request.`;
  */
 export function joinPrompt(channelUrl: string): string {
   const url = channelUrl || `${PROMPT_HOST}/c/${CHANNEL_ID_PLACEHOLDER}`;
-  return `I'd like you to use psh.now and join ${url}.`;
+  // No full stop after the link: pasted into a prompt, `.../c/abc.` is a broken URL.
+  return `I'd like you to use psh.now and join this channel: ${url}`;
 }
 
 /**
@@ -55,7 +56,7 @@ export function joinPrompt(channelUrl: string): string {
 export function sandboxPrompt(channelUrl: string): string {
   const url = channelUrl || `${PROMPT_HOST}/c/${CHANNEL_ID_PLACEHOLDER}`;
   return `I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
-and join ${url}
+and join this channel: ${url}
 
 If not, download the installer first and read it before running it:
 curl -fsSL ${PROMPT_HOST}/install.sh`;

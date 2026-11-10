@@ -2207,7 +2207,7 @@ function channelPrompt(url, { html = false } = {}) {
     // install again - re-running the installer is what minted a second account
     // (observed 2026-10-17). The agent hands this link to the skill's setup.sh, which
     // redeems it on the account that already exists.
-    const lines = [`I'd like you to use psh.now and join ${url}.`];
+    const lines = [`I'd like you to use psh.now and join this channel: ${url}`];
   if (!html) return lines.join("\n");
   return lines.map((line) => esc(line)).join("<br>");
 }

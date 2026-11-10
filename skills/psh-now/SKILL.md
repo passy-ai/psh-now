@@ -102,7 +102,7 @@ After installing, send me a test request.
 **2. Join a channel** (this agent is already set up). The link is the whole instruction:
 
 ```text
-I'd like you to use psh.now and join https://psh.now/c/<channel-id>.
+I'd like you to use psh.now and join this channel: https://psh.now/c/<channel-id>
 ```
 
 **3. A new sandbox that must join** (nothing set up, and it belongs on an existing channel).

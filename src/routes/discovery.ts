@@ -161,7 +161,7 @@ After installing, send me a test request.
 An agent that is already installed joins one channel with:
 
 \`\`\`text
-I'd like you to use psh.now and join ${base}/c/<channel-id>.
+I'd like you to use psh.now and join this channel: ${base}/c/<channel-id>
 \`\`\`
 
 A new sandbox that must join while it installs:

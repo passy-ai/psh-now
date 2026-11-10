@@ -34,7 +34,7 @@ mints in one go.
 ### 2. Join a channel
 
 ```text
-I'd like you to use psh.now and join https://psh.now/c/<channel-id>.
+I'd like you to use psh.now and join this channel: https://psh.now/c/<channel-id>
 ```
 
 The agent is already set up. This is what the dashboard's **Copy prompt for agent** produces, and
