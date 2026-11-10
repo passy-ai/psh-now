@@ -22,6 +22,7 @@ import { identityRoutes } from "./routes/identity";
 import { profileRoutes } from "./routes/profile";
 import { discoveryRoutes, llmsTxt } from "./routes/discovery";
 import { hookRoutes } from "./routes/hook";
+import { mcpRoutes } from "./routes/mcp";
 import { promptRoutes } from "./routes/prompts";
 import { peekInvite } from "./services/invites";
 import { pushRoutes } from "./routes/push";
@@ -527,6 +528,8 @@ const app = new Elysia({ serve: { reusePort: false } })
   .use(profileRoutes)
   .use(discoveryRoutes)
   .use(hookRoutes)
+  // MCP is a thin JSON-RPC wrapper: same handler, same metering, one extra surface.
+  .use(mcpRoutes)
   .use(promptRoutes)
   .use(pushRoutes)
   .use(billingRoutes)

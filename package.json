@@ -23,7 +23,8 @@
     "start": "bun src/index.ts",
     "migrate": "bun src/db/migrate.ts",
     "cli": "bun cli/psh.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:mcp": "bun tests/mcp.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

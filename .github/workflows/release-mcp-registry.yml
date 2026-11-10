@@ -1,0 +1,110 @@
+# Publishes server.json to the official MCP registry when it changes on main.
+#
+# modelcontextprotocol/registry grants a publish permission of io.github.<repository_owner>/*
+# taken from the OIDC token, so this repo publishes io.github.passy-ai/psh-now with no secret
+# and no PAT. `mcp-publisher login github-oidc` is the whole auth.
+#
+# server.json is the source of truth here; bump its version in the same commit as the change
+# you want listed. The registry keeps one record per version and treats a republish as an
+# error, so the first step reads the published latest and skips when nothing moved.
+
+name: Release MCP registry entry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - server.json
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate against the registry. Do not publish."
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-mcp-registry
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Decide before installing anything: read what the registry serves, compare versions.
+      - name: Decide action
+        id: decide
+        run: |
+          LOCAL=$(node -p "require('./server.json').version")
+          NAME=$(node -p "require('./server.json').name")
+          DESC=$(node -p "require('./server.json').description.length")
+          echo "name=$NAME version=$LOCAL description_chars=$DESC"
+          if [ "$DESC" -gt 100 ]; then
+            echo "server.json description must stay within 100 characters (the registry 422s)"; exit 1
+          fi
+
+          REMOTE=$(curl -sf "https://registry.modelcontextprotocol.io/v0/servers?search=psh-now" \
+            | node -e '
+              let raw = "";
+              process.stdin.on("data", (c) => (raw += c));
+              process.stdin.on("end", () => {
+                const name = process.argv[1];
+                let latest = "0.0.0";
+                try {
+                  for (const row of JSON.parse(raw).servers ?? []) {
+                    const meta = row._meta?.["io.modelcontextprotocol.registry/official"];
+                    if (row.server?.name === name && meta?.isLatest) latest = row.server.version;
+                  }
+                } catch {}
+                process.stdout.write(latest);
+              });
+            ' "$NAME" || echo "unknown")
+          echo "published=$REMOTE"
+
+          echo "version=$LOCAL" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "action=validate" >> "$GITHUB_OUTPUT"
+          elif [ "$LOCAL" = "$REMOTE" ]; then
+            echo "Version $LOCAL is already the registry's latest; nothing to publish."
+            echo "action=skip" >> "$GITHUB_OUTPUT"
+          else
+            echo "action=publish" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install mcp-publisher
+        if: steps.decide.outputs.action != 'skip'
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Validate server.json
+        if: steps.decide.outputs.action != 'skip'
+        run: ./mcp-publisher validate
+
+      - name: Publish
+        if: steps.decide.outputs.action == 'publish'
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+      - name: Confirm what the registry serves
+        if: steps.decide.outputs.action == 'publish'
+        run: |
+          sleep 5
+          curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=psh-now" \
+            | node -e '
+              let raw = "";
+              process.stdin.on("data", (c) => (raw += c));
+              process.stdin.on("end", () => {
+                for (const row of JSON.parse(raw).servers ?? []) {
+                  const meta = row._meta?.["io.modelcontextprotocol.registry/official"];
+                  if (row.server?.name === "io.github.passy-ai/psh-now" && meta?.isLatest) {
+                    console.log("registry now serves", row.server.version);
+                  }
+                }
+              });
+            '

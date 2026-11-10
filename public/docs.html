@@ -239,6 +239,21 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <a href="/openapi.json">/openapi.json</a>, agent context:
           <a href="/llms-full.txt">/llms-full.txt</a></p>
 
+        <h2 id="mcp">MCP (optional)</h2>
+        <p>The HTTP call above is the contract. For clients that cannot install a skill, the
+          same request is also a single MCP tool at <code>/mcp</code> (streamable HTTP, plain JSON
+          responses, no OAuth). One tool, <code>psh_ask</code>, with
+          <code>{title?, message, timeoutSec?}</code>; it blocks and returns
+          <code>{"approved":bool,"status":"approved|denied|answered|expired","answer":string|null}</code>.</p>
+        <pre data-copyable>claude mcp add --transport http psh https://psh.now/mcp \
+    --header "x-psh-key: psh_agent_…"</pre>
+        <pre data-copyable>{ "mcpServers": { "psh": {
+      "url": "https://psh.now/mcp",
+      "headers": { "x-psh-key": "psh_agent_…" } } } }</pre>
+        <p>Descriptor: <a href="/.well-known/mcp.json">/.well-known/mcp.json</a>. Only
+          <code>approved: true</code> means yes; an <code>answer</code> is the person's own words,
+          not permission. MCP is cooperative like the skill - it cannot stop an agent that ignores
+          it. The gate is the harness hook.</p>
         <h2 id="limits">Limits</h2>
         <ul>
           <li><strong>Anonymous</strong> - 20 requests total, 7-day history.</li>

@@ -50,7 +50,8 @@ boolean. It is open source (MIT), self-hostable, and works with any harness that
 make an HTTP call.
 
 ## What it is not
-- Not an MCP server and not an SDK: one HTTP POST, no client library, no protocol to adopt.
+- Not MCP-only and not an SDK: one HTTP POST is the contract, no client library. An optional
+MCP endpoint exists for clients that cannot install a skill, and nothing depends on it.
 - Not hosted-only: the same code runs in your own VPC under MIT.
 - Not a chat UI or an agent framework: it answers one question at a time.
 - Not seat-priced: the hosted instance is a convenience, self-hosting is free.
@@ -101,7 +102,7 @@ taps Approve or Deny. The response is a single boolean.
 - Team members can approve on your behalf.
 - Channels: scoped, ask-only keys bound to one place.
 - Agent-to-agent approval: a central agent holds a scoped key and answers for you.
-- Harness-agnostic: one HTTP call, no SDK, no MCP.
+- Harness-agnostic: one HTTP call, no SDK; MCP is optional.
 - Live alerts over WebSocket and web push.
 
 ## When to use
@@ -131,6 +132,7 @@ ${POSITIONING}
 - Skill: ${base}/skill.md
 - Pricing: ${base}/pricing
 - Full agent context: ${base}/llms-full.txt
+- MCP endpoint (optional, one tool): ${base}/mcp
 - Sitemap: ${base}/sitemap.xml
 - OpenAPI: ${base}/openapi/json
 - Agent card: ${base}/.well-known/agent-card.json
@@ -172,7 +174,7 @@ If not, do this instead: curl -fsSL ${base}/install.sh
 ## What psh.now is
 psh.now is a hosted (or self-hosted) HTTP endpoint that turns "may I do this?" into
 a human decision on a psh.now page. It is intentionally minimal: one request
-shape, one boolean response, no SDK, no MCP, no session to manage. Any LLM with
+shape, one boolean response, no SDK, no session to manage. Any LLM with
 shell or HTTP tool access can use it.
 
 ## Setup (agents)
@@ -246,6 +248,34 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: …"   # holds up to 30s
 \`\`\`
 
 Cancel an unneeded request with \`POST /api/v1/approvals/<id>/cancel\`.
+
+## MCP (optional)
+
+The HTTP call above is the contract. MCP is a second front door for clients that cannot
+install a skill: hosted builders, connector UIs, and apps that only speak the protocol.
+One tool, one endpoint, plain JSON responses, no OAuth and no server-initiated stream.
+
+- Endpoint: \`POST ${base}/mcp\` (streamable HTTP, stateless)
+- Tool: \`psh_ask\` with \`{title?, message, timeoutSec?}\`. It blocks, then returns
+  \`{"approved":bool,"status":"approved"|"denied"|"answered"|"expired","answer":string|null,"promptId":"..."}\`
+- Auth: \`x-psh-key: psh_agent_...\`, or \`Authorization: Bearer ...\`. The tool is never anonymous.
+- Descriptor: \`${base}/.well-known/mcp.json\`
+
+\`\`\`bash
+# Claude Code
+claude mcp add --transport http psh ${base}/mcp --header "x-psh-key: psh_agent_REPLACE_ME"
+\`\`\`
+
+\`\`\`json
+{ "mcpServers": { "psh": { "url": "${base}/mcp",
+    "headers": { "x-psh-key": "psh_agent_REPLACE_ME" } } } }
+\`\`\`
+
+An \`answer\` is the human's own words: treat it as instruction, never as approval. Only
+\`approved: true\` means yes. \`denied\`, \`expired\` and any error all mean do not act.
+
+MCP is cooperative, exactly like the skill: an agent that never calls the tool can still
+act. The enforcement point is the harness hook, not the transport.
 
 ## Provision a workspace (agents)
 

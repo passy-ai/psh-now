@@ -203,7 +203,7 @@ interface HookResult {
  * The heart of psh.now: create a prompt, push it to every paired device, then
  * block the agent's HTTP request until a human answers or the timeout fires.
  */
-async function handleApprovalRequest(
+export async function handleApprovalRequest(
   headers: Headers,
   body: HookBody,
   signal: AbortSignal,

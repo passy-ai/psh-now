@@ -61,6 +61,38 @@ jobs:
         if: failure()
         run: tail -50 /tmp/psh.log
 
+  mcp:
+    # The protocol surface, talked to the way a client talks to it. A pass here means the
+    # frame, the prompt row, the decision and the boolean all held together.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: psh
+          POSTGRES_PASSWORD: psh
+          POSTGRES_DB: psh
+        options: >-
+          --health-cmd "pg_isready -U psh -d psh"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://psh:psh@127.0.0.1:5432/psh
+      PSH_SECRET: ci-only-secret-that-is-long-enough
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - name: migrate
+        run: bun run migrate
+      - name: mcp conformance
+        run: bun tests/mcp.ts
+
   compose:
     # Compose is the documented path, so a change that cannot start is a broken release.
     runs-on: ubuntu-latest

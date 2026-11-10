@@ -311,6 +311,8 @@ has passed are swept to `expired` (async requests have no waiter to time out).
 | Method   | Path                              | Auth          | Purpose                                |
 | -------- | --------------------------------- | ------------- | -------------------------------------- |
 | `POST`   | `/` · `/api/v1/hook`              | `x-psh-key`  | Approval request (blocking, or `wait:false`) |
+| `POST`   | `/mcp`                            | `x-psh-key`  | MCP: one tool, `psh_ask` (streamable HTTP, JSON) |
+| `GET`    | `/.well-known/mcp.json`           | —             | MCP descriptor for clients and scanners |
 | `POST`   | `/api/v1/channels`                | —             | Provision workspace (+ `pair:true` for a pairing link) |
 | `POST`   | `/api/v1/claims`                  | key / device  | Request a claim code for an anonymous workspace |
 | `POST`   | `/api/v1/claims/:id/verify`       | —             | Verify the code; makes the workspace permanent |
@@ -338,6 +340,27 @@ has passed are swept to `expired` (async requests have no waiter to time out).
 | `WS`     | `/ws?token=<deviceToken>`         | device token  | Live prompt stream + decisions         |
 
 Interactive docs at **`/docs`** (Swagger).
+
+### MCP
+
+The HTTP call is the contract; MCP is a second front door for clients that cannot install a
+skill (hosted builders, connector UIs, apps that only speak the protocol). One endpoint, one
+tool, no OAuth, no server-initiated stream -- a thin JSON-RPC wrapper around the same handler,
+so metering, expiry and the decision path cannot drift between the two surfaces.
+
+```bash
+claude mcp add --transport http psh https://psh.now/mcp --header "x-psh-key: psh_agent_..."
+```
+
+```json
+{ "mcpServers": { "psh": { "url": "https://psh.now/mcp",
+    "headers": { "x-psh-key": "psh_agent_..." } } } }
+```
+
+`psh_ask` takes `{title?, message, timeoutSec?}`, blocks, and returns
+`{"approved":bool,"status":"approved|denied|answered|expired","answer":string|null,"promptId":"..."}`.
+Only `approved: true` means yes; `denied`, `expired` and errors all mean do not act. MCP is
+cooperative like the skill: it cannot stop an agent that never calls it. The gate is the hook.
 
 ### WebSocket frames
 
