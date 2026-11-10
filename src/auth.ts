@@ -84,9 +84,6 @@ export const auth = betterAuth({
           console.log(`\n  psh.now code for ${email} (${type}): ${otp}\n`);
         }
         if (!mailConfigured()) {
-          // Printed above, so a local run still works; anywhere else this is the only
-          // way the caller learns the mail was never sent.
-          if (env.logCode) return;
           // Fail loudly rather than return 200 for an email that was never sent:
           // the alternative is a user staring at a code field that can never fill.
           throw new Error(

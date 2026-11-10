@@ -53,15 +53,29 @@ export const identityRoutes = new Elysia({ prefix: "/api/v1/auth" })
       // cannot probe which addresses exist. That makes a missing mail transport invisible
       // to the person trying to sign in, so the one case that is ours to report is checked
       // here, before anything is sent: the instance cannot deliver codes at all.
-      if (!env.logCode && !mailConfigured()) {
+      const local = isLocalRequest(request);
+      if (!mailConfigured() && !local) {
         throw new HttpError(
           503,
           "This instance cannot send sign-in email yet: set SMTP_URL and MAIL_FROM, or " +
-            "RESEND_API_KEY and MAIL_FROM. In development the code is printed to the server log.",
+            "RESEND_API_KEY and MAIL_FROM. On a laptop the code is printed to the server log.",
           "mail_unconfigured",
         );
       }
-      await auth.api.sendVerificationOTP({ body: { email, type: "sign-in" } });
+      try {
+        await auth.api.sendVerificationOTP({ body: { email, type: "sign-in" } });
+      } catch (err) {
+        /**
+         * The one-time code is stored before the send, so a local run that has nowhere
+         * to send it carries on with the code below. Anywhere else a failed send is a
+         * failure: answering ok would send the user to a code field that never fills.
+         */
+        if (!local) {
+          const message = err instanceof Error ? err.message : "Email delivery failed";
+          console.error("[otp] send failed:", message);
+          throw new HttpError(502, `Could not send the sign-in code: ${message}`, "upstream");
+        }
+      }
       // Dev only: hand the code back so the UI can offer a copy button. Keyed on
       // logCode, not devClaim: refusing the free token grant (PSH_DEV_CLAIM=0, which is how
       // the payment path is tested) must not also take away the ability to sign in.
@@ -70,7 +84,7 @@ export const identityRoutes = new Elysia({ prefix: "/api/v1/auth" })
        * public host that was never marked production must not print a sign-in code into
        * a stranger's browser. The deployed host did exactly that.
        */
-      const devCode = env.logCode && isLocalRequest(request) ? lastOtp.get(email) : undefined;
+      const devCode = env.logCode && local ? lastOtp.get(email) : undefined;
       return { ok: true, devCode };
     },
     { body: t.Object({ email: t.String({ minLength: 3, maxLength: 200 }) }) },
