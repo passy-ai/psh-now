@@ -16,6 +16,10 @@ done
 # install.sh lives at the repo root, not inside the skill folder.
 cp install.sh "$DST/install.sh"
 mkdir -p "$DST/scripts"
+# The README's demo GIF travels with the package, or the image is a broken link on GitHub.
+# It lives at the repo root, next to the one the main README uses.
+mkdir -p "$DST/assets"
+cp assets/*.gif "$DST/assets/"
 for src in "$SRC"/scripts/*.sh; do
   name="$(basename "$src")"
   cp "$src" "$DST/scripts/$name"
@@ -30,7 +34,7 @@ fi
 chmod +x "$DST/install.sh"
 
 for path in $(cd "$DST" && ls -A | grep -v '^\.git$'); do
-  case " $PUBLIC install.sh scripts host " in
+  case " $PUBLIC install.sh scripts host assets " in
     *" $path "*) ;;
     *) echo "sync-skill-repo: removing $path (not part of the public skill)"; rm -rf "$DST/$path" ;;
   esac

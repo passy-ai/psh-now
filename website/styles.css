@@ -2582,7 +2582,12 @@ html[data-theme="dark"] .risk-high .risk-tag {
 }
 @media (min-width: 640px) {
   .footer-inner {
-    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    grid-template-columns: 1.6fr 1fr 1fr;
+  }
+}
+@media (min-width: 900px) {
+  .footer-inner {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
   }
 }
 .footer-brand {
@@ -2625,6 +2630,390 @@ html[data-theme="dark"] .risk-high .risk-tag {
   margin-top: 40px;
   font-size: 12px;
   color: var(--muted-3);
+}
+
+/* ---------- Sub pages: one column, one nav, docs and comparison tables ---------- */
+
+/* Everything after the home sits in the home's own 960 column, so moving between
+   docs, teams and a comparison page never shifts the nav or the text. */
+.subpage {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad) 88px;
+}
+.subhead {
+  padding: 84px 0 0;
+  text-align: center;
+}
+.subhead h1 {
+  margin: 0;
+  font-size: clamp(32px, 4.6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  color: var(--fg);
+}
+.subhead p {
+  margin: 18px auto 0;
+  max-width: 640px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.tag .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* A titled block with a lead paragraph and one component under it. */
+.subsection {
+  margin-top: 60px;
+}
+.subsection > h2 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+}
+.subsection > p {
+  margin: 12px 0 0;
+  max-width: 660px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* The CTA already subtracts the page padding for the home page's full-bleed column;
+   inside a sub page that has padding of its own, it would shrink twice. */
+.subpage .cta {
+  width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+/* ---------- Docs: sidebar + measure, both inside the 960 column ---------- */
+.docs {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 28px var(--page-pad) 96px;
+}
+.docs-side {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.docs-group {
+  margin: 22px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.docs-group:first-child {
+  margin-top: 0;
+}
+.docs-link {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.docs-link:hover {
+  background: #f5f7fa;
+  color: var(--fg);
+}
+.docs-link.active {
+  background: #eef2f8;
+  color: var(--fg);
+  font-weight: 500;
+}
+.docs-main {
+  min-width: 0;
+}
+.docs-main h1 {
+  margin: 0 0 12px;
+  font-size: 33px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--fg);
+}
+.docs-main h2 {
+  margin: 44px 0 10px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.docs-main h3 {
+  margin: 26px 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.docs-main p,
+.docs-main li {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--muted);
+}
+.docs-main p {
+  margin: 0 0 14px;
+}
+.docs-main ul,
+.docs-main ol {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+.docs-main li {
+  margin-bottom: 6px;
+}
+.docs-main strong,
+.docs-main b {
+  color: var(--fg);
+  font-weight: 600;
+}
+.docs-main a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+.docs-main a:hover {
+  text-decoration-color: var(--accent);
+}
+.docs-main code {
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f7f8fa;
+  font-family: var(--mono);
+  font-size: 0.88em;
+  color: var(--fg);
+}
+.docs-main pre {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f7f8fa;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.docs-main pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+.pre-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+pre:hover .pre-copy,
+.pre-copy:focus-visible {
+  opacity: 1;
+}
+.pre-copy:hover {
+  color: var(--fg);
+}
+@media (max-width: 860px) {
+  .docs {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+  .docs-side {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .docs-group {
+    width: 100%;
+    margin: 10px 0 2px;
+  }
+}
+
+/* ---------- Comparison table ----------
+   The column that is you is tinted, not coloured: the page keeps one accent and
+   the table reads as paper with a wash, not as a chart. */
+.cmp-wrap {
+  margin-top: 32px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cmp {
+  width: 100%;
+  min-width: 660px;
+  border: 1px solid var(--border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 16px;
+  background: var(--bg);
+  font-size: 13.5px;
+}
+.cmp th,
+.cmp td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-2);
+}
+.cmp thead th {
+  border-bottom-color: var(--border);
+  background: #fafbfd;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.cmp thead th:first-child {
+  border-top-left-radius: 16px;
+}
+.cmp thead th:last-child {
+  border-top-right-radius: 16px;
+}
+.cmp tbody tr:last-child td {
+  border-bottom: 0;
+}
+.cmp td:first-child {
+  font-weight: 500;
+  color: var(--fg);
+}
+.cmp tbody td:not(:first-child) {
+  color: var(--muted);
+}
+.cmp .ours {
+  background: rgba(47, 107, 255, 0.045);
+}
+.cmp thead .ours {
+  background: rgba(47, 107, 255, 0.08);
+}
+.cmp .yes,
+.cmp .no,
+.cmp .part {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 500;
+}
+.cmp .yes {
+  color: #177a45;
+}
+.cmp .no {
+  color: #b4402f;
+}
+.cmp .part {
+  color: var(--muted-2);
+}
+.cmp-note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--muted-3);
+}
+
+/* ---------- Cards ---------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+  gap: 14px;
+  margin-top: 32px;
+}
+.card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+.card:hover {
+  border-color: #d9dee7;
+  box-shadow: 0 10px 26px rgba(16, 28, 60, 0.06);
+  transform: translateY(-1px);
+}
+.card-ic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: #eef2f8;
+  color: var(--accent);
+}
+.card h3 {
+  margin: 0 0 7px;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 60;
+  padding: 9px 16px;
+  border-radius: 10px;
+  background: var(--fg);
+  color: #fff;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 /* ---------- Prose (legal / docs pages) ---------- */

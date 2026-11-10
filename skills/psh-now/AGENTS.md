@@ -6,8 +6,9 @@ package, a GitHub repo). For the skill's own instructions to agents, see
 
 ## What this repo is
 
-The publishable skill package for psh.now. It is **not** the service. The
-service (server, database, dashboard) is closed source and lives elsewhere.
+The publishable skill package for psh.now. It is **not** the service. The service (server,
+database, dashboard) is open source and lives in `passy-ai/psh-now`; this repository carries only
+the skill.
 
 ## Rules
 
