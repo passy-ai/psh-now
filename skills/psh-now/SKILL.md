@@ -1,6 +1,6 @@
 ---
 name: psh-now
-version: 0.2.2
+version: 0.2.3
 author: psh.now
 description: >
   Approve, deny or *answer* agent questions from your phone - one tap or one line, and the work continues. Use

@@ -3,7 +3,7 @@
   "name": "io.github.passy-ai/psh-now",
   "title": "psh.now",
   "description": "Human approval for AI agents: one ask, one person, one boolean.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "websiteUrl": "https://psh.now",
   "repository": {
     "url": "https://github.com/passy-ai/psh-now",

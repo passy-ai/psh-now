@@ -27,13 +27,17 @@ resolve_psh_dir() {
   if [ -n "${PSH_HOME:-}" ]; then printf '%s' "$PSH_HOME"; return; fi
   dir="$PWD"
   while :; do
-    [ -d "$dir/.psh" ] && { printf '%s' "$dir/.psh"; return; }
+    # Never treat the filesystem root as a workspace root: an install run from / wrote
+    # /.psh, and no project could find those keys again (found 2026-11-10 in a clean
+    # container, where `docker exec` starts in /).
+    if [ "$dir" != "/" ] && [ -d "$dir/.psh" ]; then printf '%s' "$dir/.psh"; return; fi
     [ "$dir" = "/" ] && break
     dir="$(dirname "$dir")"
   done
   # Fall back to the legacy machine-global key store if it exists.
   [ -d "$HOME/.psh" ] && { printf '%s' "$HOME/.psh"; return; }
-  printf '%s' "$PWD/.psh"
+  [ -n "$HOME" ] && { printf '%s' "$HOME/.psh"; return; }
+  printf '%s' "${PWD%/}/.psh"
 }
 PSH_DIR="$(resolve_psh_dir)"
 KEYS="$PSH_DIR/keys.json"

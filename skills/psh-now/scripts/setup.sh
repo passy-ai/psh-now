@@ -105,7 +105,10 @@ resolve_psh_dir() {
   # observed 2026-10-17 on the native run: step 2's join left no project keys at all.
   while :; do
     [ "$dir" = "$HOME" ] && break
-    [ -d "$dir/.psh" ] && { printf '%s' "$dir/.psh"; return; }
+    # Never treat the filesystem root as a workspace root: an install run from / wrote
+    # /.psh, and no project could find those keys again (found 2026-11-10 in a clean
+    # container, where `docker exec` starts in /).
+    if [ "$dir" != "/" ] && [ -d "$dir/.psh" ]; then printf '%s' "$dir/.psh"; return; fi
     [ "$dir" = "/" ] && break
     parent="$(dirname "$dir")"
     [ "$parent" = "$dir" ] && break
