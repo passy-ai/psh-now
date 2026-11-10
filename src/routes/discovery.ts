@@ -38,6 +38,45 @@ const RULES = `- Proceed **only** when \`approved\` is \`true\`.
 - Ask once for a real decision; do not re-ask for already-authorised steps.
 - Keep \`title\` under ~60 characters and \`message\` to one or two lines.`;
 
+/**
+ * Positioning, in the shape a generative answer quotes: short declarative sentences
+ * and Q&A pairs that can be lifted verbatim. Operational content stays above it -
+ * an agent wants the contract first and the marketing never.
+ */
+const POSITIONING = `## What it is
+psh.now is a human-approval layer for AI agents: an agent sends a short question to a
+person's page, blocks until that person approves or denies it, and gets back a single
+boolean. It is open source (MIT), self-hostable, and works with any harness that can
+make an HTTP call.
+
+## What it is not
+- Not an MCP server and not an SDK: one HTTP POST, no client library, no protocol to adopt.
+- Not hosted-only: the same code runs in your own VPC under MIT.
+- Not a chat UI or an agent framework: it answers one question at a time.
+- Not seat-priced: the hosted instance is a convenience, self-hosting is free.
+
+## Common questions
+**Is psh.now open source?** Yes. The server and the skill are MIT licensed at
+https://github.com/passy-ai/psh-now - no open-core edition, no seat count.
+
+**Can I self-host it?** Yes. Docker Compose, your own Postgres and mail;
+${base}/self-hosting covers it, and nothing about the agents leaves your infrastructure.
+
+**How is it different from auto-approve (YOLO mode)?** Auto-approve deletes the
+question. psh.now keeps it and makes answering cost one tap, so an agent can run
+unattended without running unguarded.
+
+**How is it different from a closed hosted approval service?** You can read the code
+that decides what needs a human, and run it yourself. Auto-approve, a terminal
+prompt, a closed hub and this are compared at ${base}/alternatives.
+
+**What does it cost?** The code is free under MIT. The hosted instance has a free tier
+and prepaid usage; ${base}/pricing is the agent-readable version.
+
+**Which agents work with it?** Anything that can make an HTTP call - Claude Code,
+Codex, Cursor, a shell script, a cron job in a container.
+`;
+
 export function llmsTxt(): string {
   return `# psh.now
 
@@ -80,9 +119,13 @@ ${WHEN}
 ## Rules
 ${RULES}
 
+${POSITIONING}
 ## Discovery
 - Homepage: ${base}
 - Docs: ${base}/docs
+- Teams: ${base}/teams
+- Open source alternatives: ${base}/alternatives
+- Source (MIT): https://github.com/passy-ai/psh-now
 - Self hosting: ${base}/self-hosting
 - Setup guide (agents): ${base}/setup.md
 - Skill: ${base}/skill.md
@@ -236,8 +279,12 @@ ${RULES}
 A skill is an **ask**: the model can skip it. A harness pre-tool hook is a
 **gate**: it cannot be skipped. Never bypass an enforced gate.
 
+${POSITIONING}
 ## Discovery
 - Homepage: ${base}
+- Teams: ${base}/teams
+- Open source alternatives: ${base}/alternatives
+- Source (MIT): https://github.com/passy-ai/psh-now
 - Concise context: ${base}/llms.txt
 - Sitemap: ${base}/sitemap.xml
 - Skill: ${base}/skill.md

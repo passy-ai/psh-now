@@ -102,21 +102,46 @@ export function seoHead(html: string, path: string, robots?: string): string {
     .join("\n    ");
 }
 
-/** The homepage's structured data, derived from the page so it cannot drift. */
+/**
+ * The homepage's structured data, derived from the page so it cannot drift.
+ *
+ * A graph rather than one node: an answer engine that wants to cite "psh.now the
+ * product" and "psh.now the organisation" needs both, linked by @id so the software
+ * is not a float with no publisher.
+ */
 function softwareLd(html: string): Record<string, unknown> {
   const { description } = readMeta(html);
   return {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: SITE_NAME,
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "macOS, Linux, Windows",
-    description,
-    url: `${base}/`,
-    license: `${base}/license`,
-    isAccessibleForFree: true,
-    offers: [{ "@type": "Offer", price: "0", priceCurrency: "EUR", name: "Self hosted" }],
-    publisher: { "@type": "Organization", name: "Absolum", url: `${base}/` },
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${base}/#organization`,
+        name: SITE_NAME,
+        url: `${base}/`,
+        sameAs: ["https://github.com/passy-ai/psh-now"],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        name: SITE_NAME,
+        url: `${base}/`,
+        publisher: { "@id": `${base}/#organization` },
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${base}/#software`,
+        name: SITE_NAME,
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "macOS, Linux, Windows",
+        description,
+        url: `${base}/`,
+        license: `${base}/license`,
+        isAccessibleForFree: true,
+        offers: [{ "@type": "Offer", price: "0", priceCurrency: "EUR", name: "Self hosted" }],
+        publisher: { "@id": `${base}/#organization` },
+      },
+    ],
   };
 }
 
