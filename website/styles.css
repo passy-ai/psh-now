@@ -568,7 +568,9 @@ main {
   display: inline-block;
   white-space: nowrap;
   margin: 0 0.14em;
-  vertical-align: -0.12em;
+  /* middle, not a hand-tuned offset: it centres the tile on the text's own x-height
+     band, so the marks hold their place at any size the sentence is set in. */
+  vertical-align: middle;
 }
 .h1-mark + .h1-mark { margin-left: 0.07em; }
 /* "One" rides with the tiles: broken apart, the line started with three buttons. */
