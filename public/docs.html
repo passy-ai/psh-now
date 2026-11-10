@@ -106,8 +106,9 @@
           <li>Many people can approve one channel.</li>
         </ul>
         <p>
-          It's harness-agnostic: any agent with shell or HTTP access can use it. No
-          SDK, no MCP.
+          It's harness-agnostic: any agent with shell or HTTP access can use it. One
+          HTTP call is the whole contract, with no SDK to install. If a client speaks
+          MCP instead there is an endpoint at <code>/mcp</code>, and nothing depends on it.
         </p>
 
         <h2 id="templates">Prompt templates</h2>
