@@ -32,6 +32,8 @@ COPY --chown=psh:psh website ./website
 COPY --chown=psh:psh cli ./cli
 COPY --chown=psh:psh skills ./skills
 COPY --chown=psh:psh install.sh ./install.sh
+# MIT requires the licence to travel with the image, and /license serves it.
+COPY --chown=psh:psh LICENSE THIRD_PARTY.md ./
 
 USER psh
 EXPOSE 3000
