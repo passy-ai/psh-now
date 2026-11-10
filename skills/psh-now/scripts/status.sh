@@ -138,8 +138,10 @@ finish() {
 
 echo "psh.now: host $HOST" >&2
 
-# 1) Reachability (no auth needed).
-if ! curl -fsS -m 5 "$HOST/api/v1/health" >/dev/null 2>&1; then
+# 1) Reachability (no auth needed). One retry and a wider timeout: a slow path is not a dead
+# host. Measured 2026-11-10 from a clean container, /api/v1/health answered in 7.5s while a 5s
+# probe called it unreachable, which is the worst possible first run for a new user.
+if ! curl -fsS -m 12 --retry 1 --retry-delay 1 --retry-all-errors "$HOST/api/v1/health" >/dev/null 2>&1; then
   echo "psh.now: UNREACHABLE - $HOST did not answer /api/v1/health" >&2
   echo "psh_status.host=$HOST"
   echo "psh_status.auth=unreachable"
@@ -169,7 +171,7 @@ echo "psh.now: key $(mask "$KEY") (from $key_src)" >&2
 #    DNS/connect failure, 5xx or curl's 000 is exit 2 - "try again", never
 #    "your key is bad". `me` is unauthenticated-misuse-safe to print; the key
 #    itself never is.
-raw="$(curl -sS -m 5 -w '\n%{http_code}' -H "x-psh-key: $KEY" "$HOST/api/v1/me" 2>/dev/null || true)"
+raw="$(curl -sS -m 12 --retry 1 --retry-delay 1 --retry-all-errors -w '\n%{http_code}' -H "x-psh-key: $KEY" "$HOST/api/v1/me" 2>/dev/null || true)"
 code="$(printf '%s' "$raw" | tail -n 1)"
 usage="$(printf '%s' "$raw" | sed '$d')"
 
