@@ -45,7 +45,7 @@ touching the account secret.
 
 If you are signed in on the dashboard, nobody has to copy a link or a token:
 
-1. Click **psh notch** in the menu bar, then **Connect this Mac…**. The browser opens
+1. Click **psh notch** in the menu bar, then **Settings → Connect this Mac…**. The browser opens
    `/connect` on the dashboard you are signed in to.
 2. Click **Connect psh notch**. The page mints a device token through the same
    pairing route the QR code uses, claims it, and hands it to the app as
@@ -65,7 +65,7 @@ case use the fallback, which the same page prints after the click:
 `--handle-url` validates the URL, refuses anything that is not `psh-notch://paired`
 with a plausible token and an http(s) host, and writes the same 0600 file.
 
-To go back to being unpaired, use **Disconnect this Mac** in the menu, or
+To go back to being unpaired, use **Settings → Disconnect** in the menu, or
 `./psh-notch --unpair`. Both remove only `~/.config/psh-notch/device.json`: the
 workspace, the agent's key files and the device record on the server are untouched.
 Revoking the device on the dashboard's Devices page is the server-side half of

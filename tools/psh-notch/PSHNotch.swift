@@ -2933,6 +2933,40 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// Prints one line per state so the state table can be checked without a server, a
     /// request or a screenshot. Cleans up after itself and leaves nothing on screen.
+    /// Prints the menu exactly as the status item would show it, so a change to the menu can
+    /// be checked without a human opening it. Structure only: titles, separators, submenus.
+    func runMenuProbe() {
+        let menu = NSMenu()
+        menu.delegate = self
+        menuNeedsUpdate(menu)
+        func dump(_ items: [NSMenuItem], _ depth: Int) {
+            for item in items {
+                let pad = String(repeating: "  ", count: depth)
+                if item.isSeparatorItem { print("\(pad)---"); continue }
+                let mark = item.submenu == nil ? "" : " >"
+                print("\(pad)\(item.title)\(mark)")
+                if let sub = item.submenu { dump(sub.items, depth + 1) }
+            }
+        }
+        dump(menu.items, 0)
+
+        // The same menu on a paired Mac: Connect is replaced by Disconnect, and the toggles
+        // read in the other direction. Both states are printed because the unpaired one hides
+        // a row that most people will actually see.
+        currentConfig = Config(
+            baseUrl: "https://probe.invalid",
+            deviceToken: String(repeating: "p", count: 24),
+            deviceName: "probe",
+            workspaceId: nil
+        )
+        print("")
+        print("paired:")
+        let paired = NSMenu()
+        paired.delegate = self
+        menuNeedsUpdate(paired)
+        dump(paired.items, 0)
+    }
+
     func runStateProbe() {
         guard ensurePanel() != nil, let panel, let view = panelView else {
             die("the bar panel could not be created")
@@ -3051,22 +3085,37 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(withTitle: open ? "Close list" : "Open list",
                          action: #selector(toggleUnpairedPanel), keyEquivalent: "")
         }
-        // No key equivalent on purpose: a shortcut here would collide with the card's own.
-        menu.addItem(withTitle: notchHidden ? "Show" : "Hide",
-                     action: #selector(toggleNotchHidden), keyEquivalent: "")
-        menu.addItem(withTitle: notchMuted ? "Unmute" : "Mute",
-                     action: #selector(toggleNotchMuted), keyEquivalent: "")
-        menu.addItem(withTitle: launchAtLogin ? "Don't open at login" : "Open at login",
-                     action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
-        // Offered only while unpaired: a connected Mac has nothing to connect, and the menu
-        // used to say both Connect and Disconnect at once.
+        // Everything that changes how the notch behaves lives behind one Settings row: five
+        // top level items read as a control panel, and the menu is opened far more often to
+        // see what is waiting than to change a setting.
+        let settings = NSMenu()
+        let hide = settings.addItem(withTitle: notchHidden ? "Show notch" : "Hide notch",
+                                    action: #selector(toggleNotchHidden), keyEquivalent: "")
+        hide.target = self
+        let mute = settings.addItem(withTitle: notchMuted ? "Unmute" : "Mute",
+                                    action: #selector(toggleNotchMuted), keyEquivalent: "")
+        mute.target = self
+        let login = settings.addItem(withTitle: launchAtLogin ? "Don't open at login" : "Open at login",
+                                     action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        login.target = self
+        // Offered only while unpaired: a connected Mac has nothing to connect.
         if currentConfig == nil {
-    menu.addItem(withTitle: "Connect", action: #selector(connectThisMac), keyEquivalent: "")
+            let connect = settings.addItem(withTitle: "Connect this Mac",
+                                           action: #selector(connectThisMac), keyEquivalent: "")
+            connect.target = self
+        } else {
+            let disconnect = settings.addItem(withTitle: "Disconnect",
+                                              action: #selector(disconnectThisMac), keyEquivalent: "")
+            disconnect.target = self
         }
-        if currentConfig != nil {
-            menu.addItem(withTitle: "Disconnect", action: #selector(disconnectThisMac), keyEquivalent: "")
-        }
-        menu.addItem(withTitle: "Dashboard", action: #selector(openDashboard), keyEquivalent: "").target = self
+        settings.addItem(.separator())
+        let dashboard = settings.addItem(withTitle: "Dashboard",
+                                         action: #selector(openDashboard), keyEquivalent: "")
+        dashboard.target = self
+
+        let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
+        settingsRow.submenu = settings
+        menu.addItem(settingsRow)
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
 
@@ -3893,6 +3942,8 @@ struct PSHNotch {
             keyProbe()
         case "--states":
             Approver().runStateProbe()
+        case "--menu":
+            Approver().runMenuProbe()
         case "--preview":
             previewCard(
                 seconds: Double(value(of: "--seconds", in: args) ?? "4") ?? 4,
