@@ -13,7 +13,7 @@
   "engines": {
     "bun": ">=1.3.0"
   },
-  "description": "psh.now: approve and answer your agent's questions from your phone",
+  "description": "Human approval for AI agents: approve, deny or answer a question from your phone or the macOS notch",
   "type": "module",
   "bin": {
     "psh": "./cli/psh.ts"

@@ -2,7 +2,7 @@
   "name": "psh-now-skill",
   "version": "1.0.0",
   "private": true,
-  "description": "psh.now - approve, deny or answer your agent's questions from your phone.",
+  "description": "The psh.now skill: approve, deny or answer your agent's questions from your phone, for Claude Code, Codex and any skills-aware agent.",
   "license": "MIT",
   "bin": {
     "psh-now": "install.sh"
