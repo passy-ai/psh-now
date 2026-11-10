@@ -2755,6 +2755,11 @@ html[data-theme="dark"] .risk-high .risk-tag {
 .docs-main {
   min-width: 0;
 }
+.docs-main [id] {
+  /* The site header is sticky, so an anchor jump that lands the heading at y=0 hides
+     the very line the reader asked for. This is the air it needs above it. */
+  scroll-margin-top: 96px;
+}
 .docs-main h1 {
   margin: 0 0 12px;
   font-size: 33px;
@@ -2872,12 +2877,19 @@ pre:hover .pre-copy,
   /* One scrollable chip row: the group labels are a sidebar idea and cost height
      that a phone does not have. */
   .docs-side {
-    position: static;
+    /* Still sticky on a phone: a row that scrolls away cannot show which section you
+       are in, which is the whole point of it. 64px is the header it tucks under. */
+    position: sticky;
+    top: 64px;
+    z-index: 5;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 6px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding: 8px 0;
+    margin-bottom: 4px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-2);
     scrollbar-width: none;
   }
   .docs-side::-webkit-scrollbar {
@@ -2885,6 +2897,11 @@ pre:hover .pre-copy,
   }
   .docs-group {
     display: none;
+  }
+  /* The sticky row adds its own height to the sticky header, so a jump on a phone
+     needs more air than the desktop 96px or the heading lands behind the chips. */
+  .docs-main [id] {
+    scroll-margin-top: 120px;
   }
   .docs-link {
     flex: 0 0 auto;

@@ -305,6 +305,60 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           () => toast("Copy failed"),
         );
       }
+      // The sidebar follows the page: the section being read is the one marked, and the
+      // URL keeps naming it so a copied link lands on the same place.
+      const links = [...document.querySelectorAll(".docs-side .docs-link")];
+      const sections = links
+        // "Self hosting" is another page, not a section: it has no hash to spy on.
+        .filter((link) => link.hash.startsWith("#"))
+        .map((link) => ({ link, el: document.querySelector(link.hash) }))
+        .filter((s) => s.el);
+
+      function markActive() {
+        if (!sections.length) return;
+        // The sticky header, plus whatever the sticky chip row adds on a phone, plus a
+        // line of air: derived from CSS so the two cannot drift apart.
+        const offset = (parseFloat(getComputedStyle(sections[0].el).scrollMarginTop) || 96) + 24;
+        let current = sections[0];
+        for (const s of sections) {
+          if (s.el.getBoundingClientRect().top <= offset) current = s;
+        }
+        // The last section can be too short to ever reach the offset; at the bottom, it wins.
+        if (innerHeight + scrollY >= document.body.scrollHeight - 4) {
+          current = sections[sections.length - 1];
+        }
+        for (const s of sections) s.link.classList.toggle("active", s === current);
+        // Phone layout turns the sidebar into one scrollable row: the active chip has to
+        // be reachable without hunting for it. Setting scrollLeft, never scrollIntoView,
+        // so the page cannot scroll itself into a loop.
+        const side = document.querySelector(".docs-side");
+        if (side.scrollWidth > side.clientWidth + 1) {
+          const left = current.link.offsetLeft - 24;
+          const right = left + current.link.offsetWidth + 48;
+          if (left < side.scrollLeft) side.scrollLeft = left;
+          else if (right > side.scrollLeft + side.clientWidth) side.scrollLeft = right - side.clientWidth;
+        }
+        if (location.hash !== current.link.hash) {
+          history.replaceState(null, "", current.link.hash);
+        }
+      }
+
+      let queued = false;
+      addEventListener(
+        "scroll",
+        () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(() => {
+            queued = false;
+            markActive();
+          });
+        },
+        { passive: true },
+      );
+      addEventListener("resize", markActive);
+      markActive();
+
       function toast(m) {
         const el = document.getElementById("toast");
         el.textContent = m;
