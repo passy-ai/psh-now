@@ -132,7 +132,7 @@ if (track) {
 const PROMPT =
   "I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y\n" +
   "\n" +
-  "If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh\n" +
+  "If not, do this instead: curl -fsSL https://psh.now/install.sh\n" +
   "\n" +
   "After installing, send me a test request.";
 

@@ -75,7 +75,7 @@
         <p>Give your agent this one prompt. It installs psh.now and asks for a test request:</p>
         <pre id="p-install">I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL https://psh.now/install.sh
 
 After installing, send me a test request.</pre>
         <p>No npm, no git, or no GitHub access? The fallback line in the prompt
@@ -120,7 +120,7 @@ After installing, send me a test request.</pre>
         <pre data-copyable>I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 and join https://psh.now/c/&lt;channel&gt;
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh</pre>
+If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         <p>
           The link decides the account <em>and</em> the channel, so nothing new is
           minted and the agent stays <strong>ask-only</strong>. It is the channel's

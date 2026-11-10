@@ -106,7 +106,7 @@ Fresh install, nothing to join yet:
 \`\`\`text
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
-If not, do this instead: curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL ${base}/install.sh
 
 After installing, send me a test request.
 \`\`\`
@@ -123,7 +123,7 @@ A new sandbox that must join while it installs:
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 and join ${base}/c/<channel-id>
 
-If not, do this instead: curl -fsSL ${base}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL ${base}/install.sh
 \`\`\`
 
 ## What psh.now is

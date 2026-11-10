@@ -18,7 +18,7 @@ as an argument, or as plain words, never as `PSH_JOIN=`.
 ```text
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL https://psh.now/install.sh
 
 After installing, send me a test request.
 ```
@@ -51,7 +51,7 @@ channel.
 I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 and join https://psh.now/c/<channel-id>
 
-If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+If not, do this instead: curl -fsSL https://psh.now/install.sh
 ```
 
 For a container or a fresh machine with no user present, which must join while it installs. The

@@ -31,7 +31,7 @@ export function installPrompt(): string {
   return `I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
 If not, download the installer first and read it before running it:
-curl -fsSL ${PROMPT_HOST}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+curl -fsSL ${PROMPT_HOST}/install.sh
 
 After installing, send me a test request.`;
 }
@@ -58,5 +58,5 @@ export function sandboxPrompt(channelUrl: string): string {
 and join ${url}
 
 If not, download the installer first and read it before running it:
-curl -fsSL ${PROMPT_HOST}/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh`;
+curl -fsSL ${PROMPT_HOST}/install.sh`;
 }
