@@ -1,0 +1,22 @@
+# Caddy reverse proxy for psh.now — automatic HTTPS + WebSocket passthrough.
+#
+# 1. Point psh.now's DNS A/AAAA record at this server.
+# 2. Set PUBLIC_BASE_URL=https://psh.now in .env
+# 3. docker compose -f docker-compose.yml -f deploy/docker-compose.caddy.yml up -d --build
+#
+# Caddy obtains and renews Let's Encrypt certs automatically and upgrades
+# /ws connections transparently.
+
+psh.now {
+	encode gzip
+
+	# Long-lived WebSocket connections for supervisor devices.
+	reverse_proxy app:3000 {
+		# Keep the agent's blocking requests open; do not buffer.
+		flush_interval -1
+	}
+
+	log {
+		output file /data/access.log
+	}
+}

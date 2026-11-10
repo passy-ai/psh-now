@@ -1,0 +1,6 @@
+{
+  "name": "psh-demo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "start": "node index.js", "reset": "rm -rf node_modules package-lock.json && npm install --force" }
+}

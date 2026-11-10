@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Recreated from the Grok Bot (x.ai/bot) mark: a glossy black sphere.
+     Shine geometry measured off the official lockup; the capsules are cut
+     out via mask so invert-on-dark works. -->
+<mask id="grokbot-shine" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<rect width="24" height="24" fill="white"/>
+<rect x="13.10" y="5.31" width="2.11" height="4.04" rx="1.05" fill="black" transform="rotate(-26 14.16 7.33)"/>
+<rect x="18.30" y="4.42" width="1.38" height="4.01" rx="0.69" fill="black" transform="rotate(-26.5 18.99 6.42)"/>
+</mask>
+<circle cx="12" cy="12" r="11" fill="#000000" mask="url(#grokbot-shine)"/>
+</svg>

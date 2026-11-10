@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="psh.now" />
+    <title>Channels - psh.now</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/vendor/pickr/themes/nano.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script>try{var d=document.documentElement;d.dataset.theme=localStorage.getItem("psh.theme")||"dark";var a=JSON.parse(localStorage.getItem("psh.avatar")||"null");if(a&&a.bg){d.style.setProperty("--avatar-bg",a.bg);d.style.setProperty("--avatar-initial",JSON.stringify(a.initial||""));d.dataset.avatar="cached"}}catch(e){}</script>
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      <div class="nav-actions">
+        <a href="/docs" class="nav-link nav-docs"><span data-icon="book"></span> Docs</a>
+        <button id="pairQrBtn" class="btn pill hide" aria-label="Pair a device"><span data-icon="qr"></span> Pair device</button>
+        <div class="avatar-wrap">
+          <button id="avatarBtn" class="avatar" aria-label="Account"></button>
+          <div id="avatarMenu" class="menu hide">
+            <div class="menu-head">
+              <div class="menu-id">
+                <span id="menuName">Anony Mous</span>
+                <span class="muted" id="menuEmail">No email yet</span>
+              </div>
+              <span id="menuStatusBadge" class="badge">Anonymous</span>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Account key</span>
+              <div class="menu-key">
+                <code id="menuAccountKey">-</code>
+                <button id="menuCopyKey" class="icon-btn sm" aria-label="Copy account key"><span data-icon="copy"></span></button>
+              </div>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Secret key</span>
+              <div class="menu-key">
+                <code id="menuSecretKey">not generated</code>
+                <button id="menuCopySecret" class="icon-btn sm hide" aria-label="Copy secret key"><span data-icon="copy"></span></button>
+                <button id="menuCreateSecret" class="btn sm">Generate</button>
+              </div>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Requests</span>
+              <div class="menu-progress"><div class="bar"><span id="menuBar"></span></div><span class="menu-pct" id="menuPct">0/20 (0%)</span></div>
+            </div>
+            <div id="menuPacks" class="menu-packs"></div>
+<a href="/devices" class="menu-item"><span data-icon="smartphone"></span>Devices</a>
+                        <a href="/docs" class="menu-item"><span data-icon="book"></span>Docs</a>
+            <button id="menuTheme" class="menu-item"><span data-icon="moon"></span>Dark mode</button>
+            <button id="menuSignout" class="menu-item danger"><span data-icon="logout"></span>Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap app">
+      <!-- Shown until the app knows whether it is signed in. Without it the page is a
+           blank column between paint and the first render, which reads as a broken
+           page rather than a loading one. -->
+      <div id="bootLoader" class="boot-loading" role="status" aria-live="polite">
+        <span class="boot-spinner" aria-hidden="true"></span>
+        <span class="boot-loading-text">Loading…</span>
+      </div>
+      <section id="unpaired" class="hide">
+        <div class="signin">
+          <button id="authBack" class="signin-back hide" type="button" aria-label="Back to log in">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          </button>
+          <h1 class="signin-title" id="authTitle">Log in or sign up</h1>
+          <p class="signin-sub" id="authSub">Multiple agents, working side by side.</p>
+
+          <form id="authForm" class="signin-form">
+            <div id="authEmailStep">
+              <label class="field-label" for="authEmail">Email</label>
+              <input id="authEmail" class="field" type="email" name="email" autocomplete="email" spellcheck="false" />
+              <div id="authNameRow" class="hide">
+                <label class="field-label" for="authFirstName">First name</label>
+                <input id="authFirstName" class="field" autocomplete="given-name" />
+                <label class="field-label" for="authLastName">Last name</label>
+                <input id="authLastName" class="field" autocomplete="family-name" />
+              </div>
+            </div>
+
+            <div id="authCodeStep" class="hide">
+              <div id="authCodeTools" class="code-tools hide">
+                <button id="authCopyCode" class="btn sm" type="button"><span data-icon="copy"></span> Copy code</button>
+                <span class="muted">Dev code: <code id="authDevCode"></code></span>
+              </div>
+              <label class="field-label" for="authCode">Verification code</label>
+              <input id="authCode" class="field" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" />
+            </div>
+
+            <button id="authSubmit" class="btn primary block" type="submit">Continue</button>
+            <p class="form-hint" id="authHint">We&#39;ll email you a 6-digit verification code.</p>
+          </form>
+
+          <button id="authUseKey" class="linklike" type="button">Use an account key instead</button>
+
+          <div id="authKeyRow" class="hide">
+            <input id="keyInput" class="field" placeholder="psh_user_…" autocomplete="off" spellcheck="false" />
+            <button id="keyLoginBtn" class="btn primary block" type="button">Open</button>
+          </div>
+
+          <button id="authAnonymous" class="linklike" type="button">Create an anonymous account</button>
+
+          <div class="signin-foot">
+            <a href="/">Back to homepage</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="paired" class="hide">
+        <div id="appNotices" class="app-notices"></div>
+        <div id="claimBanner" class="app-notice hide">
+          <div class="app-notice-text">
+            <strong>Claim your account</strong>
+            <span>Add an email to keep it and sign in from any device.</span>
+          </div>
+          <button id="claimBadge" class="btn pill primary sm"><span data-icon="pencil"></span> Claim account</button>
+        </div>
+        <div id="approvals" class="approvals"></div>
+        <div class="channel-tools">
+          <div id="channelSearchWrap" class="channel-search hide">
+            <span class="channel-search-icon" data-icon="search"></span>
+            <input id="channelSearch" class="channel-search-input" placeholder="Search channels" autocomplete="off" spellcheck="false" />
+            <button id="channelSearchClear" class="channel-search-clear hide" type="button" aria-label="Clear search"><span data-icon="x"></span></button>
+          </div>
+          <button id="newChannelBtn" class="btn pill primary sm hide"><span data-icon="plus"></span> New channel</button>
+        </div>
+        <section id="newChannelForm" class="channel-card new-channel hide">
+          <header class="ch-head">
+            <span id="newChannelColor" class="ch-color" style="background:#6c8cff" title="Accent colour"></span>
+            <input id="newChannelName" class="ch-name-input" placeholder="New channel name" autocomplete="off" spellcheck="false" />
+          </header>
+        </section>
+        <div id="openChannels" class="channel-list"></div>
+          <!-- The three things a new workspace needs next, kept on the page it lands on
+               rather than behind Docs, where a first-time visitor does not go. -->
+          <section class="guides" aria-label="Guides">
+            <a class="guide-card" href="/docs#install">
+              <span class="guide-icon" data-icon="download" aria-hidden="true"></span>
+              <span class="guide-text">
+                <span class="guide-title">Install Notch</span>
+                <span class="guide-sub">Approve from your menu bar</span>
+              </span>
+              <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
+            </a>
+            <a class="guide-card" href="/docs#connect">
+              <span class="guide-icon" data-icon="send" aria-hidden="true"></span>
+              <span class="guide-text">
+                <span class="guide-title">Connect an agent</span>
+                <span class="guide-sub">One prompt for any CLI</span>
+              </span>
+              <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
+            </a>
+            <a class="guide-card" href="/docs#sandbox">
+              <span class="guide-icon" data-icon="archive" aria-hidden="true"></span>
+              <span class="guide-text">
+                <span class="guide-title">Run it in a sandbox</span>
+                <span class="guide-sub">No browser needed</span>
+              </span>
+              <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
+            </a>
+          </section>
+      </section>
+    </main>
+
+    <div id="pairModal" class="modal hide">
+      <div class="modal-card">
+        <div class="modal-head">
+          <a class="modal-title" href="/devices">
+            <span data-icon="smartphone"></span><strong>Pair a device</strong><span data-icon="arrow-right"></span>
+          </a>
+          <button id="pairModalClose" class="icon-btn sm" aria-label="Close"><span data-icon="x"></span></button>
+        </div>
+        <img id="pairModalQr" class="qr-lg" alt="Pairing QR" />
+        <p class="modal-note">Scan it with any device to sign in.</p>
+        <div class="menu-key">
+          <code id="pairModalUrl">-</code>
+          <button id="pairModalCopy" class="icon-btn sm" aria-label="Copy pairing link"><span data-icon="copy"></span></button>
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script type="module" src="/app.js"></script>
+    <script>
+      // The zero-friction path: a fresh workspace with a key, no email, no password. Same
+      // endpoint the installer uses, so an account made here is a real account.
+      (function () {
+        const button = document.getElementById("authAnonymous");
+        if (!button) return;
+        const next = new URLSearchParams(location.search).get("next");
+        button.addEventListener("click", async () => {
+          const label = button.textContent;
+          button.disabled = true;
+          button.textContent = "Creating…";
+          try {
+            const res = await fetch("/api/v1/mint", { method: "POST" });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.userKey) throw new Error(data.message || "Could not create an account");
+            localStorage.setItem("psh.apiKey", data.userKey);
+            location.href = next && next.startsWith("/") ? next : "/app";
+          } catch (err) {
+            button.disabled = false;
+            button.textContent = label;
+            alert(err.message);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

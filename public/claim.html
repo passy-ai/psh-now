@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Claim your psh.now account</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="nav">
+        <a class="nav-brand" href="/"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      </header>
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Claim your account</h1>
+          <p class="page-sub">Keep this account for 20 requests and sign in anywhere.</p>
+        </div>
+      </div>
+
+      <p class="muted" style="margin: 0 0 14px">
+        Not now? <a id="skipToApp" href="/app">Open the dashboard instead</a> - you can
+        claim this account later from there.
+      </p>
+
+      <div class="card" id="claimCard">
+        <div class="inline-form-row">
+          <input id="firstName" class="field" placeholder="First name" autocomplete="given-name" />
+          <input id="lastName" class="field" placeholder="Last name" autocomplete="family-name" />
+        </div>
+        <input id="email" class="field" type="email" placeholder="you@example.com" autocomplete="email" />
+        <button id="sendBtn" class="btn primary block">Email me a code</button>
+
+        <div id="verifyBox" class="hide">
+          <p class="muted">Enter the code we emailed you.</p>
+          <input id="code" class="field" placeholder="ABC123" autocomplete="one-time-code" />
+          <button id="verifyBtn" class="btn primary block">Claim account</button>
+        </div>
+      </div>
+
+      <div class="card hide" id="doneCard">
+        <div class="settings-head">Claimed</div>
+        <p class="muted">This account is yours. Open the dashboard to track requests.</p>
+        <a id="openApp" class="btn primary block" href="/app">Open dashboard</a>
+      </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+    <script type="module">
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+      const key = params.get("key") || new URLSearchParams(location.search).get("key");
+
+      // Carry the key through both ways out of this page, so "open the
+      // dashboard" lands signed in instead of on the sign-in gate.
+      if (key) {
+        const withKey = `/app#key=${encodeURIComponent(key)}`;
+        for (const id of ["skipToApp", "openApp"]) {
+          const el = document.getElementById(id);
+          if (el) el.setAttribute("href", withKey);
+        }
+      }
+
+      const toast = (m) => {
+        const el = $("toast");
+        el.textContent = m;
+        el.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove("show"), 2600);
+      };
+
+      const api = (path, { method = "GET", body } = {}) =>
+        fetch(path, {
+          method,
+          headers: { "Content-Type": "application/json", ...(key ? { "x-psh-key": key } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+        }).then(async (r) => {
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(d.message || `HTTP ${r.status}`);
+          return d;
+        });
+
+      if (!key) {
+        $("claimCard").innerHTML =
+          '<h2>Open this from your agent</h2><p class="muted">This link is missing its key. Ask your agent for the claim link again.</p>';
+      }
+
+      let claimId = null;
+      $("sendBtn")?.addEventListener("click", async () => {
+        const email = $("email").value.trim();
+        if (!email) return toast("Enter an email");
+        try {
+          const d = await api("/api/v1/me/register", {
+            method: "POST",
+            body: {
+              email,
+              firstName: $("firstName").value.trim(),
+              lastName: $("lastName").value.trim(),
+            },
+          });
+          claimId = d.claimId;
+          $("verifyBox").classList.remove("hide");
+          if (d.code) {
+            $("code").value = d.code;
+            toast(`Dev code: ${d.code}`);
+          } else {
+            toast("Check your inbox for a code");
+          }
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+
+      $("verifyBtn")?.addEventListener("click", async () => {
+        const code = $("code").value.trim();
+        if (!code || !claimId) return toast("Enter the code");
+        try {
+          await api("/api/v1/me/register/verify", { method: "POST", body: { claimId, code } });
+          $("claimCard").classList.add("hide");
+          $("doneCard").classList.remove("hide");
+          $("openApp").href = `/app#key=${encodeURIComponent(key)}`;
+        } catch (err) {
+          toast(err.message);
+        }
+      });
+    </script>
+  </body>
+</html>

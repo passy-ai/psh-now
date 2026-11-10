@@ -1,0 +1,19 @@
+{
+  "name": "psh-now",
+  "version": "0.2.1",
+  "description": "Ask a human before irreversible or destructive actions.",
+  "author": { "name": "psh.now", "url": "https://psh.now" },
+  "homepage": "https://psh.now",
+  "repository": "https://github.com/passy-ai/psh-now",
+  "license": "MIT",
+  "keywords": ["psh.now", "psh-now", "approval", "human-in-the-loop", "permissions", "safety"],
+  "interface": {
+    "displayName": "psh.now",
+    "shortDescription": "Human approval from any AI agent.",
+    "longDescription": "psh.now lets any agent ask a person before it acts. Send a short title + message to the operator's paired devices and wait for Approve or Deny - a single boolean. One key in agents.md, one host, no SDK.",
+    "developerName": "psh.now",
+    "category": "Coding",
+    "websiteURL": "https://psh.now",
+    "logo": "assets/logo.svg"
+  }
+}

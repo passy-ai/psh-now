@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>psh.now — the open source approval hub for AI agents</title>
+    <meta
+      name="description"
+      content="psh.now is the open source approval hub for AI agents. Your agent asks from the terminal, phone or sandbox, a person taps approve, deny or answer, and the work continues. MIT licensed, self-hosted, no account needed."
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- canonical, Open Graph and Twitter tags are generated at serve time from the
+         title and description above (src/lib/seo.ts). Do not hardcode them: the
+         origin comes from PUBLIC_BASE_URL, which is where psh.now is declared. -->
+    <link rel="preload" as="font" type="font/woff2" href="./fonts/inter-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./fonts/geist-mono-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="./styles.css" />
+  
+  <style>
+
+    /* The notch demo. Geometry from the app: 356 wide, 22 bottom radius, 32 closed, 112 list.
+       One renderer, two framings, scaled with --scale so they cannot drift. */
+    /* Same measure as the rest of the page, so the frame lines up with the logo row above it
+       instead of sitting in a narrower column of its own. */
+    /* Same box as every other section: the measure lives on the section, and the padding is the
+       page's own, so this frame lines up with the logo row above it instead of sitting in a
+       wider column of its own. */
+    .notch-show {
+      /* The desktop is the page column now, edged in line with the cards and the CTA
+         rather than an oversized breakout. Never wider than the viewport, so it cannot
+         produce a scrollbar. */
+      --w: min(var(--page-max, 960px), calc(100vw - 2 * var(--page-pad, 24px)));
+      width: var(--w);
+      margin-inline: calc((100% - var(--w)) / 2);
+      padding: 46px 0 6px;
+    }
+    .notch-show-inner { display: grid; gap: 26px; }
+    /* Under the desk: once you have watched yourself approve from the notch, the next
+       move is to get it. */
+    .notch-download {
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .notch-download svg { width: 16px; height: 16px; transition: transform 160ms ease; }
+    .notch-download:hover svg { transform: translateX(3px); }
+    .notch-download:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; border-radius: 6px; }
+    .desk {
+      position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 9; isolation: isolate;
+      /* The desktop wears the same wash as the rest of the site, so the black notch
+         sits on the brand blue instead of on an unrelated dark gradient. */
+      background: var(--blue-wash);
+      box-shadow: 0 30px 60px -22px rgba(28, 48, 108, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+    }
+    .desk-bar {
+      position: relative; z-index: 2; height: 34px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 16px; background: rgba(255, 255, 255, 0.4);
+      font: 11px/1 ui-sans-serif, -apple-system, system-ui; color: rgba(12, 22, 44, 0.66);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
+    .desk-bar .left, .desk-bar .right { display: flex; align-items: center; gap: 8px; }
+    .desk-bar .chip { width: 10px; height: 10px; border-radius: 3px; background: rgba(12, 22, 44, 0.2); }
+    .desk-bar .pill { padding: 3px 8px; border-radius: 99px; background: rgba(12, 22, 44, 0.07); }
+
+    .notch-demo {
+      /* Wider in step with the desktop, but the phone keeps its old width: narrowing it
+         there only wraps the rows further and runs the list past the frame. */
+      position: absolute; top: 0; left: 50%; width: 440px; z-index: 3;
+      transform: translateX(-50%);
+      font: 13px/1.35 ui-sans-serif, -apple-system, system-ui; color: #fff;
+      cursor: pointer;
+    }
+    @media (max-width: 760px) { .notch-demo { width: 356px; } }
+    .notch {
+      position: relative;
+      background: #000; overflow: hidden; height: 32px;
+      transform: scale(var(--scale, 0.9)); transform-origin: top center;
+      border-radius: 0 0 22px 22px;
+      transition: height 340ms cubic-bezier(0.22, 0.72, 0.2, 1);
+      box-shadow: 0 12px 26px rgba(18, 34, 70, 0.3);
+    }
+    .notch-head { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 20px; }
+    .notch-dot { width: 9px; height: 9px; border-radius: 50%; background: #8c8c8c; transition: background 200ms; }
+    .notch-demo.is-busy .notch-dot { background: #4fd1c5; }
+    .notch-count { margin-left: auto; font-size: 13px; font-weight: 600; }
+
+    .notch-body-list, .notch-body-detail { opacity: 0; transition: opacity 200ms ease; }
+    /* Live demo only: its two bodies share one slot under the head so closing a request
+       crossfades in place, rather than sliding its first line up from below as the panel
+       shrinks. The static card under "how it works" is height: auto and takes its size
+       from the detail in flow, so it must not be taken out of flow. */
+    .notch-demo:not(.notch-static) .notch-body-list,
+    .notch-demo:not(.notch-static) .notch-body-detail {
+      position: absolute; top: 32px; left: 0; right: 0;
+      pointer-events: none;
+    }
+    .notch-demo.is-list .notch-body-list,
+    .notch-demo.is-detail .notch-body-detail { opacity: 1; pointer-events: auto; }
+    .notch-demo.is-detail .notch-body-list { display: none; }
+
+    /* The list is a peek at the queue, not the whole table: two rows, then it scrolls.
+       The ceiling itself is measured in JS so wrapped rows still count as one each. */
+    .notch-body-list {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    .notch-row { display: flex; align-items: center; gap: 10px; padding: 11px 20px; cursor: pointer; transition: background 0.15s ease; }
+    .notch-row:hover { background: rgba(255, 255, 255, 0.05); }
+    .notch-row + .notch-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .notch-row .led { width: 8px; height: 8px; border-radius: 50%; background: #4fd1c5; flex: none; }
+    .notch-row .age { margin-left: auto; color: rgba(255, 255, 255, 0.38); font-size: 12px; }
+
+    /* The open request, exactly as the app draws it: the title leads, the sentence explains, the
+       three decisions sit side by side with their shortcuts in the corner, and the comment field
+       ends in a round send button. */
+    .notch-body-detail { padding: 20px 20px 24px; }
+    .notch-title { font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; }
+    .notch-sub { margin-top: 7px; font-size: 13.5px; line-height: 1.4; color: rgba(255, 255, 255, 0.55); }
+    .notch-actions { display: flex; gap: 12px; margin-top: 18px; }
+    .act {
+      position: relative; flex: 1; height: 62px; border-radius: 13px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    /* Centred without a translate, so the hover animations below own the transform outright. */
+    .act svg {
+      position: absolute; left: 0; right: 0; top: 50%; margin: 0 auto;
+      width: 20px; height: 20px; transform: translateY(-50%);
+      transform-origin: 50% 60%;
+    }
+    /* Each decision answers the pointer in its own language: a thumb presses down, an answer
+       bounces, a thumb comes up. */
+    .act.deny:hover svg { animation: deny-press 520ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    .act.answer:hover svg { animation: answer-bounce 560ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    .act.ok:hover svg { animation: thumb-up 540ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    @keyframes deny-press {
+      0% { transform: translateY(-50%) rotate(0deg); }
+      40% { transform: translateY(calc(-50% + 3px)) rotate(-16deg); }
+      70% { transform: translateY(-50%) rotate(2deg); }
+      100% { transform: translateY(-50%) rotate(0deg); }
+    }
+    @keyframes answer-bounce {
+      0% { transform: translateY(-50%); }
+      35% { transform: translateY(calc(-50% - 6px)); }
+      60% { transform: translateY(calc(-50% + 2px)); }
+      80% { transform: translateY(calc(-50% - 2px)); }
+      100% { transform: translateY(-50%); }
+    }
+    @keyframes thumb-up {
+      0% { transform: translateY(-50%) scale(1); }
+      40% { transform: translateY(calc(-50% - 5px)) scale(1.06); }
+      70% { transform: translateY(-50%) scale(0.98); }
+      100% { transform: translateY(-50%) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .act.deny:hover svg, .act.answer:hover svg, .act.ok:hover svg { animation: none; }
+    }
+    .act .k { position: absolute; right: 12px; bottom: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.38); }
+    .act.deny svg { color: #f87171; }
+    .act.ok { background: rgba(74, 222, 128, 0.07); border-color: rgba(74, 222, 128, 0.5); }
+    .act.ok svg { color: #4ade80; }
+    .notch-comment { display: none; gap: 10px; margin-top: 16px; }
+    .notch-demo.is-field .notch-comment { display: flex; }
+    .notch-field {
+      flex: 1; height: 42px; border-radius: 12px; padding: 0 14px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #fff; font: inherit; font-size: 13.5px; outline: none; width: 100%;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+    .notch-field::placeholder { color: rgba(255, 255, 255, 0.42); }
+    .notch-field:focus { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.07); }
+    .notch-send { width: 44px; height: 44px; border-radius: 12px; background: #fff; color: #0b0b0b; display: grid; place-items: center; }
+    .notch-send svg { width: 17px; height: 17px; }
+    .notch-body-detail { opacity: 0; transform: translateY(-4px); }
+    .notch-demo.is-detail .notch-body-detail {
+      opacity: 1; transform: none;
+      transition: opacity 240ms ease 60ms, transform 240ms cubic-bezier(0.22, 0.72, 0.2, 1) 60ms;
+    }
+    .notch-demo.is-detail .act { animation: act-in 260ms both cubic-bezier(0.22, 0.72, 0.2, 1); }
+    .notch-demo.is-detail .act:nth-child(2) { animation-delay: 40ms; }
+    .notch-demo.is-detail .act:nth-child(3) { animation-delay: 80ms; }
+    @keyframes act-in {
+      from { opacity: 0; transform: translateY(6px) scale(0.97); }
+      to { opacity: 1; transform: none; }
+    }
+    .act { transition: background 160ms ease, border-color 160ms ease, transform 160ms ease; }
+    .act:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-1px); }
+    .act:active, .act.pressed { transform: translateY(0) scale(0.96); }
+    .act.ok:hover { background: rgba(74, 222, 128, 0.13); }
+    .act.deny:hover { background: rgba(248, 113, 113, 0.1); }
+    .notch-send { transition: transform 160ms ease; }
+    .notch-send:hover { transform: scale(1.05); }
+    .notch-dot { animation: dot-pulse 2.4s ease-in-out infinite; }
+    @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @media (prefers-reduced-motion: reduce) {
+      .notch-demo.is-detail .act, .notch-dot { animation: none; }
+      .act, .notch-send { transition: none; }
+    }
+
+
+    .desk-browser { aspect-ratio: 16 / 9; padding: 26px 26px 0; }
+    .win {
+      height: 100%; border-radius: 12px 12px 0 0; overflow: hidden;
+      background: radial-gradient(120% 150% at 18% 0%, #17323c 0%, #0d1a24 50%, #05080d 100%);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+    .win-bar { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: rgba(6, 10, 16, 0.75); }
+    .win-bar .lights { display: flex; gap: 6px; }
+    .win-bar .lights i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); display: block; }
+    .win-url {
+      flex: 1; height: 20px; border-radius: 6px; background: rgba(255, 255, 255, 0.07);
+      font: 10px/20px ui-sans-serif, -apple-system, system-ui; color: rgba(255, 255, 255, 0.55); padding: 0 8px;
+    }
+    .win-body { position: relative; height: calc(100% - 34px); }
+    .win-body .notch-demo { --scale: 0.62; }
+    @media (prefers-reduced-motion: reduce) { .notch, .notch-body-list, .notch-body-detail { transition: none; } }
+    /* ---------- Walk away: two rails, drawn top down ---------- */
+    /* Without on the left, with on the right, each rail drawing itself as it comes into view, so
+       the two halves are read against each other rather than one after the other. */
+    .tl-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: start;
+      max-width: var(--page-max, 960px); margin: 0 auto;
+    }
+    @media (max-width: 760px) {
+      .tl-grid { grid-template-columns: 1fr; gap: 38px; }
+    }
+    .tl-col { border: 0; background: none; padding: 0; }
+    .tl-col + .tl-col { margin-top: 0; }
+    .tl-steps { position: relative; list-style: none; margin: 18px 0 0; padding: 0 0 0 30px; }
+    .tl-steps::before {
+      content: ""; position: absolute; left: 5px; top: 14px; bottom: 14px; width: 1px;
+      background: rgba(255, 255, 255, 0.18);
+      transform: scaleY(0); transform-origin: top;
+      transition: transform 900ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    }
+    .tl-grid.drawn .tl-steps::before { transform: scaleY(1); }
+    .tl-col + .tl-col .tl-steps::before { transition-delay: 180ms; }
+
+    .tl-step {
+      position: relative; display: block; padding: 11px 0; border: 0; background: none;
+      opacity: 0; transform: translateY(-6px);
+      transition: opacity 320ms ease, transform 320ms cubic-bezier(0.22, 0.72, 0.2, 1);
+    }
+    .tl-grid.drawn .tl-step { opacity: 1; transform: none; }
+    .tl-grid.drawn .tl-step:nth-child(1) { transition-delay: 120ms; }
+    .tl-grid.drawn .tl-step:nth-child(2) { transition-delay: 260ms; }
+    .tl-grid.drawn .tl-step:nth-child(3) { transition-delay: 400ms; }
+    .tl-grid.drawn .tl-step:nth-child(4) { transition-delay: 540ms; }
+    .tl-grid.drawn .tl-step:nth-child(5) { transition-delay: 680ms; }
+
+    .tl-step .tl-mark {
+      position: absolute; left: -30px; top: 15px; width: 11px; height: 11px;
+      border-radius: 50%; display: block; background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 0 4px var(--bg, #fff);
+    }
+    .tl-step .tl-mark svg { display: none; }
+    .tl-step .tl-mark-bad { background: #f87171; }
+    .tl-step .tl-mark-good { background: #22c55e; }
+    .tl-step .tl-time {
+      font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: rgba(0, 0, 0, 0.42); letter-spacing: 0.02em;
+    }
+    .tl-step .tl-text { display: block; margin-top: 5px; }
+    @media (prefers-reduced-motion: reduce) {
+      .tl-steps::before, .tl-step { transition: none; transform: none; opacity: 1; }
+    }
+    /* The decision card is the notch, dropped into the page's own column. Same internals, but
+       laid out in flow rather than hanging from the top of the screen. */
+    .how-after-notch { padding: 0; border: 0; background: none; box-shadow: none; }
+    .notch-static { position: static; width: 100%; transform: none; }
+    .notch-static .notch {
+      transform: none; height: auto; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 26px 60px rgba(0, 0, 0, 0.28);
+    }
+    .notch-static .notch-body-detail { opacity: 1; transform: none; }
+    .notch-static .notch-title { font-size: 19px; }
+    .notch-static .notch-sub { font-size: 14px; }
+    .notch-static .notch-field { font-size: 14px; height: 46px; }
+    .notch-static .notch-send { width: 46px; height: 46px; }
+    .notch-static .act { height: 68px; }
+    /* ---------- Approve, deny, or clarify ---------- */
+    .ask { max-width: var(--page-max, 960px); margin: 0 auto; padding: 96px var(--page-pad, 24px) 0; }
+    .ask-h2 { margin: 0; font-size: 44px; line-height: 1.06; letter-spacing: -0.03em; font-weight: 700; }
+    .ask-lead { margin: 18px 0 0; max-width: 660px; font-size: 17px; line-height: 1.55; color: rgba(0, 0, 0, 0.6); }
+    .ask-grid {
+      margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+      background: rgba(0, 0, 0, 0.09); border: 1px solid rgba(0, 0, 0, 0.09); border-radius: 16px;
+      overflow: hidden;
+    }
+    @media (max-width: 860px) { .ask-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .ask-grid { grid-template-columns: 1fr; } }
+    .ask-item { background: var(--bg, #fff); padding: 20px 20px 22px; }
+    .ask-item strong { display: block; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+    /* The icon is a span too, and this rule was beating .ask-ico's display: grid —
+       which dropped every glyph into the top-left corner of its tile. */
+    .ask-item span:not(.ask-ico) { display: block; margin-top: 6px; font-size: 13.5px; line-height: 1.5; color: rgba(0, 0, 0, 0.55); }
+    .hub {
+      margin-top: 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: rgba(0, 0, 0, 0.09); border: 1px solid rgba(0, 0, 0, 0.09); border-radius: 16px;
+      overflow: hidden;
+    }
+    @media (max-width: 720px) { .hub { grid-template-columns: 1fr; } }
+    .hub-col { background: var(--bg, #fff); padding: 22px 22px 24px; }
+    .hub-col h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; color: rgba(0, 0, 0, 0.55); }
+    .hub-col ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+    .hub-col li {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 11px;
+      background: rgba(0, 0, 0, 0.03); font-size: 14px;
+    }
+    .hub-col li.is-live { background: var(--bg, #fff); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55); }
+    .hub-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(0, 0, 0, 0.35); flex: none; }
+    .hub-col li.is-live .hub-dot { border-color: rgba(0, 0, 0, 0.85); background: rgba(0, 0, 0, 0.85); }
+    .hub-col b { font-weight: 600; }
+    .hub-col em { font-style: normal; color: rgba(0, 0, 0, 0.5); }
+    /* ---------- Walk away: before and after, side by side ---------- */
+    /* One comparison card: the old way on plain ground, the psh.now way on a blue
+       wash, a hairline parting each statement so the two halves are read against
+       each other. This replaces the earlier pass's vertical rail, its per-step
+       dots and the tinted last row. */
+    .timeline .tl-lead { max-width: 700px; }
+    .timeline .tl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      align-items: stretch;
+      margin-top: 36px;
+      max-width: var(--page-max, 960px);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    @media (max-width: 760px) {
+      .timeline .tl-grid { grid-template-columns: 1fr; }
+    }
+    .timeline .tl-col { padding: 26px 28px 22px; border: 0; border-radius: 0; }
+    /* One metal, two finishes: the failure is the pale brushed panel, the fix is the
+       same silver in graphite. The pair reads as dull versus polished instead of white
+       versus blue, and the marks carry the verdict. */
+    .timeline .tl-without {
+      background: linear-gradient(180deg, #fbfcfd 0%, #eef1f5 46%, #e6eaef 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+    .timeline .tl-with {
+      background: linear-gradient(180deg, #5b6579 0%, #46506a 42%, #333c50 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      color: #fff;
+    }
+    /* the rail and its dots are gone: the panel edge separates the sides now */
+    .timeline .tl-steps::before { display: none; }
+    .timeline .tl-step .tl-mark { display: none; }
+    .timeline .tl-steps { display: block; margin: 16px 0 0; padding: 0; }
+    .timeline .tl-step {
+      display: block;
+      padding: 17px 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.09);
+      border-bottom: 0;
+    }
+    .timeline .tl-step + .tl-step { border-top: 1px solid rgba(0, 0, 0, 0.09); }
+    .timeline .tl-step:first-child { border-top: 0; }
+    .timeline .tl-with .tl-step,
+    .timeline .tl-with .tl-step + .tl-step { border-top-color: rgba(255, 255, 255, 0.22); }
+    .timeline .tl-time {
+      font: 600 11.5px/1.2 var(--mono); letter-spacing: 0.02em;
+      color: rgba(0, 0, 0, 0.42);
+    }
+    .timeline .tl-text {
+      display: block; margin-top: 6px;
+      font-size: 15.5px; line-height: 1.5; color: rgba(0, 0, 0, 0.86);
+    }
+    .timeline .tl-with .tl-time { color: rgba(255, 255, 255, 0.7); }
+    .timeline .tl-with .tl-text { color: #fff; }
+    /* the header: a small tile and the label, sitting on the card */
+    .timeline .tl-col-head { padding-bottom: 14px; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+    .timeline .tl-with .tl-col-head { border-bottom-color: rgba(255, 255, 255, 0.22); }
+    /* A disc, not a tile: white on both sides, with the verdict in the glyph and a
+       hairline shadow so it sits on the metal instead of floating over it. */
+    .timeline .tl-col-head .tl-mark {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.09), 0 1px 2px rgba(15, 23, 42, 0.08);
+    }
+    .timeline .tl-col-head .tl-mark svg { width: 14px; height: 14px; }
+    .timeline .tl-with .tl-col-head .tl-mark {
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 1px 3px rgba(0, 0, 0, 0.28);
+      color: #177a45;
+    }
+    .timeline .tl-badge { font-size: 17px; font-weight: 650; letter-spacing: -0.015em; color: var(--fg); }
+    .timeline .tl-with .tl-badge { color: #fff; }
+    .timeline .tl-col-head .tl-mark-bad { color: #c8433a; }
+
+    /* The steps arrive one after another once the section is on screen. Both columns
+       share the beat, so 9:12 and 9:12 land together and the split tells the story. */
+    @keyframes tl-step-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes tl-mark-in {
+      from { opacity: 0; transform: scale(0.72); }
+      to { opacity: 1; transform: none; }
+    }
+    .timeline .tl-step:nth-child(1) { --i: 0; }
+    .timeline .tl-step:nth-child(2) { --i: 1; }
+    .timeline .tl-step:nth-child(3) { --i: 2; }
+    .timeline.reveal.in .tl-step {
+      animation: tl-step-in 560ms cubic-bezier(0.22, 0.72, 0.2, 1) both;
+      animation-delay: calc(140ms + var(--i, 0) * 140ms);
+    }
+    .timeline.reveal.in .tl-col-head .tl-mark {
+      animation: tl-mark-in 420ms cubic-bezier(0.22, 0.72, 0.2, 1) both;
+      animation-delay: 40ms;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .timeline .tl-mark { transform: none; transition: none; }
+      .timeline.reveal.in .tl-step,
+      .timeline.reveal.in .tl-col-head .tl-mark { animation: none; }
+    }
+    .ask-ico {
+      display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(0, 0, 0, 0.045); color: rgba(0, 0, 0, 0.72); margin-bottom: 13px;
+    }
+    .ask-ico svg { width: 18px; height: 18px; }
+    /* Every mark in the row drawn to the same box: the illustrations have different intrinsic
+       sizes, which made the first and last look heavier than the rest. */
+    .agents-row img { width: 34px; height: 34px; object-fit: contain; }
+    /* The same panel in the page's own light, so the card after the arrow belongs to this page
+       rather than looking like a screenshot pasted onto it. */
+    .notch-static .notch {
+      background: #fff; color: #0b0b0b;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.08);
+    }
+    .notch-static .notch-title { color: #0b0b0b; }
+    /* The dot the notch carries in its head, brought down to this card so the question
+       is marked as waiting rather than reading as a plain caption. */
+    .notch-static .notch-live {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #16a394; margin-right: 9px; vertical-align: 0.24em;
+      box-shadow: 0 0 0 3px rgba(22, 163, 148, 0.16);
+    }
+    .notch-static .notch-sub { color: rgba(0, 0, 0, 0.55); }
+    .notch-static .act {
+      background: rgba(0, 0, 0, 0.035); border-color: rgba(0, 0, 0, 0.1);
+    }
+    .notch-static .act:hover { background: rgba(0, 0, 0, 0.06); }
+    .notch-static .act .k { color: rgba(0, 0, 0, 0.38); }
+    .notch-static .act.deny svg { color: #dc2626; }
+    .notch-static .act.deny:hover { background: rgba(220, 38, 38, 0.07); }
+    .notch-static .act.ok { background: rgba(34, 197, 94, 0.07); border-color: rgba(34, 197, 94, 0.45); }
+    .notch-static .act.ok svg { color: #16a34a; }
+    .notch-static .act.ok:hover { background: rgba(34, 197, 94, 0.13); }
+    .notch-static .notch-field {
+      background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.1); color: #0b0b0b;
+    }
+    .notch-static .notch-field::placeholder { color: rgba(0, 0, 0, 0.42); }
+    .notch-static .notch-field:focus { border-color: rgba(0, 0, 0, 0.28); background: #fff; }
+    .notch-static .notch-send { background: #0b0b0b; color: #fff; }
+  </style>
+</head>
+  <body>
+    <div class="page">
+      <!-- ============ Header ============ -->
+      <header class="site-header">
+        <div class="header-inner">
+          <div class="header-left">
+            <a class="brand" href="./index.html">
+              <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
+              psh.now
+            </a>
+                        <nav class="header-nav" aria-label="Main">
+              <a class="nav-link" href="./docs.html">Docs</a>
+              <a class="nav-link" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </nav>
+          </div>
+          <div class="header-right">
+            <div class="header-copy" id="headerCopy">
+              <button class="pill pill-sm copy-prompt" title="Copy instructions">
+                <span class="pill-label">Copy prompt for agent</span>
+                <span class="pill-icon">
+                  <span class="ic-check">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.5 12 13 4" /></svg>
+                  </span>
+                  <span class="ic-copy">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="9" height="9" rx="1" /><path d="M10.5 5.5V2.5a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3" /></svg>
+                  </span>
+                </span>
+                <span class="pill-overlay">Copied!</span>
+              </button>
+            </div>
+            <a class="star-pill" id="starPill" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer" hidden>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4 6.2 20.5l1.1-6.5-4.7-4.6 6.5-.9z" /></svg>
+              <span data-stars>0</span>
+            </a>
+            <a class="nav-link" href="/app">Log in</a>
+            <a class="btn btn-primary" href="/app">Get started</a>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <!-- ============ Hero ============ -->
+        <section class="hero">
+          <h1>
+            <span class="line">The open source approval</span>
+            <span class="line">hub for your agents</span>
+          </h1>
+          <p class="hero-sub">
+            Your agents ask instead of stalling. One <span class="h1-marks" role="img" aria-label="deny, answer or approve"><span class="h1-mark h1-mark-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span><span class="h1-mark h1-mark-answer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="h1-mark h1-mark-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span></span> from your phone,
+            tablet, desktop or the notch on your MacBook, and the work keeps going.
+          </p>
+
+          <div class="hero-cta">
+            <div class="hero-buttons">
+              <a class="btn btn-primary btn-lg" href="/app">Get started</a>
+              <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+                Star on GitHub
+              </a>
+            </div>
+            <p class="hero-note">No account needed. Open source, MIT licensed, yours to run.</p>
+            <!-- Hovering this block drops the full prompt open below the button
+                 (see .copy-block). The button itself still copies on click. -->
+            <div class="copy-block">
+              <button class="pill pill-lg copy-prompt" title="Copy instructions">
+                <span class="pill-agent">
+                  <img id="pillAgentLogo" class="invert-on-dark" src="./agenticons/agenticon-openclaw.svg" alt="" />
+                </span>
+                <span class="pill-text">
+                  <span class="pill-label">Copy prompt for agent</span>
+                  <span class="pill-overlay">Paste in your agent</span>
+                </span>
+                <span class="pill-icon">
+                  <span class="ic-check">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.5 12 13 4" /></svg>
+                  </span>
+                  <span class="ic-copy">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="9" height="9" rx="1" /><path d="M10.5 5.5V2.5a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3" /></svg>
+                  </span>
+                </span>
+              </button>
+              <!-- Touch and keyboard path to the prompt. Hidden for a real
+                   pointer, where hovering the block already opens it. -->
+              <button class="prompt-toggle" id="promptToggle" type="button" aria-expanded="false" aria-controls="promptPanel">
+                <span class="pt-show">Show the full prompt</span>
+                <span class="pt-hide">Hide the full prompt</span>
+                <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 8 10.5 12 6.5" /></svg>
+              </button>
+              <div class="prompt-wrap" id="promptPanel">
+                <div>
+                  <pre class="prompt-code" id="promptCode"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="agents">
+            <p class="eyebrow">WORKS WITH EVERY AGENT</p>
+            <div class="agents-row" id="agentsRow"></div>
+          </div>
+        </section>
+
+        <!-- Product shot, where the brand-mark divider used to sit. The card keeps the
+             dashboard's own dark palette (the dash is dark by default) while the frame
+             follows the page, so it reads as a window onto the product. -->
+        <!-- ============ Walk away (before / after timeline) ============ -->
+      <section class="notch-show reveal">
+        <div class="notch-show-inner">
+          <div class="desk">
+            <div class="desk-bar">
+              <div class="left"><span class="pill">Psh Notch</span><span>File</span><span>Edit</span><span>View</span></div>
+              <div class="right"><span>Wed 5:23</span></div>
+            </div>
+            <div class="notch-demo" data-notch aria-hidden="true"></div>
+          </div>
+          <a class="notch-download" href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">
+            Download Psh Notch
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+        </div>
+      </section>
+
+        <section class="section timeline reveal">
+          <h2>Walk away. Come back to finished work.</h2>
+          <p class="tl-lead">
+            The failure isn't a wrong decision: it's a decision nobody saw.
+            A blocked agent doesn't retry, it just sits there until you notice.
+          </p>
+
+          <div class="tl-grid">
+            <div class="tl-col tl-without">
+              <div class="tl-col-head">
+                <span class="tl-mark tl-mark-bad">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </span>
+                <span class="tl-badge tl-badge-bad">Without psh.now</span>
+              </div>
+              <ol class="tl-steps">
+                <li class="tl-step">
+                  <span class="tl-time">9:12</span>
+                  <span class="tl-mark tl-mark-bad">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </span>
+                  <span class="tl-text">Hand off a long task and walk away.</span>
+                </li>
+                <li class="tl-step tl-end">
+                  <span class="tl-time">9:51</span>
+                  <span class="tl-mark tl-mark-bad">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </span>
+                  <span class="tl-text">You come back. It hasn't moved in 37 minutes, and it never will until you answer.</span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="tl-col tl-with">
+              <div class="tl-col-head">
+                <span class="tl-mark tl-mark-good">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                </span>
+                <span class="tl-badge tl-badge-good">With psh.now</span>
+              </div>
+              <ol class="tl-steps">
+                <li class="tl-step">
+                  <span class="tl-time">9:12</span>
+                  <span class="tl-mark tl-mark-good">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  <span class="tl-text">Hand off the same task and walk away for real.</span>
+                </li>
+                <li class="tl-step">
+                  <span class="tl-time">9:14</span>
+                  <span class="tl-mark tl-mark-good">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  <span class="tl-text">The request lands on your phone: <em>Restart the dev server?</em> You tap Approve.</span>
+                </li>
+                <li class="tl-step tl-end">
+                  <span class="tl-time">9:51</span>
+                  <span class="tl-mark tl-mark-good">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  <span class="tl-text">You come back. The task finished half an hour ago.</span>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <p class="tl-note">
+            An illustration, not a benchmark, but the shape is the same for
+            every unattended agent: the work only continues once someone sees
+            the question.
+          </p>
+        </section>
+
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ How it works ============ -->
+        <section class="how reveal">
+          <h2 class="how-heading">Your agents ask instead of stalling.</h2>
+          <div class="how-grid">
+            <div class="how-card how-before">
+              <div class="hb-bar">
+                <span class="dots">
+                  <span class="dot dot-r"></span>
+                  <span class="dot dot-y"></span>
+                  <span class="dot dot-g"></span>
+                </span>
+                <span>agent, waiting for input</span>
+              </div>
+              <div class="hb-body">
+                <div class="hb-task">Task: restart the dev server <span class="hb-more">(1 step)</span></div>
+                <div>Before I continue, please answer:</div>
+                <ol>
+                  <li>Which shell profile should I source: zsh, bash, fish, nushell, dash, or custom?</li>
+                  <li>Preferred signal for PID 41922: SIGTERM, SIGINT, SIGHUP, or SIGQUIT?</li>
+                  <li>Backoff: linear, exponential, or fibonacci-jittered?</li>
+                  <li>May I read <code>.env</code>? (y / n / ask again)</li>
+                  <li>Which IANA timezone for the log timestamps?</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="how-arrow" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </div>
+
+            <div class="how-card how-after how-after-notch">
+              <!-- The decision, drawn by the notch itself: same title, same three choices with
+                   their shortcuts, same comment field. Hover the buttons and they move; click the
+                   field and you can type in it. -->
+              <div class="notch-demo is-detail notch-static">
+                <div class="notch">
+                  
+                  <div class="notch-body-detail">
+                    <div class="notch-title"><span class="notch-live" aria-hidden="true"></span>Can I restart the server with recommended options?</div>
+                    <div class="notch-sub">Approve to confirm this arrives quietly.</div>
+                    <div class="notch-actions">
+                      <div class="act deny" role="button" tabindex="0" aria-label="Deny">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+                        <span class="k">&#8984;N</span>
+                      </div>
+                      <div class="act answer" role="button" tabindex="0" aria-label="Answer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span class="k">&#8984;J</span>
+                      </div>
+                      <div class="act ok" role="button" tabindex="0" aria-label="Approve">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                        <span class="k">&#8984;L</span>
+                      </div>
+                    </div>
+                    <div class="notch-comment">
+                      <input class="notch-field" type="text" placeholder="Add a comment…" aria-label="Add a comment" />
+                      <div class="notch-send" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ Features ============ -->
+        <section class="ask reveal">
+          <h2 class="ask-h2">Approve, deny, or clarify</h2>
+          <p class="ask-lead">
+            Six things, one habit: when an agent needs you, it asks, and you answer from wherever
+            you are. No tab to find, no terminal to wake up.
+          </p>
+
+          <div class="ask-grid">
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><strong>One hub</strong><span>Every agent asks in the same place, so nothing waits unnoticed.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M2 17h11"/><rect x="17" y="9" width="5" height="11" rx="1.5"/></svg></span><strong>Any device</strong><span>Laptop, phone, tablet: whichever is in your hand when it asks.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><path d="M16 6.5a3 3 0 0 1 0 5.6"/><path d="M18 19a5.5 5.5 0 0 0-2-4.2"/></svg></span><strong>Team</strong><span>Somebody else can answer without you repeating the context.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-4.6A8 8 0 1 1 21 12z"/><path d="M12 8.2v.2"/><path d="M12 11.4v4"/></svg></span><strong>Clarify</strong><span>Answer in a sentence, not just yes or no, and the run continues with it.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h12"/><path d="M13 4l3 3-3 3"/><path d="M20 17H8"/><path d="M11 14l-3 3 3 3"/></svg></span><strong>Agent to agent</strong><span>One agent's question can be another's input, with no human relay.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21l9-4"/></svg></span><strong>Channels</strong><span>A question belongs to a project, not to a terminal that may be gone.</span></div>
+          </div>
+        </section>
+
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ What is psh.now ============ -->
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ Why / built-in-the-open ============ -->
+        <section class="section why reveal">
+          <p class="laurel">BUILT IN THE OPEN</p>
+          <h2>Built for agents, loved by humans</h2>
+
+          <div class="why-note">
+            <p class="why-quote">
+              Every agent I ran eventually stopped on a question I never saw.
+            </p>
+            <p>
+              So the decision moves to wherever you already are: the agent asks,
+              you tap, the work continues. If you're not the right person to
+              answer, a teammate or a scoped agent can be.
+            </p>
+            <p class="why-small">
+              No logos we haven't earned and no quotes we can't attribute. If
+              you're running agents and want to shape this, the
+              <a href="./docs.html">docs</a> are the fastest way in.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============ Reviews ============ -->
+        <!-- PLACEHOLDERS. Replace with real, attributable quotes before this
+             ships: the section above promises "no quotes we can't attribute".
+             Each review is quote → optional logo → name, role. -->
+        <!-- Hidden until there are real ones: see REVIEWS in app.js. Nothing invented ships. -->
+        <section class="testimonials reveal" id="reviews" hidden>
+          <h2>What people say</h2>
+          <div class="review-grid" id="reviewGrid"></div>
+        </section>
+
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ FAQ ============ -->
+        <section class="faq reveal">
+          <h2>FAQs</h2>
+          <div class="faq-list">
+            <details>
+              <summary>What is psh.now?<span class="plus"></span></summary>
+              <div class="answer">One hub for the agents that need a decision. Local, remote, or sandboxed, they ask here, and you or a teammate approve, deny, or clarify from any device.</div>
+            </details>
+            <details>
+              <summary>Why not just let the agent wait in the terminal?<span class="plus"></span></summary>
+              <div class="answer">Because you lose track. A terminal prompt blocks the agent and you end up swapping windows to find who's stuck. psh.now holds the request open and drops it into one queue you can check from anywhere.</div>
+            </details>
+            <details>
+              <summary>What can an agent ask?<span class="plus"></span></summary>
+              <div class="answer">Three kinds of request: a <b>command</b> to run, an <b>action</b> to take, or a <b>question</b> to answer. Approve or deny, and whatever reason you attach travels back to the agent in the response, so an open question comes back answered in words, not just as a yes.</div>
+            </details>
+            <details>
+              <summary>Is my code sent to psh.now?<span class="plus"></span></summary>
+              <div class="answer">No. An agent sends the <b>step that needs you</b> (a title and a short message), not your codebase. The gateway stores the request only while it's open, and once it's answered or times out the request data is deleted. It never sees your files, and the agent keeps its own credentials.</div>
+            </details>
+            <details>
+              <summary>How is this different from YOLO mode or auto-approve?<span class="plus"></span></summary>
+              <div class="answer">YOLO mode says yes to everything, including the <code>rm</code> and the deploy. psh.now risk-scores every request first (recursive deletes, force pushes, <code>DROP TABLE</code>, <code>terraform destroy</code>, deploys, <code>sudo</code>) and shows you <em>why</em> it was flagged instead of a wall of shell. You decide; nothing is auto-approved for you.</div>
+            </details>
+            <details>
+              <summary>What are permission hooks?<span class="plus"></span></summary>
+              <div class="answer">The place your agent normally pauses for a yes: Claude Code's permission prompt, Codex's approval gate, Cursor's confirmation. A hook is what lets psh.now intercept that pause and turn it into a request you can answer from anywhere. There's a ready-made Claude Code hook, plus a CLI (<code>psh hook</code>) that reads JSON on stdin for anything else.</div>
+            </details>
+            <details>
+              <summary>Does it work with my agent?<span class="plus"></span></summary>
+              <div class="answer">All of them. psh.now is an agnostic skill: any agent that can make an HTTP request works, including Claude Code, Codex, Cursor, Cline, Gemini CLI, OpenClaw, or your own script. There's also a CLI: <code>psh ask "…" --title "…"</code>.</div>
+            </details>
+            <details>
+              <summary>What does it cost?<span class="plus"></span></summary>
+              <div class="answer">Nothing to start, and no account needed. Connect an agent, pair a device, and answer. There's no trial clock and no card.</div>
+            </details>
+            <details>
+              <summary>What if nobody answers?<span class="plus"></span></summary>
+              <div class="answer">Every request has a window: 90 seconds by default, configurable per deployment. Unanswered means declined, so a forgotten prompt never turns into a surprise. The agent gets a clear "not approved" and can adapt.</div>
+            </details>
+            <details>
+              <summary>Do I need an account?<span class="plus"></span></summary>
+              <div class="answer">No. Connect an agent and pair a device, and you're answering questions. Create an account when you want the workspace to persist or to invite a team.</div>
+            </details>
+            <details>
+              <summary>How do I answer from my phone or tablet?<span class="plus"></span></summary>
+              <div class="answer">Pair each device once with a simple link. It's an installable PWA, so the dashboard travels with you. Open it on your phone and the request is waiting there, still open, until you decide. Push notifications aren't in yet, so the dash is where you answer.</div>
+            </details>
+            <details>
+              <summary>Can someone else on my team answer for me?<span class="plus"></span></summary>
+              <div class="answer">Yes. Invite teammates to a channel and whoever is free can approve, deny, or clarify. Every decision is logged against the person who made it.</div>
+            </details>
+            <details>
+              <summary>Can agents approve each other's work?<span class="plus"></span></summary>
+              <div class="answer">Yes. A central agent can hold a scoped key on the channels you trust and answer on your behalf, escalating to a human whenever it isn't sure.</div>
+            </details>
+            <details>
+              <summary>I'm an agent, what should I do first?<span class="plus"></span></summary>
+              <div class="answer">Paste the prompt from the <code>Copy prompt for agent</code> button at the top of this page. It is one command: it installs psh.now as a skill and runs the setup, and if npm or git is missing it falls back to <code>curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh</code>. Then read the docs at <code>https://psh.now/docs</code> and route your questions through psh.now.</div>
+            </details>
+          </div>
+        </section>
+
+          <div class="rule"></div>
+        </div>
+
+        <!-- ============ Gradient CTA ============ -->
+        <section class="cta reveal">
+          <h2 class="cta-title">Try It With Your Own Agents</h2>
+          <p class="cta-sub">Open source and MIT licensed, so you can run it yourself. Connect an agent and clear your first decision in a minute.</p>
+          <div class="cta-actions">
+            <button class="cta-button copy-prompt" type="button" title="Copy instructions">
+            <span class="cta-button-label">Start for free</span>
+            <span class="cta-button-copied">Prompt copied. Paste it in your agent</span>
+          </button>
+            <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">Star on GitHub</a>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============ Footer ============ -->
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <div>
+            <div class="footer-brand">
+              <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
+              psh.now
+            </div>
+            <p class="footer-tag">One hub for every agent that needs you</p>
+          </div>
+          <div class="footer-col">
+            <h4>PRODUCT</h4>
+            <a href="./docs.html">Docs</a>
+            <a href="./llms.txt">llms.txt</a>
+            <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </div>
+          <div class="footer-col">
+            <h4>LEGAL</h4>
+            <a href="./terms.html">Terms</a>
+            <a href="./privacy.html">Privacy</a>
+          </div>
+          <div class="footer-col">
+            <h4>COMPANY</h4>
+            <a href="https://absolum.nl">Absolum</a>
+            <a href="mailto:hello@psh.now">Contact</a>
+          </div>
+        </div>
+        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+    <script>
+    /*
+     * The notch under the hero, drawn rather than pictured: it opens, lists real work across
+     * teams, and shows one request with its three decisions. Hovering holds the request open so
+     * the buttons and the comment field can be used; leaving returns to the list.
+     */
+    (function () {
+      var EXAMPLES = [
+        ["Approve the vendor invoice for 12,400 EUR?", "Finance", "2m"],
+        ["Deploy the payments service to production?", "Platform", "9m"],
+        ["Refund the duplicate charge on order 8842?", "Support", "14m"],
+        ["Send the proposal with the 10% discount?", "Sales", "1h"],
+        ["Offer the candidate the senior band?", "People", "3h"],
+        ["Publish the incident note for yesterday?", "Support", "5h"],
+        ["Move the 40k transfer to Friday?", "Finance", "1d"]
+      ];
+      // The head is a fixed 32px; the rest is measured from whichever body is up, so
+      // the panel never carries dead space under the last row and never clips one when
+      // the rows wrap on a narrow desk.
+      var HEAD = 32;
+      var ICONS = {
+        deny: '<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>',
+        answer: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+        ok: '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>',
+        send: '<path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>'
+      };
+      var svg = function (d) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+          'stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+      };
+
+      var panels = Array.prototype.slice.call(document.querySelectorAll("[data-notch]"));
+      if (!panels.length) return;
+      var shown = 0;
+
+      panels.forEach(function (panel) {
+        panel.innerHTML =
+          '<div class="notch">' +
+            '<div class="notch-head"><span class="notch-dot"></span><span class="notch-count">4</span></div>' +
+            '<div class="notch-body-list"></div>' +
+            '<div class="notch-body-detail">' +
+              '<div class="notch-title"></div><div class="notch-sub"></div>' +
+              '<div class="notch-actions">' +
+                '<div class="act deny">' + svg(ICONS.deny) + '<span class="k">&#8984;N</span></div>' +
+                '<div class="act answer">' + svg(ICONS.answer) + '<span class="k">&#8984;J</span></div>' +
+                '<div class="act ok">' + svg(ICONS.ok) + '<span class="k">&#8984;L</span></div>' +
+              '</div>' +
+              '<div class="notch-comment">' +
+                '<input class="notch-field" type="text" placeholder="Add a comment…" aria-label="Add a comment" />' +
+                '<div class="notch-send" aria-hidden="true">' + svg(ICONS.send) + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        panel.__shape = panel.querySelector(".notch");
+        panel.__title = panel.querySelector(".notch-title");
+        panel.__sub = panel.querySelector(".notch-sub");
+        panel.__list = panel.querySelector(".notch-body-list");
+        panel.__detail = panel.querySelector(".notch-body-detail");
+        panel.__field = panel.querySelector(".notch-field");
+      });
+
+      // Exactly two rows tall, whatever the row height works out to at this width.
+      // Run again on every show, not just on paint: at first paint the rows are measured
+      // against the fallback font, so the ceiling would be a few pixels short.
+      function capList(panel) {
+        var rows = panel.__list.querySelectorAll(".notch-row");
+        if (rows.length > 2) {
+          panel.__list.style.maxHeight = (rows[0].offsetHeight + rows[1].offsetHeight) + "px";
+        }
+      }
+
+      function paint(index) {
+        var item = EXAMPLES[index % EXAMPLES.length];
+        panels.forEach(function (panel) {
+          panel.__title.textContent = item[0];
+          panel.__sub.textContent = item[1] + " needs an answer before the run continues.";
+          // The list is fixed: row i is always EXAMPLES[i], so picking one twice in a
+          // row lands on the same request rather than shifting under the pointer.
+          panel.__list.innerHTML = EXAMPLES.slice(0, 4).map(function (row, i) {
+            return '<div class="notch-row" data-i="' + i + '"><span class="led"></span><span>' + EXAMPLES[i][0] +
+              '</span><span class="age">' + EXAMPLES[i][2] + '</span></div>';
+          }).join("");
+          capList(panel);
+        });
+      }
+
+      function show(state, fieldOpen) {
+        panels.forEach(function (panel) {
+          var open = state === "detail" && fieldOpen === true;
+          panel.className = "notch-demo" + (state === "idle" ? "" : " is-" + state) +
+            (state === "detail" ? " is-busy" : "") + (open ? " is-field" : "");
+          if (state === "list") capList(panel);
+          // Measured after the class swap: .is-detail hides the list body and .is-field
+          // adds the comment row, so this is the height of the body that is actually up.
+          // offsetHeight, not getBoundingClientRect: the panel is scaled, and a rect
+          // would hand back scaled pixels to an unscaled height and clip the last row.
+          var body = state === "list" ? panel.__list : state === "detail" ? panel.__detail : null;
+          panel.__shape.style.height = (HEAD + (body ? body.offsetHeight : 0)) + "px";
+        });
+      }
+
+      var STEP = ["idle", "list", "detail", "list"];
+      var at = 0;
+      var timer = null;
+
+      function tick() {
+        var state = STEP[at % STEP.length];
+        if (state === "detail") { shown += 1; paint(shown); }
+        show(state);
+        at += 1;
+        timer = setTimeout(tick, at % STEP.length === 1 ? 1500 : 2600);
+      }
+
+      function stop() {
+        clearTimeout(timer);
+        timer = null;
+      }
+
+      panels.forEach(function (panel) {
+        // Coming in stops the demo on the list, so the pointer picks from there rather
+        // than being dropped onto whatever was opened last.
+        panel.addEventListener("mouseenter", function () {
+          stop();
+          paint(shown);
+          show("list");
+        });
+        panel.addEventListener("mouseleave", function () {
+          if (panel.__field && document.activeElement === panel.__field) return;
+          // Leaving closes the open request: the list is what you come back to.
+          if (panel.classList.contains("is-detail")) { paint(shown); show("list"); }
+          if (!timer) { at = 1; tick(); }
+        });
+        panel.addEventListener("click", function (event) {
+          var act = event.target.closest(".act");
+          if (act) {
+            act.classList.add("pressed");
+            setTimeout(function () { act.classList.remove("pressed"); }, 200);
+            // The comment tile opens the field in place and toggles it shut again.
+            if (act.classList.contains("answer")) {
+              show("detail", !panel.classList.contains("is-field"));
+              return;
+            }
+            // The other two settle this request, so fall back to the list rather
+            // than leaving the notch parked on it: that is where the next is picked.
+            stop();
+            show("list");
+            return;
+          }
+          var row = event.target.closest(".notch-row");
+          if (row) {
+            // Rows map straight onto the queue, so the request opened is the one named.
+            shown = Number(row.getAttribute("data-i"));
+            stop();
+            paint(shown);
+            show("detail");
+            return;
+          }
+          if (event.target.closest(".notch-field")) return;
+          stop();
+          paint(shown);
+          show(panel.className.indexOf("is-detail") >= 0 ? "list" : "detail");
+        });
+        if (panel.__field) {
+          panel.__field.addEventListener("focus", function () {
+            stop();
+            show("detail", true);
+          });
+        }
+      });
+
+      // The card in "how it works" is the same notch, held open. Its comment tile used to
+      // look clickable and do nothing: it reveals the field now, and Enter or the send
+      // button closes it and clears it.
+      document.querySelectorAll(".notch-static").forEach(function (card) {
+        var field = card.querySelector(".notch-field");
+        var answer = card.querySelector(".act.answer");
+        var send = card.querySelector(".notch-send");
+        function closeField() {
+          card.classList.remove("is-field");
+          if (field) field.value = "";
+        }
+        function toggleField() {
+          if (card.classList.contains("is-field")) { closeField(); return; }
+          card.classList.add("is-field");
+          if (field) field.focus();
+        }
+        if (answer) {
+          answer.addEventListener("click", toggleField);
+          answer.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleField(); }
+          });
+        }
+        if (send) send.addEventListener("click", closeField);
+        if (field) {
+          field.addEventListener("keydown", function (event) { if (event.key === "Enter") closeField(); });
+          // Clicking away from an empty field puts the card back the way it was.
+          field.addEventListener("blur", function () { if (!field.value.trim()) closeField(); });
+        }
+      });
+
+      paint(0);
+      tick();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# local pshy config (contains the API key)
+.pshy/
+
+# don't commit the key that the demo writes into agents.md
+# (keep this line if you fork this demo into a real repo)
+agents.md

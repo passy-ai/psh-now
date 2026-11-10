@@ -1,0 +1,1913 @@
+// psh.now supervisor dashboard.
+
+// migrate keys written under the old brand name
+for (const k of ["deviceToken", "workspace", "demoApiKey", "notifyAsked"]) {
+  const old = localStorage.getItem(`pshy.${k}`);
+  if (old && !localStorage.getItem(`psh.${k}`)) localStorage.setItem(`psh.${k}`, old);
+}
+
+const K = {
+  token: "psh.deviceToken",
+  apiKey: "psh.apiKey",
+  workspace: "psh.workspace",
+  demoKey: "psh.demoApiKey",
+  notifyAsked: "psh.notifyAsked",
+};
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  status: $("status"),
+  statusText: $("statusText"),
+  unpaired: $("unpaired"),
+  paired: $("paired"),
+  openChannels: $("openChannels"),
+  closedSection: $("closedSection"),
+  closedChannels: $("closedChannels"),
+  approvals: $("approvals"),
+  channelSearch: $("channelSearch"),
+  toast: $("toast"),
+};
+
+const store = {
+  get token() {
+    return localStorage.getItem(K.token);
+  },
+  set token(v) {
+    v ? localStorage.setItem(K.token, v) : localStorage.removeItem(K.token);
+  },
+  get apiKey() {
+    return localStorage.getItem(K.apiKey);
+  },
+  set apiKey(v) {
+    v ? localStorage.setItem(K.apiKey, v) : localStorage.removeItem(K.apiKey);
+  },
+  get workspace() {
+    try {
+      return JSON.parse(localStorage.getItem(K.workspace)) || null;
+    } catch {
+      return null;
+    }
+  },
+  set workspace(v) {
+    localStorage.setItem(K.workspace, JSON.stringify(v));
+  },
+};
+
+/**
+ * The server's public host, learned from `/me`. Prompts and links use this so
+ * a copy made on localhost still points a remote agent at the real host.
+ */
+let publicBaseUrl = null;
+function shareHost() {
+  return publicBaseUrl || location.origin;
+}
+
+const state = {
+  ws: null,
+  pending: new Map(),
+  approvals: [],
+  reconnect: 800,
+  /** True once the dashboard has faded in; reconnects must not flash it. */
+  everReady: false,
+  heartbeat: null,
+  device: null,
+  connections: [],
+  channelTabs: {},
+  channelOpen: {},
+  channelReqOpen: {},
+  channelHistOpen: {},
+  channelConnOpen: {},
+  channelSetOpen: {},
+  channelConnect: {},
+  /** Account SECRET key (manage). Memory only — never persisted, never in a URL. */
+  secretKey: null,
+  welcome: new URLSearchParams(location.search).has("welcome"),
+};
+
+/* ------------------------------ helpers -------------------------------- */
+
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** `psh_live_abc…xyz4` — prefix + last 4, middle blurred. */
+function maskedKey(key) {
+  if (!key) return "—";
+  const m = /^psh_[a-z]+_/.exec(key);
+  const prefix = m ? m[0] : "";
+  const rest = key.slice(prefix.length);
+  if (rest.length <= 4) return esc(key);
+  return `${esc(prefix)}<span class="key-blur">${esc(rest.slice(0, -4))}</span>${esc(rest.slice(-4))}`;
+}
+
+/** A pleasant, stable colour per account (hash of the seed → palette). */
+function avatarColor(seed) {
+  const palette = [
+    "#e0662b", "#6c8cff", "#34c759", "#d946ef", "#f43f5e",
+    "#14b8a6", "#f59e0b", "#8b5cf6", "#06b6d4", "#ec4899",
+  ];
+  let h = 0;
+  for (const ch of String(seed)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return palette[h % palette.length];
+}
+
+/* ------------------------------- icons --------------------------------- */
+// Lucide icons (lucide.dev), inlined so there is no runtime dependency.
+const ICONS = {
+  "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+  "chevron-up": '<path d="m18 15-6-6-6 6"/>',
+  settings:
+    '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  archive:
+    '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+  key: '<path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/>',
+  users:
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  clock:
+    '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  "arrow-right": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  cart: '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  pencil:
+    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  eye: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+  "eye-off": '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>',
+};
+
+function icon(name, size = 16) {
+  return `<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+}
+
+const DANGER =
+  /(rm\s+-[a-z]*r[a-z]*f[a-z]*|--force\b|\bsudo\b|git\s+push\b[^\n]*(?:--force|\s-f\b)|DROP\s+TABLE|TRUNCATE\s+TABLE|DELETE\s+FROM(?![\s\S]*WHERE)|\bmkfs\b|\bdd\b[^\n]*of=\/dev\/|chmod\s+777|kubectl\s+delete|terraform\s+destroy|\|\s*(?:ba|z|d)?sh\b|shutdown\b|reboot\b)/gi;
+
+const highlight = (text) =>
+  esc(text).replace(DANGER, (m) => `<span class="danger">${m}</span>`);
+
+function toast(msg) {
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => els.toast.classList.remove("show"), 2600);
+}
+
+function status(kind, label) {
+  if (!els.status) return;
+  els.status.className = `chip ${kind}`;
+  els.statusText.textContent = label;
+}
+
+function rel(ts) {
+  if (!ts) return "never";
+  const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function api(path, { method = "GET", body } = {}) {
+  const doFetch = (key) =>
+    fetch(path, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(store.token ? { "x-psh-device": store.token } : {}),
+        ...(key ? { "x-psh-key": key } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+  return (async () => {
+    let res = await doFetch(store.apiKey || null);
+    // Administering the account needs the secret key. Ask once, hold it in
+    // memory, and retry.
+    if (res.status === 403) {
+      if (!state.secretKey) {
+        const entered = window.prompt(
+          "Account secret key required for this action:\n(shown once at install; kept in memory only)",
+        );
+        if (entered) state.secretKey = entered.trim();
+      }
+      if (state.secretKey) res = await doFetch(state.secretKey);
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    return data;
+  })();
+}
+
+/* ------------------------------ sections ------------------------------- */
+
+function wireToggle(btnId, bodyId, onOpen) {
+  $(btnId)?.addEventListener("click", () => {
+    const body = $(bodyId);
+    const opening = body?.classList.contains("hide");
+    body?.classList.toggle("hide");
+    $(btnId)?.classList.toggle("open");
+    if (opening && onOpen) onOpen();
+  });
+}
+
+wireToggle("closedToggle", "closedChannels");
+wireToggle("billingToggle", "billingBody", loadAccount);
+
+$("signOutBtn")?.addEventListener("click", () => {
+  store.apiKey = null;
+  store.token = null;
+  location.reload();
+});
+$("menuSignout")?.addEventListener("click", () => {
+  store.apiKey = null;
+  store.token = null;
+  location.reload();
+});
+$("avatarBtn")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("avatarMenu")?.classList.toggle("hide");
+});
+document.addEventListener("click", () => $("avatarMenu")?.classList.add("hide"));
+
+// Fill every `<span data-icon>` with an inline lucide icon.
+for (const el of document.querySelectorAll("[data-icon]")) {
+  el.innerHTML = icon(el.dataset.icon, 15);
+}
+
+$("menuCopyKey")?.addEventListener("click", async (e) => {
+  e.stopPropagation(); // copying must not close the menu
+  if (!store.apiKey) return toast("No account key in this session");
+  try {
+    await navigator.clipboard.writeText(store.apiKey);
+    toast("Account key copied");
+  } catch {
+    toast("Copy failed");
+  }
+});
+$("menuCreateSecret")?.addEventListener("click", async (e) => {
+  e.stopPropagation(); // keep the menu open while the secret is shown
+  const btn = $("menuCreateSecret");
+  btn.disabled = true;
+  try {
+    const data = await api("/api/v1/me/secret", { method: "POST" });
+    state.secretKey = data.secretKey;
+    $("menuSecretKey").innerHTML = maskedKey(data.secretKey);
+    $("menuCopySecret").classList.remove("hide");
+    btn.classList.add("hide");
+    toast("Secret key generated");
+  } catch (err) {
+    toast(err.message || "Couldn't create secret");
+  } finally {
+    btn.disabled = false;
+  }
+});
+$("menuCopySecret")?.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  let v = state.secretKey;
+  if (!v) {
+    // Not in memory this session — ask the server to reveal it.
+    try {
+      const data = await api("/api/v1/me/secret/reveal", { method: "POST" });
+      v = data.secretKey;
+      state.secretKey = v;
+    } catch (err) {
+      return toast(err.message || "Secret key is not available");
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(v);
+    toast("Secret key copied");
+  } catch {
+    toast("Copy failed");
+  }
+});
+$("menuBuy")?.addEventListener("click", () => {
+  location.href = "/pricing";
+});
+$("menuRequests")?.addEventListener("click", () => {
+  $("avatarMenu")?.classList.add("hide");
+  const card = document.querySelector(".channel-card");
+  if (!card) return;
+  state.channelReqOpen[card.dataset.id] = true;
+  renderChannels();
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+$("claimBadge")?.addEventListener("click", () => showAuth());
+
+/* --------------------------- new channel (inline) ---------------------- */
+
+let createdChannel = null;
+
+/** First free default channel name: Default, Default 1, Default 2, … */
+function nextDefaultName() {
+  const names = new Set(state.connections.map((c) => c.name));
+  if (!names.has("Default")) return "Default";
+  let i = 1;
+  while (names.has(`Default ${i}`)) i++;
+  return `Default ${i}`;
+}
+$("newChannelBtn")?.addEventListener("click", () => {
+  $("newChannelForm")?.classList.toggle("hide");
+  $("newChannelName")?.focus();
+});
+$("newChannelClose")?.addEventListener("click", () => {
+  $("newChannelForm")?.classList.add("hide");
+});
+$("newChannelCreate")?.addEventListener("click", async () => {
+  const name = $("newChannelName").value.trim() || nextDefaultName();
+  try {
+    const data = await api("/api/v1/channels", { method: "POST", body: { name } });
+    createdChannel = data;
+    // Created: close the panel and let the new channel card show the prompt.
+    $("newChannelForm")?.classList.add("hide");
+    $("newChannelName").value = "";
+    toast(`Channel "${data.connection.name}" created`);
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't create channel");
+  }
+});
+$("newChannelName")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("newChannelCreate")?.click();
+});
+/* ------------------------------- socket -------------------------------- */
+
+function connect() {
+  const credential = store.apiKey || store.token;
+  if (!credential) {
+    els.unpaired.classList.remove("hide");
+    els.paired.classList.add("hide");
+    return;
+  }
+  // Never stack sockets: a reconnect or a tab focus must reuse the live one.
+  if (state.ws && state.ws.readyState <= WebSocket.OPEN) return;
+  els.unpaired.classList.add("hide");
+  els.paired.classList.remove("hide");
+  document.querySelector(".avatar-wrap")?.classList.remove("hide");
+  document.querySelector(".nav-links")?.classList.remove("hide");
+  // Fade in once, on the first load. Reconnects keep the page steady instead
+  // of flashing it out and back in (which looks like a reload).
+  if (state.everReady) {
+    els.paired.classList.add("ready");
+  } else {
+    els.paired.classList.remove("ready");
+    clearTimeout(connect._ready);
+    connect._ready = setTimeout(() => {
+      state.everReady = true;
+      els.paired.classList.add("ready");
+    }, 1500);
+  }
+  status("", "Connecting…");
+
+  // Load data over HTTP right away — don't wait for the WebSocket `hello`,
+  // which can be slow through a tunnel.
+  if (PAGE === "approvals") {
+    void loadApprovals();
+    void loadConnectionsList(); // channel accents
+  } else {
+    void loadConnectionsList();
+  }
+  void loadAccount();
+  void loadMenu();
+
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  const ws = new WebSocket(`${proto}://${location.host}/ws?token=${encodeURIComponent(credential)}`);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    state.reconnect = 800;
+    status("online", "Live");
+    startHeartbeat();
+  };
+  ws.onmessage = (event) => {
+    let frame;
+    try {
+      frame = JSON.parse(event.data);
+    } catch {
+      return;
+    }
+    handle(frame);
+  };
+  ws.onclose = (event) => {
+    // Ignore a stale socket closing after a newer one has taken over.
+    if (state.ws !== ws) return;
+    stopHeartbeat();
+    state.ws = null;
+    if (event.code === 4401) {
+      store.token = null;
+      store.apiKey = null;
+      status("offline", "Not paired");
+      els.unpaired.classList.remove("hide");
+      els.paired.classList.add("hide");
+      return;
+    }
+    status("offline", "Reconnecting…");
+    setTimeout(connect, state.reconnect);
+    state.reconnect = Math.min(state.reconnect * 1.7, 15000);
+  };
+  ws.onerror = () => ws.close();
+}
+
+function refresh() {
+  if (PAGE === "approvals") {
+    void loadApprovals();
+    void loadConnectionsList(); // for channel accents
+  } else {
+    loadConnectionsList();
+  }
+}
+
+function handle(frame) {
+  switch (frame.type) {
+    case "hello":
+      store.workspace = frame.workspace;
+      if (frame.workspace?.baseUrl) publicBaseUrl = frame.workspace.baseUrl;
+      state.device = frame.device;
+      state.pending.clear();
+      for (const p of frame.pending || []) state.pending.set(p.id, p);
+      refresh();
+      maybeWelcomeTest();
+      state.everReady = true;
+      els.paired.classList.add("ready");
+      break;
+    case "prompt.created":
+      state.pending.set(frame.prompt.id, frame.prompt);
+      refresh();
+      toast(frame.prompt.title || "Approval needed");
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      break;
+    case "prompt.decided":
+      state.pending.delete(frame.promptId);
+      refresh();
+      break;
+    case "pong":
+      break;
+  }
+}
+
+function send(payload) {
+  if (state.ws?.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify(payload));
+    return true;
+  }
+  return false;
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  state.heartbeat = setInterval(() => send({ type: "ping" }), 25000);
+}
+function stopHeartbeat() {
+  if (state.heartbeat) clearInterval(state.heartbeat);
+  state.heartbeat = null;
+}
+
+/* ------------------------------ approvals ------------------------------ */
+
+function channelById(id) {
+  return state.connections.find((c) => c.id === id);
+}
+
+function relTime(ts) {
+  const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (s < 60) return "Just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} hr ago`;
+  return `${Math.floor(s / 86400)} d ago`;
+}
+
+function requestsTable(items) {
+  if (!items.length) return `<div class="table-empty">No pending requests.</div>`;
+  return `
+    <div class="req-table">
+      <div class="req-row req-head">
+        <span>Name</span><span>Details</span><span>Status</span><span class="right">Action</span>
+      </div>
+      ${items
+        .map(
+          (p) => `
+        <div class="req-row" id="p-${esc(p.id)}">
+          <span class="req-title">${esc(p.title || "Approval request")}</span>
+          <span class="req-desc" title="${esc(p.message || p.command || "")}">${esc(p.message || p.command || "")}</span>
+          <span class="req-status"><span class="status-pill pending">Pending</span></span>
+          <span class="req-actions">
+            <button class="btn deny" data-a="deny">${icon("x", 13)} Deny</button>
+            <button class="btn approve" data-a="approve">${icon("check", 13)} Approve</button>
+          </span>
+        </div>`,
+        )
+        .join("")}
+    </div>`;
+}
+
+function historyRow(channelId) {
+  return `
+    <button class="history-row" data-history="${esc(channelId)}">
+      <span class="history-label">${icon("clock", 15)} History</span>
+      <span class="chev">${icon("chevron-down", 15)}</span>
+    </button>
+    <div class="history-body hide" id="hist-${esc(channelId)}"></div>`;
+}
+
+function connectionsPane(channelId) {
+  return `
+    <div class="pane-note">${icon("link", 15)} Agents that ask in this channel, and devices that can approve.</div>
+
+    <div class="settings-head">${icon("key", 15)}<span>Agents</span></div>
+    <p class="muted">Keys that route requests here. Give them names if it helps.</p>
+    <div class="conn-list" id="keys-${esc(channelId)}"><span class="muted">Loading…</span></div>
+    <button class="btn sm" data-newkey="${esc(channelId)}">${icon("plus", 14)} New agent key</button>
+
+    <div class="settings-sep"></div>
+
+    <div class="settings-head">${icon("users", 15)}<span>Devices</span></div>
+    <p class="muted">Paired devices that can approve.</p>
+    <div class="conn-list" id="devices-${esc(channelId)}"><span class="muted">Loading…</span></div>
+    <button class="btn sm" data-pair="${esc(channelId)}">${icon("link", 14)} Generate pairing code</button>
+    <div id="pairbox-${esc(channelId)}" class="hide">
+      <img class="qr" id="pairqr-${esc(channelId)}" alt="Pairing QR" />
+      <p class="code" id="pairurl-${esc(channelId)}"></p>
+    </div>
+  `;
+}
+
+function membersPane(channelId) {
+  return `<div class="pane-note">${icon("users", 15)} People who can approve this channel.</div>
+    <div class="member-list" id="members-${esc(channelId)}"><span class="muted">Loading…</span></div>
+    <button class="btn sm" data-invite="${esc(channelId)}">${icon("plus", 14)} Invite someone</button>`;
+}
+
+function settingsPane(channelId) {
+  const c = channelById(channelId) || {};
+  return `
+    <div class="settings-pane">
+      <div class="set-block">
+        <div class="settings-head">${icon("users", 15)}<span>Members</span>
+          <button class="btn sm" data-invite="${esc(channelId)}">${icon("plus", 14)} Invite</button>
+        </div>
+        <div class="conn-table" id="set-members-${esc(channelId)}"><span class="muted">Loading…</span></div>
+      </div>
+      <div class="set-block">
+        <div class="settings-head">${icon("key", 15)}<span>Agents</span>
+          <button class="btn sm" data-newkey="${esc(channelId)}">${icon("plus", 14)} Add agent</button>
+        </div>
+        <div class="conn-table" id="set-agents-${esc(channelId)}"><span class="muted">Loading…</span></div>
+      </div>
+      <div class="set-block">
+        <div class="settings-head">${icon("smartphone", 15)}<span>Devices</span>
+          <button class="btn sm" data-pair="${esc(channelId)}">${icon("plus", 14)} Pair device</button>
+        </div>
+        <div class="conn-table" id="set-devices-${esc(channelId)}"><span class="muted">Loading…</span></div>
+        <div id="pairbox-${esc(channelId)}" class="hide">
+          <img class="qr" id="pairqr-${esc(channelId)}" alt="Pairing QR" />
+          <p class="code" id="pairurl-${esc(channelId)}"></p>
+        </div>
+      </div>
+      <div class="set-block">
+        <div class="settings-head">${icon("link", 15)}<span>Channel URL</span></div>
+        <div class="slug-row">
+          <span class="slug-prefix">/c/</span>
+          <input class="field" id="slug-${esc(channelId)}" value="${esc(c.slug || "")}" placeholder="${esc(c.id)}" />
+        </div>
+      </div>
+      <div class="set-block">
+        <div class="settings-head">${icon("settings", 15)}<span>Channel</span></div>
+        <div class="field-group">
+          <label class="field-label" for="title-${esc(channelId)}">Title</label>
+          <input class="field" id="title-${esc(channelId)}" value="${esc(c.name || "")}" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="desc-${esc(channelId)}">Description</label>
+          <textarea class="field" id="desc-${esc(channelId)}" rows="2" placeholder="What is this channel for?">${esc(c.description || "")}</textarea>
+        </div>
+        <button class="btn primary sm" data-save="${esc(channelId)}">${icon("check", 14)} Save</button>
+      </div>
+      <button class="btn danger-ghost sm" data-archive="${esc(channelId)}">${icon("archive", 14)} Archive channel</button>
+    </div>`;
+}
+
+function plural(n, word) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+function channelSection(c) {
+  const items = [...state.pending.values()]
+    .filter((p) => (p.connectionId || p.sessionId) === c.id)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const reqOpen = state.channelReqOpen[c.id] ?? items.length > 0;
+  const histOpen = state.channelHistOpen[c.id] ?? false;
+  const connOpen = state.channelConnOpen[c.id] ?? false;
+  const setOpen = state.channelSetOpen[c.id] ?? false;
+  const accent = c.color || "";
+  const chev = (o) => (o ? icon("chevron-up", 15) : icon("chevron-down", 15));
+  return `
+    <section class="channel-card" data-id="${esc(c.id)}"${accent ? ` style="--accent:${esc(accent)}"` : ""}>
+      <header class="ch-head">
+        <div class="ch-head-text">
+          <span class="ch-kicker">Agent channel</span>
+          <h3 class="ch-name">
+            <label class="ch-color" title="Accent colour" style="background:${esc(accent || "#4a4a55")}">
+              <input type="color" data-color="${esc(c.id)}" value="${esc(accent || "#6c8cff")}" />
+            </label>
+            ${esc(c.name)}
+          </h3>
+        </div>
+        <div class="ch-qr-wrap">
+          <span class="ch-qr-hint">${icon("smartphone", 15)} Scan to connect a device ${icon("arrow-right", 15)}</span>
+          <img class="ch-qr" id="cqr-${esc(c.id)}" alt="Scan to connect an agent" />
+        </div>
+      </header>
+
+      <div class="ch-connect">
+        <button class="btn pill" data-cpnew="${esc(c.id)}">${icon("copy", 15)} Connect an agent</button>
+        <button class="icon-btn sm" data-cpeye="${esc(c.id)}" aria-label="Show">${icon("eye", 15)}</button>
+      </div>
+      <pre class="ch-prompt" id="cprompt-${esc(c.id)}">—</pre>
+
+      <button class="ch-sec" data-req="${esc(c.id)}">
+        <span>Requests${items.length ? ` · ${items.length} pending` : ""}</span>
+        <span class="chev">${chev(reqOpen)}</span>
+      </button>
+      <div class="${reqOpen ? "" : "hide"}">${requestsTable(items)}</div>
+
+      <button class="ch-sec" data-hist="${esc(c.id)}">
+        <span>Request history</span><span class="chev">${chev(histOpen)}</span>
+      </button>
+      <div class="${histOpen ? "" : "hide"}" id="hist-${esc(c.id)}"></div>
+
+      <button class="ch-sec" data-set="${esc(c.id)}">
+        <span>Settings</span><span class="chev">${chev(setOpen)}</span>
+      </button>
+      <div class="${setOpen ? "" : "hide"}" id="set-${esc(c.id)}">${setOpen ? settingsPane(c.id) : ""}</div>
+    </section>`;
+}
+
+/* ------------------------------ approvals ------------------------------ */
+
+/** Which page are we on? `/channels` or the approvals home. */
+const PAGE = location.pathname.startsWith("/channels") ? "channels" : "approvals";
+
+function render() {
+  if (PAGE === "channels") renderChannels();
+  else renderApprovals();
+}
+
+function approvalCard(p) {
+  const accent = state.connections.find((c) => c.id === p.connectionId)?.color || "";
+  return `
+    <div class="approval-card" id="ap-${esc(p.id)}"${accent ? ` style="--accent:${esc(accent)}"` : ""}>
+      <span class="ch-kicker">${esc(p.agent || "agent")} · waiting for input</span>
+      <h2 class="approval-title">${esc(p.title || "Approval request")}</h2>
+      <p class="approval-msg">${esc(p.message || p.command || "")}</p>
+      <div class="approval-actions">
+        <button class="btn deny" data-a="deny" data-ap="${esc(p.id)}">${icon("x", 14)} Deny</button>
+        <button class="btn approve" data-a="approve" data-ap="${esc(p.id)}">${icon("check", 14)} Approve</button>
+      </div>
+    </div>`;
+}
+
+function recentTable(list) {
+  if (!list.length) return `<div class="table-empty">No recent approvals.</div>`;
+  return `
+    <div class="req-table hist-table">
+      <div class="req-row req-head">
+        <span>Agent</span><span>Request</span><span>Details</span><span>Time</span><span>Approved by</span><span>Status</span>
+      </div>
+      ${list
+        .map(
+          (p) => `<div class="req-row">
+            <span class="req-agent">${esc(p.agent || "—")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
+            <span class="req-title">${esc(p.title || "Request")}</span>
+            <span class="req-desc" title="${esc(p.message || "")}">${esc(p.message || "")}</span>
+            <span class="req-desc">${esc(relTime(p.decidedAt || p.createdAt))}</span>
+            <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "—")}</span>
+            <span class="req-status"><span class="status-pill ${esc(p.status)}">${esc(p.status)}</span></span>
+          </div>`,
+        )
+        .join("")}
+    </div>`;
+}
+
+function renderApprovals() {
+  const el = els.approvals;
+  if (!el) return;
+  const list = state.approvals || [];
+  const pending = list.filter((p) => p.status === "pending");
+  const decided = list.filter((p) => p.status !== "pending");
+  const latest = pending[0];
+  el.innerHTML = `
+    ${latest
+      ? approvalCard(latest)
+      : `<div class="approvals-empty">
+          <div class="approvals-empty-mark">${icon("check", 28)}</div>
+          <h2>No approvals right now</h2>
+          <p class="muted">When an agent needs a decision, it appears here.</p>
+        </div>`}
+    <div class="section-label">Recent approvals</div>
+    ${recentTable(decided.slice(0, 20))}
+  `;
+  for (const btn of el.querySelectorAll("[data-ap]")) {
+    const id = btn.dataset.ap;
+    btn.onclick = () => decide(id, btn.dataset.a === "approve", btn.closest(".approval-card"));
+  }
+}
+
+async function loadApprovals() {
+  if (!els.approvals) return;
+  try {
+    const { prompts } = await api("/api/v1/approvals?limit=50");
+    state.approvals = prompts || [];
+    renderApprovals();
+  } catch {
+    /* non-critical */
+  }
+}
+
+function renderChannels() {
+  // Show every channel, so one you just created is visible right away.
+  const q = (els.channelSearch?.value || "").trim().toLowerCase();
+  const visible = state.connections.filter(
+    (c) => !c.archived && (!q || c.name.toLowerCase().includes(q)),
+  );
+
+  if (!visible.length) {
+    els.openChannels.innerHTML = q
+      ? `<div class="empty-state"><h2>No channels match “${esc(q)}”</h2></div>`
+      : `
+      <div class="empty-state">
+        <h2>No channels yet</h2>
+        <div class="empty-actions">
+          <button class="btn pill" id="emptyNewChannel">${icon("plus", 15)} Create channel</button>
+          <button class="btn pill" id="emptyCopyPrompt">${icon("copy", 15)} Copy prompt</button>
+        </div>
+      </div>`;
+    document.getElementById("emptyNewChannel")?.addEventListener("click", () => $("newChannelBtn")?.click());
+    document.getElementById("emptyCopyPrompt")?.addEventListener("click", async () => {
+      try {
+        const { url } = await api("/api/v1/me/join-links", { method: "POST" });
+        await navigator.clipboard.writeText(joinPrompt(url));
+        toast("Connect prompt copied");
+      } catch (err) {
+        toast(err.message || "Copy failed");
+      }
+    });
+    els.closedSection?.classList.add("hide");
+    return;
+  }
+
+  els.openChannels.innerHTML = visible.map(channelSection).join("");
+  if (els.closedSection) {
+    els.closedSection.classList.add("hide");
+    els.closedChannels.innerHTML = "";
+  }
+
+  wireChannels();
+}
+
+function wireChannels() {
+  const root = document.getElementById("paired");
+
+  for (const btn of root.querySelectorAll("[data-req]")) {
+    btn.onclick = () => {
+      const id = btn.dataset.req;
+      state.channelReqOpen[id] = !(state.channelReqOpen[id] ?? true);
+      renderChannels();
+    };
+  }
+  for (const btn of root.querySelectorAll("[data-hist]")) {
+    btn.onclick = () => {
+      const id = btn.dataset.hist;
+      state.channelHistOpen[id] = !(state.channelHistOpen[id] ?? false);
+      renderChannels();
+    };
+  }
+  for (const btn of root.querySelectorAll("[data-set]")) {
+    btn.onclick = () => {
+      const id = btn.dataset.set;
+      state.channelSetOpen[id] = !(state.channelSetOpen[id] ?? false);
+      renderChannels();
+    };
+  }
+
+  for (const row of root.querySelectorAll(".req-row[id]")) {
+    const id = row.id.replace(/^p-/, "");
+    const ap = row.querySelector('[data-a="approve"]');
+    const dn = row.querySelector('[data-a="deny"]');
+    if (ap) ap.onclick = () => decide(id, true, row);
+    if (dn) dn.onclick = () => decide(id, false, row);
+  }
+
+  for (const btn of root.querySelectorAll("[data-cpeye]")) {
+    btn.onclick = () => {
+      const el = document.getElementById(`cprompt-${btn.dataset.cpeye}`);
+      const on = el?.classList.toggle("revealed");
+      btn.innerHTML = on ? icon("eye-off", 15) : icon("eye", 15);
+    };
+  }
+  for (const btn of root.querySelectorAll("[data-cqr]")) {
+    btn.onclick = () => {
+      const qr = document.getElementById(`cqr-${btn.dataset.cqr}`);
+      const hidden = qr?.classList.toggle("hide");
+      btn.classList.toggle("active", !hidden);
+    };
+  }
+  for (const btn of root.querySelectorAll("[data-cpnew]")) {
+    btn.onclick = () => addAgentToChannel(btn.dataset.cpnew);
+  }
+  for (const inp of root.querySelectorAll("[data-color]")) {
+    inp.onchange = () => setChannelColor(inp.dataset.color, inp.value);
+  }
+  for (const btn of root.querySelectorAll("[data-invite]")) {
+    btn.onclick = () => shareChannel(btn.dataset.invite);
+  }
+  for (const btn of root.querySelectorAll("[data-newkey]")) {
+    btn.onclick = () => newChannelKey(btn.dataset.newkey);
+  }
+  for (const btn of root.querySelectorAll("[data-pair]")) {
+    btn.onclick = () => pairFromChannel(btn.dataset.pair, btn);
+  }
+  for (const btn of root.querySelectorAll("[data-save]")) {
+    btn.onclick = () => saveChannelSettings(btn.dataset.save);
+  }
+  for (const btn of root.querySelectorAll("[data-archive]")) {
+    btn.onclick = () => archiveChannel(btn.dataset.archive);
+  }
+
+  // Fill each channel's connect prompt, plus any open sections.
+  for (const card of root.querySelectorAll(".channel-card")) {
+    const id = card.dataset.id;
+    void ensureChannelConnect(id);
+    if (state.channelHistOpen[id]) void loadHistory(id);
+    if (state.channelSetOpen[id]) void loadSettings(id);
+  }
+}
+
+/** Fetch and render a channel's decided requests. */
+async function loadHistory(channelId) {
+  const box = document.getElementById(`hist-${channelId}`);
+  if (!box || box.dataset.loaded) return;
+  box.innerHTML = `<div class="muted">Loading…</div>`;
+  try {
+    const { prompts } = await api(`/api/v1/channels/${channelId}`);
+    const prev = (prompts || []).filter((p) => p.status !== "pending");
+    box.innerHTML = prev.length
+      ? `<div class="req-table hist-table">
+          <div class="req-row req-head">
+            <span>Agent</span><span>Request</span><span>Details</span><span>Time</span><span>Approved by</span><span>Status</span>
+          </div>
+          ${prev
+            .map(
+              (p) => `<div class="req-row">
+                <span class="req-agent">${esc(p.agent || "—")}${p.agentId ? `<span class="req-sub" title="Agent ID">${esc(p.agentId)}</span>` : ""}</span>
+                <span class="req-title">${esc(p.title || "Request")}</span>
+                <span class="req-desc" title="${esc(p.message || p.command || "")}">${esc(p.message || p.command || "")}</span>
+                <span class="req-desc">${esc(relTime(p.createdAt))}</span>
+                <span class="req-desc req-by" title="${esc(p.decidedBy || "")}">${esc(p.decidedBy || "—")}</span>
+                <span class="req-status"><span class="status-pill ${esc(p.status)}">${esc(p.status)}</span></span>
+              </div>`,
+            )
+            .join("")}
+        </div>`
+      : `<div class="muted">No previous requests.</div>`;
+    box.dataset.loaded = "1";
+  } catch (err) {
+    box.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+  }
+}
+
+/** Settings: members, agents, and devices as separate lists. */
+async function loadSettings(channelId) {
+  const members = document.getElementById(`set-members-${channelId}`);
+  const agents = document.getElementById(`set-agents-${channelId}`);
+  const devices = document.getElementById(`set-devices-${channelId}`);
+  if (!members && !agents && !devices) return;
+
+  try {
+    const [keysRes, devRes, memRes] = await Promise.all([
+      api(`/api/v1/channels/${channelId}/keys`).catch(() => ({ keys: [] })),
+      api("/api/v1/devices").catch(() => ({ devices: [] })),
+      api(`/api/v1/channels/${channelId}/members`).catch(() => ({ members: [] })),
+    ]);
+
+    if (members) {
+      const list = memRes.members || [];
+      members.innerHTML = list.length
+        ? list
+            .map(
+              (m) => `<div class="conn-trow">
+                <span class="conn-tname">${esc(m.role === "owner" ? "You" : m.email || m.accountId || m.id)}</span>
+                <span class="conn-tstatus">${esc(m.pending ? "Invited" : "Active")}</span>
+              </div>`,
+            )
+            .join("")
+        : `<div class="muted">No members yet.</div>`;
+    }
+
+    if (agents) {
+      const list = keysRes.keys || [];
+      agents.innerHTML = list.length
+        ? list
+            .map(
+              (k) => `<div class="conn-trow">
+                <input class="conn-name" data-renamekey="${esc(k.id)}" value="${esc(k.name)}" aria-label="Agent name" />
+                <span class="conn-tstatus">Connected</span>
+                <button class="icon-btn sm" data-copykey="${esc(k.id)}" title="Copy key">${icon("copy", 14)}</button>
+                <button class="icon-btn sm" data-revokekey="${esc(k.id)}" title="Revoke">${icon("x", 14)}</button>
+              </div>`,
+            )
+            .join("")
+        : `<div class="muted">No agents yet.</div>`;
+      for (const inp of agents.querySelectorAll("[data-renamekey]")) {
+        inp.onchange = () => renameKey(inp.dataset.renamekey, inp.value);
+      }
+      for (const btn of agents.querySelectorAll("[data-copykey]")) {
+        btn.onclick = () => copyChannelKey(btn.dataset.copykey);
+      }
+      for (const btn of agents.querySelectorAll("[data-revokekey]")) {
+        btn.onclick = () => revokeChannelKey(channelId, btn.dataset.revokekey);
+      }
+    }
+
+    if (devices) {
+      const list = (devRes.devices || []).filter((d) => !d.revokedAt);
+      devices.innerHTML = list.length
+        ? list
+            .map(
+              (d) => `<div class="conn-trow">
+                <input class="conn-name" data-renamedev="${esc(d.id)}" value="${esc(d.name)}" aria-label="Device name" />
+                <span class="conn-tstatus">${d.online ? "Online" : "Paired"}</span>
+                <button class="icon-btn sm" data-revokedev="${esc(d.id)}" title="Revoke">${icon("x", 14)}</button>
+              </div>`,
+            )
+            .join("")
+        : `<div class="muted">No devices yet.</div>`;
+      for (const inp of devices.querySelectorAll("[data-renamedev]")) {
+        inp.onchange = () => renameDevice(inp.dataset.renamedev, inp.value);
+      }
+      for (const btn of devices.querySelectorAll("[data-revokedev]")) {
+        btn.onclick = () => revokeDeviceConn(channelId, btn.dataset.revokedev);
+      }
+    }
+  } catch (err) {
+    if (members) members.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+  }
+}
+
+/** Set a channel's accent colour. */
+async function setChannelColor(channelId, color) {
+  try {
+    await api(`/api/v1/channels/${channelId}`, { method: "PATCH", body: { color } });
+    const c = channelById(channelId);
+    if (c) c.color = color;
+    renderChannels();
+  } catch (err) {
+    toast(err.message || "Couldn't set colour");
+  }
+}
+
+async function loadMembers(channelId) {
+  const box = document.getElementById(`members-${channelId}`);
+  if (!box) return;
+  try {
+    const { members } = await api(`/api/v1/channels/${channelId}/members`);
+    box.innerHTML = members.length
+      ? members
+          .map(
+            (m) => `
+        <div class="member-row">
+          <span class="member-name">${esc(m.accountId || m.email || m.id)}</span>
+          <span class="member-role">${esc(m.role)}${m.pending ? " · pending" : ""}</span>
+        </div>`,
+          )
+          .join("")
+      : `<span class="muted">No members yet.</span>`;
+  } catch (err) {
+    box.innerHTML = `<span class="muted">${esc(err.message)}</span>`;
+  }
+}
+
+async function loadKeys(channelId) {
+  const box = document.getElementById(`keys-${channelId}`);
+  if (!box) return;
+  try {
+    const { keys } = await api(`/api/v1/channels/${channelId}/keys`);
+    box.innerHTML = keys.length
+      ? keys
+          .map(
+            (k) => `
+        <div class="conn-row">
+          <input class="conn-name" data-renamekey="${esc(k.id)}" value="${esc(k.name)}" aria-label="Agent name" />
+          <span class="conn-sub">${esc(k.prefix)}…${k.lastUsedAt ? ` · used ${rel(k.lastUsedAt)}` : " · never used"}</span>
+          <button class="icon-btn sm" data-copykey="${esc(k.id)}" title="Copy key">${icon("copy", 14)}</button>
+          <button class="icon-btn sm" data-revokekey="${esc(k.id)}" title="Revoke">${icon("x", 14)}</button>
+        </div>`,
+          )
+          .join("")
+      : `<span class="muted">No agent keys yet.</span>`;
+    for (const btn of box.querySelectorAll("[data-copykey]")) {
+      btn.onclick = () => copyChannelKey(btn.dataset.copykey);
+    }
+    for (const btn of box.querySelectorAll("[data-revokekey]")) {
+      btn.onclick = () => revokeChannelKey(channelId, btn.dataset.revokekey);
+    }
+    for (const inp of box.querySelectorAll("[data-renamekey]")) {
+      inp.onchange = () => renameKey(inp.dataset.renamekey, inp.value);
+    }
+  } catch (err) {
+    box.innerHTML = `<span class="muted">${esc(err.message)}</span>`;
+  }
+}
+
+async function copyChannelKey(keyId) {
+  try {
+    const { key } = await api(`/api/v1/me/keys/${keyId}/reveal`);
+    await navigator.clipboard.writeText(key);
+    toast("Channel key copied");
+  } catch (err) {
+    toast(err.message || "Couldn't reveal key");
+  }
+}
+
+async function renameKey(id, name) {
+  try {
+    await api(`/api/v1/me/keys/${id}`, { method: "PATCH", body: { name } });
+    toast("Renamed");
+  } catch (err) {
+    toast(err.message || "Couldn't rename");
+  }
+}
+
+async function revokeChannelKey(channelId, keyId) {
+  if (!window.confirm("Revoke this agent key?")) return;
+  try {
+    await api(`/api/v1/channels/${channelId}/keys/${keyId}`, { method: "DELETE" });
+    toast("Key revoked");
+    loadKeys(channelId);
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't revoke key");
+  }
+}
+
+async function loadConnDevices(channelId) {
+  const box = document.getElementById(`devices-${channelId}`);
+  if (!box) return;
+  try {
+    const { devices } = await api("/api/v1/devices");
+    const live = (devices || []).filter((d) => !d.revokedAt);
+    box.innerHTML = live.length
+      ? live
+          .map(
+            (d) => `
+        <div class="conn-row">
+          <input class="conn-name" data-renamedev="${esc(d.id)}" value="${esc(d.name)}" aria-label="Device name" />
+          <span class="conn-sub">${d.online ? "online" : d.lastSeenAt ? `last seen ${rel(d.lastSeenAt)}` : `paired ${rel(d.pairedAt)}`}</span>
+          <button class="icon-btn sm" data-revokedev="${esc(d.id)}" title="Revoke">${icon("x", 14)}</button>
+        </div>`,
+          )
+          .join("")
+      : `<span class="muted">No devices paired yet.</span>`;
+    for (const btn of box.querySelectorAll("[data-revokedev]")) {
+      btn.onclick = () => revokeDeviceConn(channelId, btn.dataset.revokedev);
+    }
+    for (const inp of box.querySelectorAll("[data-renamedev]")) {
+      inp.onchange = () => renameDevice(inp.dataset.renamedev, inp.value);
+    }
+  } catch (err) {
+    box.innerHTML = `<span class="muted">${esc(err.message)}</span>`;
+  }
+}
+
+async function renameDevice(id, name) {
+  try {
+    await api(`/api/v1/devices/${id}`, { method: "PATCH", body: { name } });
+    toast("Renamed");
+  } catch (err) {
+    toast(err.message || "Couldn't rename");
+  }
+}
+
+async function revokeDeviceConn(channelId, id) {
+  if (!window.confirm("Revoke this device?")) return;
+  try {
+    await api(`/api/v1/devices/${id}`, { method: "DELETE" });
+    toast("Device revoked");
+    loadConnDevices(channelId);
+  } catch (err) {
+    toast(err.message || "Couldn't revoke device");
+  }
+}
+
+async function pairFromChannel(channelId, btn) {
+  btn.disabled = true;
+  try {
+    const data = await api("/api/v1/devices/pairing", { method: "POST" });
+    const qr = document.getElementById(`pairqr-${channelId}`);
+    const url = document.getElementById(`pairurl-${channelId}`);
+    const box = document.getElementById(`pairbox-${channelId}`);
+    if (qr) qr.src = data.qrUrl;
+    if (url) url.textContent = data.url;
+    if (box) box.classList.remove("hide");
+    try {
+      await navigator.clipboard.writeText(data.url);
+      toast("Pairing link copied");
+    } catch {
+      toast("Pairing link ready");
+    }
+  } catch (err) {
+    toast(err.message || "Couldn't create link");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function saveChannelSettings(channelId) {
+  const name = document.getElementById(`title-${channelId}`)?.value.trim() ?? "";
+  const description = document.getElementById(`desc-${channelId}`)?.value.trim() ?? "";
+  const slug = document.getElementById(`slug-${channelId}`)?.value.trim() ?? "";
+  try {
+    await api(`/api/v1/channels/${channelId}`, {
+      method: "PATCH",
+      body: { name, description, slug },
+    });
+    delete state.channelConnect[channelId]; // the connect URL may have changed
+    toast("Saved");
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't save");
+  }
+}
+
+async function archiveChannel(channelId) {
+  if (!window.confirm("Archive this channel? It will be hidden from the list.")) return;
+  try {
+    await api(`/api/v1/channels/${channelId}/archive`, {
+      method: "POST",
+      body: { archived: true },
+    });
+    toast("Channel archived");
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't archive");
+  }
+}
+
+async function newChannelKey(channelId) {
+  try {
+    const data = await api(`/api/v1/channels/${channelId}/keys`, { method: "POST", body: {} });
+    try {
+      await navigator.clipboard.writeText(data.key);
+    } catch {
+      /* ignore */
+    }
+    toast("Channel key created and copied");
+    loadKeys(channelId);
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't create key");
+  }
+}
+
+/** Template §3 — Join Account. Keep in sync with docs/prompt-templates.md. */
+function joinPrompt(url) {
+  const host = shareHost();
+  return (
+    `Please use psh.now to join my account using this link: ${url}\n` +
+    `If psh.now isn't installed yet, please read ${host}/setup.md and install it first, then redeem the link to join my account.`
+  );
+}
+
+/** Template §4 — Connect Channel. Shared by every "add agent" producer. */
+function channelPrompt(channelName, url, { html = false } = {}) {
+  const host = shareHost();
+  if (!html) {
+    return (
+      `Please use psh.now for the "${channelName}" channel using this link: ${url}\n` +
+      `If psh.now isn't installed yet, please read ${host}/setup.md and install it first, then use the link to attach to "${channelName}".`
+    );
+  }
+  const i = url.lastIndexOf("/");
+  const head = url.slice(0, i);
+  const token = url.slice(i + 1);
+  return (
+    `Please use psh.now for the "${esc(channelName)}" channel using this link: ` +
+    `${esc(head)}/<span class="key-blur">${esc(token)}</span><br>` +
+    `If psh.now isn't installed yet, please read ${esc(host)}/setup.md and install it first, then use the link to attach to "${esc(channelName)}".`
+  );
+}
+
+async function newChannelJoinLink(channelId) {
+  try {
+    const data = await api(`/api/v1/channels/${channelId}/join-link`, { method: "POST" });
+    const prompt = channelPrompt(data.channelName, data.url);
+    const el = document.getElementById(`joinlink-${channelId}`);
+    if (el) el.textContent = prompt;
+    try {
+      await navigator.clipboard.writeText(prompt);
+      toast("Connect prompt copied");
+    } catch {
+      toast("Connect link ready");
+    }
+  } catch (err) {
+    toast(err.message || "Couldn't create link");
+  }
+}
+
+/** Create (once per session) and show a channel's "connect an agent" prompt. */
+async function ensureChannelConnect(channelId, force = false) {
+  const el = () => document.getElementById(`cprompt-${channelId}`);
+  const qr = () => document.getElementById(`cqr-${channelId}`);
+  if (!force && state.channelConnect[channelId]) {
+    const e = el();
+    if (e) e.innerHTML = state.channelConnect[channelId].html;
+    const q = qr();
+    if (q) q.src = state.channelConnect[channelId].qr;
+    return state.channelConnect[channelId];
+  }
+  try {
+    const data = await api(`/api/v1/channels/${channelId}/join-link`, { method: "POST" });
+    const text = channelPrompt(data.channelName, data.url);
+    const html = channelPrompt(data.channelName, data.url, { html: true });
+    const qrSrc = `/api/v1/qr?data=${encodeURIComponent(data.url)}`;
+    state.channelConnect[channelId] = { text, html, qr: qrSrc };
+    const e = el();
+    if (e) e.innerHTML = html;
+    const q = qr();
+    if (q) q.src = qrSrc;
+    return state.channelConnect[channelId];
+  } catch {
+    const e = el();
+    if (e) e.textContent = "(couldn't create a link — open Connections)";
+    return null;
+  }
+}
+
+/** "Add agent": mint a fresh one-time link for this channel and copy the prompt. */
+async function addAgentToChannel(channelId) {
+  const entry = await ensureChannelConnect(channelId, true);
+  if (!entry) return;
+  try {
+    await navigator.clipboard.writeText(entry.text);
+    toast("Connect link copied — paste it to your agent");
+  } catch {
+    toast("Connect link ready");
+  }
+}
+
+async function copyChannelConnect(channelId) {
+  const entry = state.channelConnect[channelId];
+  if (!entry) return toast("Link is still loading…");
+  try {
+    await navigator.clipboard.writeText(entry.text);
+    toast("Connect prompt copied");
+  } catch {
+    toast("Copy failed");
+  }
+}
+
+
+
+/** Share a channel with another account id (they can then approve it). */
+async function shareChannel(channelId) {
+  const who = window.prompt("Invite by @handle or email:");
+  if (!who) return;
+  const v = who.trim();
+  const body = v.includes("@") && v.includes(".") ? { email: v } : { handle: v.replace(/^@/, "") };
+  try {
+    const data = await api(`/api/v1/channels/${channelId}/invites`, { method: "POST", body });
+    if (data.inviteUrl) {
+      toast("No account yet — invite link copied");
+      try {
+        await navigator.clipboard.writeText(data.inviteUrl);
+      } catch {
+        /* ignore */
+      }
+    } else {
+      toast("Channel shared");
+    }
+    loadConnectionsList();
+  } catch (err) {
+    toast(err.message || "Couldn't invite");
+  }
+}
+
+/** Expand/collapse a connection's previous (already-decided) requests. */
+async function toggleHistory(connectionId, btn) {
+  const list = document.getElementById(`hist-${connectionId}`);
+  if (!list) return;
+  const isOpen = !list.classList.contains("hide");
+  if (isOpen) {
+    list.classList.add("hide");
+    btn.classList.remove("open");
+    return;
+  }
+
+  if (!list.dataset.loaded) {
+    list.innerHTML = `<div class="muted">Loading…</div>`;
+    try {
+      const { prompts } = await api(`/api/v1/channels/${connectionId}`);
+      const prev = (prompts || []).filter((p) => p.status !== "pending");
+      list.innerHTML = prev.length
+        ? prev
+            .map(
+              (p) => `<div class="session-row">
+                <span class="grow">${esc(p.title || p.message)}</span>
+                <span class="status-pill ${p.status}">${p.status}</span>
+              </div>`,
+            )
+            .join("")
+        : `<div class="muted">No previous requests.</div>`;
+      list.dataset.loaded = "1";
+    } catch (err) {
+      list.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+    }
+  }
+  list.classList.remove("hide");
+  btn.classList.add("open");
+}
+
+async function decide(promptId, approved, row) {
+  const buttons = row.querySelectorAll("button");
+  buttons.forEach((b) => (b.disabled = true));
+  row.querySelector(`[data-a="${approved ? "approve" : "deny"}"]`).innerHTML =
+    `<span class="spinner"></span>`;
+  if (!send({ type: "decision", promptId, approved })) {
+    try {
+      await api(`/api/v1/approvals/${encodeURIComponent(promptId)}/decision`, {
+        method: "POST",
+        body: { approved },
+      });
+    } catch (err) {
+      toast(err.message || "Couldn't reach server");
+      buttons.forEach((b) => (b.disabled = false));
+      return;
+    }
+  }
+  state.pending.delete(promptId);
+  if (PAGE === "approvals") {
+    state.approvals = (state.approvals || []).map((p) =>
+      p.id === promptId ? { ...p, status: approved ? "approved" : "denied" } : p,
+    );
+    renderApprovals();
+  } else {
+    renderChannels();
+  }
+}
+
+/* ------------------------------ connections ---------------------------- */
+
+async function loadConnectionsList() {
+  if (!store.apiKey && !store.token) return;
+  try {
+    const { connections } = await api("/api/v1/channels");
+    state.connections = connections || [];
+    render();
+  } catch {
+    /* non-critical */
+  }
+}
+
+/* ------------------------------ test request --------------------------- */
+
+async function sendTest(silent = false) {
+  try {
+    await api("/api/v1/test", { method: "POST" });
+    if (!silent) toast("Test approval sent");
+  } catch (err) {
+    if (!silent) toast(err.message || "Couldn't send test");
+  }
+}
+
+async function maybeWelcomeTest() {
+  if (!state.welcome) return;
+  state.welcome = false;
+  history.replaceState({}, "", "/app");
+  if (state.pending.size === 0) {
+    await sendTest(true);
+    toast("Sent a test approval — tap Approve");
+  }
+}
+
+/* ------------------------------- account ------------------------------- */
+
+const kvRow = (label, value) =>
+  `<div class="kv"><span>${label}</span><span>${value}</span></div>`;
+
+let pendingClaim = null;
+
+function fmtUsage(u) {
+  if (!u) return "—";
+  const limit = u.limit == null ? "unlimited" : u.limit;
+  return `${u.requestsToday} / ${limit}`;
+}
+
+async function loadAccount() {
+  if (!store.apiKey && !store.token) return;
+  // The minimal app has no account card; nothing to render there.
+  if (!$("acctHandle")) return;
+  try {
+    const [me, prof] = await Promise.all([
+      api("/api/v1/me"),
+      api("/api/v1/profile").catch(() => null),
+    ]);
+    const ws = me.workspace || {};
+    const registered = !!ws.email;
+    const handle = prof?.profile?.handle || null;
+
+    if (handle) {
+      $("acctHandle").textContent = `@${handle}`;
+      $("acctHandle").classList.remove("is-key");
+    } else {
+      // Anonymous: the account key itself is the identity.
+      $("acctHandle").textContent = store.apiKey || "@anonymous";
+      $("acctHandle").classList.add("is-key");
+    }
+    $("acctBadge").textContent = registered ? "Free" : "Anonymous";
+    $("acctBadge").classList.toggle("free", registered);
+    $("acctEdit").classList.toggle("hide", registered);
+    if (registered) $("claimForm").classList.add("hide");
+
+    // Out of free requests? Recommend registering.
+    const outOfRequests =
+      !registered && me.usage && me.usage.requestsToday >= (me.usage.limit ?? 20);
+    $("limitCta")?.classList.toggle("hide", !outOfRequests);
+
+    renderAccountKey(store.apiKey);
+    renderSecret(ws.hasSecret);
+    renderBilling(me.usage, ws);
+    if (!$("acctJoinUrl").dataset.url) await newJoinLink();
+  } catch (err) {
+    toast(err.message || "Couldn't load account");
+  }
+}
+
+/** Populate the account menu in the navbar. */
+async function loadMenu() {
+  if (!store.apiKey && !store.token) return;
+  if (!$("menuName")) return;
+  try {
+    const [me, prof] = await Promise.all([
+      api("/api/v1/me"),
+      api("/api/v1/profile").catch(() => null),
+    ]);
+    const ws = me.workspace || {};
+    if (ws.baseUrl) publicBaseUrl = ws.baseUrl;
+    const handle = prof?.profile?.handle;
+    const key = store.apiKey || "";
+    // Name first (what the human set), then handle, then a friendly default.
+    const fullName = [ws.firstName, ws.lastName].filter(Boolean).join(" ").trim();
+    $("menuName").textContent = fullName || (handle ? `@${handle}` : "Anony Mous");
+    $("menuEmail").textContent = ws.email || "No email yet";
+    $("menuAccountKey").innerHTML = maskedKey(key);
+    const registered = !!ws.email;
+    $("claimBadge")?.classList.toggle("hide", registered);
+    const badge = $("menuStatusBadge");
+    if (badge) {
+      const plan = (ws.plan || "anonymous").toLowerCase();
+      badge.textContent = plan === "anonymous" ? "Anonymous" : plan[0].toUpperCase() + plan.slice(1);
+      badge.className = `badge ${plan}`;
+    }
+    if (ws.hasSecret) {
+      $("menuSecretKey").textContent = `${ws.secretKeyPrefix || "psh_admin_"}…`;
+      $("menuCreateSecret").classList.add("hide");
+      $("menuCopySecret").classList.toggle("hide", !ws.hasSecretReveal);
+    }
+    // Avatar: initial from the name; a stable-random colour per account.
+    const av = $("avatarBtn");
+    if (av) {
+      av.textContent = ((ws.firstName || handle || key || "?")[0] || "?").toUpperCase();
+      av.style.background = avatarColor(ws.id || key || fullName || "anon");
+    }
+    const u = me.usage || {};
+    const used = u.requestsToday ?? 0;
+    const limit = u.limit ?? 0;
+    const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+    $("menuPct").textContent = limit ? `${used}/${limit} (${pct}%)` : `${used} used`;
+  } catch {
+    /* non-critical */
+  }
+}
+
+/** Show whether the admin secret exists; it is created here, never at install. */
+function renderSecret(hasSecret) {
+  const hint = $("secretHint");
+  const create = $("secretCreate");
+  if (!hint || !create) return;
+  create.classList.toggle("hide", !!hasSecret);
+  hint.textContent = hasSecret
+    ? "Created. It administers the account — keep the copy you saved safe."
+    : "Not created. It administers the account (keys, devices, channels).";
+}
+
+/** Show the prefix and last 4; blur the middle (a real blur, not dots). */
+function renderAccountKey(key) {
+  const el = $("acctKeyValue");
+  if (!el) return;
+  el.classList.remove("revealed");
+  if (!key) {
+    el.textContent = "(device session — no key)";
+    return;
+  }
+  if (key.length <= 20) {
+    el.textContent = key;
+    return;
+  }
+  const prefix = key.slice(0, 12);
+  const last = key.slice(-4);
+  const middle = key.slice(12, -4);
+  el.innerHTML = `${esc(prefix)}<span class="key-blur">${esc(middle)}</span>${esc(last)}`;
+}
+
+function renderBilling(usage, ws) {
+  const box = $("billingUsage");
+  if (!box) return;
+  box.innerHTML =
+    kvRow("Plan", esc(ws.plan || "anonymous")) +
+    kvRow("Requests used", esc(fmtUsage(usage))) +
+    kvRow("Token balance", String(ws.tokenBalance || 0));
+}
+
+$("acctEdit")?.addEventListener("click", () => {
+  $("claimForm")?.classList.toggle("hide");
+  $("regHandle")?.focus();
+});
+$("limitCtaBtn")?.addEventListener("click", () => {
+  $("limitCta")?.classList.add("hide");
+  $("claimForm")?.classList.remove("hide");
+  $("regHandle")?.focus();
+});
+$("acctEye")?.addEventListener("click", () => {
+  const el = $("acctKeyValue");
+  const revealed = el?.classList.toggle("revealed");
+  $("acctEye")?.querySelector(".eye-open")?.classList.toggle("hide", revealed);
+  $("acctEye")?.querySelector(".eye-closed")?.classList.toggle("hide", !revealed);
+});
+
+async function newJoinLink() {
+  try {
+    const data = await api("/api/v1/me/join-links", { method: "POST" });
+    $("acctJoinUrl").textContent = data.url;
+    $("acctJoinUrl").dataset.url = data.url;
+  } catch (err) {
+    toast(err.message || "Couldn't create join link");
+  }
+}
+
+$("acctRevealKey")?.addEventListener("click", () => {
+  $("acctKeyValue").textContent = store.apiKey || "(device session — no key)";
+});
+$("acctCopyKey")?.addEventListener("click", async () => {
+  if (!store.apiKey) return toast("No account key in this session");
+  try {
+    await navigator.clipboard.writeText(store.apiKey);
+    toast("Account key copied — paste it into any new environment");
+  } catch {
+    toast("Copy failed");
+  }
+});
+$("acctNewJoin")?.addEventListener("click", newJoinLink);
+$("secretCreate")?.addEventListener("click", async () => {
+  const btn = $("secretCreate");
+  btn.disabled = true;
+  try {
+    const data = await api("/api/v1/me/secret", { method: "POST" });
+    state.secretKey = data.secretKey; // hold in memory so manage actions work now
+    $("secretValue").textContent = data.secretKey;
+    $("secretResult").classList.remove("hide");
+    $("secretHint").textContent = "Shown once — store it somewhere safe, never on an agent box.";
+    btn.classList.add("hide");
+    toast("Secret key created — save it");
+  } catch (err) {
+    toast(err.message || "Couldn't create secret");
+  } finally {
+    btn.disabled = false;
+  }
+});
+$("secretCopy")?.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("secretValue").textContent);
+    toast("Secret key copied");
+  } catch {
+    toast("Copy failed");
+  }
+});
+$("rotateBtn")?.addEventListener("click", async () => {
+  if (!window.confirm("Rotate the account key and secret? Every current key for this account stops working."))
+    return;
+  const btn = $("rotateBtn");
+  btn.disabled = true;
+  try {
+    const data = await api("/api/v1/me/rotate", { method: "POST" });
+    store.apiKey = data.userKey; // adopt the new account key
+    state.secretKey = data.secretKey;
+    $("rotateUserKey").textContent = data.userKey;
+    $("rotateSecretKey").textContent = data.secretKey;
+    $("rotateBox").classList.remove("hide");
+    toast("Keys rotated — save them");
+  } catch (err) {
+    toast(err.message || "Couldn't rotate");
+  } finally {
+    btn.disabled = false;
+  }
+});
+$("acctCopyJoin")?.addEventListener("click", async () => {
+  const url = $("acctJoinUrl").dataset.url || $("acctJoinUrl").textContent;
+  try {
+    await navigator.clipboard.writeText(joinPrompt(url));
+    toast("Join prompt copied");
+  } catch {
+    toast("Copy failed");
+  }
+});
+
+/* handle availability, checked live while registering */
+let handleTimer = null;
+$("regHandle")?.addEventListener("input", () => {
+  const el = $("handleStatus");
+  const raw = $("regHandle").value.trim().replace(/^@/, "");
+  clearTimeout(handleTimer);
+  if (!raw) {
+    el.textContent = "";
+    return;
+  }
+  el.textContent = "…";
+  el.className = "handle-status";
+  handleTimer = setTimeout(async () => {
+    try {
+      const r = await api(`/api/v1/handles/${encodeURIComponent(raw)}`);
+      el.textContent = r.available ? "available" : r.valid ? "taken" : "invalid";
+      el.className = `handle-status ${r.available ? "ok" : "bad"}`;
+    } catch {
+      el.textContent = "";
+    }
+  }, 350);
+});
+
+$("regBtn")?.addEventListener("click", async () => {
+  const email = $("regEmail").value.trim();
+  const handle = $("regHandle").value.trim();
+  if (!email) return toast("Enter an email");
+  try {
+    const data = await api("/api/v1/me/register", {
+      method: "POST",
+      body: {
+        email,
+        handle: handle || undefined,
+        firstName: $("regFirst").value.trim(),
+        lastName: $("regLast").value.trim(),
+      },
+    });
+    pendingClaim = data.claimId;
+    $("acctRegisterVerify").classList.remove("hide");
+    if (data.code) {
+      $("regCode").value = data.code;
+      toast(`Dev code: ${data.code}`);
+    } else {
+      toast("Check your inbox for a code");
+    }
+  } catch (err) {
+    toast(err.message || "Couldn't send code");
+  }
+});
+
+$("regVerifyBtn")?.addEventListener("click", async () => {
+  const code = $("regCode").value.trim();
+  if (!code || !pendingClaim) return toast("Enter the code");
+  try {
+    await api("/api/v1/me/register/verify", {
+      method: "POST",
+      body: { claimId: pendingClaim, code },
+    });
+    toast("Registered — this account is now yours");
+    loadAccount();
+  } catch (err) {
+    toast(err.message || "Invalid code");
+  }
+});
+
+function companyInfo() {
+  return {
+    companyName: $("companyName")?.value.trim() || undefined,
+    vatNumber: $("companyVat")?.value.trim() || undefined,
+    country: $("companyCountry")?.value.trim() || undefined,
+  };
+}
+function renderTopupSummary(inv) {
+  const box = $("topupSummary");
+  if (!box || !inv) return;
+  box.innerHTML =
+    kvRow("Net", `€${inv.net.toFixed(2)}`) +
+    kvRow("VAT", inv.reverseCharge ? "€0.00 (reverse charge)" : `€${inv.vat.toFixed(2)}`) +
+    kvRow("Total", `<strong>€${inv.total.toFixed(2)}</strong>`);
+}
+
+$("topupBtn")?.addEventListener("click", async () => {
+  if (!window.confirm("Buy 10,000 requests for €50 excl. VAT?")) return;
+  try {
+    const data = await api("/api/v1/me/tokens", { method: "POST", body: companyInfo() });
+    renderTopupSummary(data.invoice);
+    toast(`Added ${data.added} requests`);
+    loadAccount();
+  } catch (err) {
+    toast(err.message || "Couldn't top up");
+  }
+});
+
+/* --------------------------------- boot -------------------------------- */
+
+// The account key lives in the URL (?key=…) so the account is shareable and
+// bookmarkable — that is the whole "anonymous, no login" model.
+function adoptKeyFromUrl() {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const key = q.get("key") || hash.get("key");
+  if (key) {
+    store.apiKey = key.trim();
+    // Remove the key from the URL immediately. It must never sit in the address
+    // bar, browser history, or a server/proxy access log.
+    const url = new URL(location.href);
+    url.searchParams.delete("key");
+    url.hash = "";
+    history.replaceState({}, "", url.pathname + (url.search || ""));
+  }
+}
+adoptKeyFromUrl();
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && (!state.ws || state.ws.readyState > 1)) {
+    connect();
+  }
+});
+
+if (!store.apiKey && !store.token) {
+  els.unpaired.classList.remove("hide");
+  // No account yet — the sign-in screen keeps just the brand + Docs.
+  document.querySelector(".avatar-wrap")?.classList.add("hide");
+  document.querySelector(".nav-links")?.classList.add("hide");
+} else {
+  connect();
+}
+
+// ---- log in / sign up -----------------------------------------------------
+// One page: email → (name, only when the account is new) → one-time code.
+let authStep = "email"; // email | name | code
+
+/** Reset the auth overlay to the email step. */
+function resetAuth() {
+  authStep = "email";
+  $("authEmailStep")?.classList.remove("hide");
+  $("authCodeStep")?.classList.add("hide");
+  $("authEmail")?.removeAttribute("disabled");
+  $("authNameRow")?.classList.add("hide");
+  $("authCodeTools")?.classList.add("hide");
+  $("authForm")?.classList.remove("hide");
+  $("authUseKey")?.classList.remove("hide");
+  $("authKeyRow")?.classList.add("hide");
+  if ($("authTitle")) $("authTitle").textContent = "Log in or sign up";
+  if ($("authSub")) $("authSub").textContent = "Multiple agents, working side by side.";
+  if ($("authSubmit")) $("authSubmit").textContent = "Continue";
+  if ($("authHint")) $("authHint").textContent = "We'll email you a 6-digit verification code.";
+  if ($("authCode")) $("authCode").value = "";
+}
+
+/** Show the auth overlay (used by the "Claim account" badge). */
+function showAuth() {
+  resetAuth();
+  document.querySelector(".avatar-wrap")?.classList.add("hide");
+  document.querySelector(".nav-links")?.classList.add("hide");
+  $("claimBadge")?.classList.add("hide");
+  els.paired?.classList.add("hide");
+  els.unpaired?.classList.remove("hide");
+  $("authEmail")?.focus();
+}
+
+async function sendCode(email) {
+  const res = await api("/api/v1/auth/otp", { method: "POST", body: { email } });
+  if (res?.devCode) {
+    // Local dev: surface the code so it can be copied (never on remote).
+    console.log(`[psh.now] dev code: ${res.devCode}`);
+    if ($("authDevCode")) $("authDevCode").textContent = res.devCode;
+    $("authCodeTools")?.classList.remove("hide");
+    $("authCopyCode").dataset.code = res.devCode;
+  }
+  authStep = "code";
+  // The email/name fields are replaced by the code field.
+  $("authEmailStep")?.classList.add("hide");
+  $("authCodeStep")?.classList.remove("hide");
+  if ($("authTitle")) $("authTitle").textContent = "Check your email";
+  if ($("authSub")) $("authSub").textContent = `We sent a 6-digit code to ${email}.`;
+  if ($("authSubmit")) $("authSubmit").textContent = "Verify";
+  if ($("authHint")) $("authHint").textContent = "The code expires in 5 minutes.";
+  $("authCode")?.focus();
+}
+
+$("authForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("authEmail")?.value.trim() || "";
+  if (!email) return;
+  const btn = $("authSubmit");
+  btn && (btn.disabled = true);
+  try {
+    if (authStep === "email") {
+      const { exists } = await api("/api/v1/auth/lookup", {
+        method: "POST",
+        body: { email },
+      });
+      if (!exists) {
+        // New account: ask for a name first, same page.
+        authStep = "name";
+        $("authNameRow")?.classList.remove("hide");
+        if ($("authTitle")) $("authTitle").textContent = "Create account";
+        if ($("authSub")) $("authSub").textContent = "Your name, so this account is yours.";
+        if ($("authSubmit")) $("authSubmit").textContent = "Create account";
+        $("authFirstName")?.focus();
+        return;
+      }
+      await sendCode(email);
+      return;
+    }
+    if (authStep === "name") {
+      await sendCode(email);
+      return;
+    }
+    // Code step: better-auth verifies and sets the session cookie.
+    const code = $("authCode")?.value.trim() || "";
+    if (!code) return;
+    const res = await fetch("/api/auth/sign-in/email-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email,
+        otp: code,
+        name: `${$("authFirstName")?.value.trim() || ""} ${$("authLastName")?.value.trim() || ""}`.trim(),
+        firstName: $("authFirstName")?.value.trim() || undefined,
+        lastName: $("authLastName")?.value.trim() || undefined,
+      }),
+    });
+    if (!res.ok) throw new Error("That code didn't work. Try again.");
+    // Link this identity to the psh account and get the key back.
+    const linked = await api("/api/v1/auth/connect", {
+      method: "POST",
+      body: { userKey: store.apiKey || undefined },
+    });
+    store.apiKey = linked.userKey;
+    // First login lands on Channels (so a channel can be created); once there
+    // is any request, land on Approvals instead.
+    let dest = "/channels";
+    try {
+      const { prompts } = await api("/api/v1/approvals?limit=1");
+      if (prompts && prompts.length) dest = "/app";
+    } catch {
+      /* default to channels */
+    }
+    location.href = dest;
+  } catch (err) {
+    toast(err.message || "Something went wrong");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});
+
+$("authCopyCode")?.addEventListener("click", async () => {
+  const code = $("authCopyCode").dataset.code;
+  if (!code) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    toast("Code copied");
+  } catch {
+    toast("Copy failed");
+  }
+});
+$("authUseKey")?.addEventListener("click", () => {
+  $("authForm")?.classList.add("hide");
+  $("authUseKey")?.classList.add("hide");
+  $("authKeyRow")?.classList.remove("hide");
+  $("keyInput")?.focus();
+});
+$("keyLoginBtn")?.addEventListener("click", () => {
+  const key = $("keyInput").value.trim();
+  if (!key) return;
+  store.apiKey = key; // kept in localStorage only — never in the URL
+  location.reload();
+});
+$("keyInput")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("keyLoginBtn")?.click();
+});
+els.channelSearch?.addEventListener("input", () => renderChannels());
+
+// Surface runtime errors instead of failing silently.
+window.addEventListener("error", (e) => toast(`Error: ${e.message}`));
+window.addEventListener("unhandledrejection", (e) =>
+  toast(`Error: ${e.reason?.message || e.reason}`),
+);

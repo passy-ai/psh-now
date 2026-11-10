@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Setup, the approve/deny contract, and everything needed to connect an agent to psh.now."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Docs - psh.now</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      <div class="nav-actions">
+        <a href="/docs" class="nav-link">Docs</a>
+        <a href="/app" class="btn pill">Open dashboard</a>
+      </div>
+    </header>
+
+    <div class="docs">
+      <aside class="docs-side">
+        <div class="docs-group">Getting started</div>
+        <a class="docs-link active" href="#overview">Overview</a>
+        <a class="docs-link" href="#templates">Prompt templates</a>
+        <a class="docs-link" href="#install">Install</a>
+        <a class="docs-link" href="#connect">Connect an agent</a>
+        <a class="docs-link" href="#sandbox">Sandbox / no browser</a>
+        <div class="docs-group">Using it</div>
+        <a class="docs-link" href="#approve">Approving requests</a>
+        <a class="docs-link" href="#channels">Channels</a>
+        <a class="docs-link" href="#account">Account &amp; billing</a>
+        <div class="docs-group">Reference</div>
+        <a class="docs-link" href="#api">API</a>
+        <a class="docs-link" href="#limits">Limits</a>
+        <a class="docs-link" href="/self-hosting">Self hosting</a>
+      </aside>
+
+      <main class="docs-main">
+        <h1 id="overview">Overview</h1>
+        <p>
+          psh.now lets your agents ask you for approval instead of stalling in the
+          terminal. An agent sends a short <strong>title</strong> and
+          <strong>message</strong>; you tap <strong>Approve</strong> or
+          <strong>Deny</strong> from one page; the agent gets a single boolean.
+        </p>
+        <ul>
+          <li>One page you check from your phone.</li>
+          <li>Many agents can share one <strong>channel</strong>.</li>
+          <li>Many people can approve one channel.</li>
+        </ul>
+        <p>
+          It's harness-agnostic: any agent with shell or HTTP access can use it. No
+          SDK, no MCP.
+        </p>
+
+        <h2 id="templates">Prompt templates</h2>
+        <p>
+          Three prompts cover almost everything you paste into an agent. All three are on
+          this page, ready to copy - and an install's report prints the connect and
+          sandbox ones already filled in with your channel and key.
+        </p>
+        <ul>
+          <li><a href="#install">Install</a> - the one-line setup prompt.</li>
+          <li><a href="#connect">Connect an agent</a> - the link prompt a channel card copies.</li>
+          <li><a href="#sandbox">Sandbox / no browser</a> - the same job with a channel key instead of a link.</li>
+        </ul>
+
+        <h2 id="install">Install</h2>
+        <button class="btn pill" data-copy="#p-install">Copy prompt for agent</button>
+        <p>Give your agent this one prompt. It installs psh.now and asks for a test request:</p>
+        <pre id="p-install">I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
+
+If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
+
+After installing, send me a test request.</pre>
+        <p>No npm, no git, or no GitHub access? The fallback line in the prompt
+          above does the same thing and mints your keys too: it installs the skill
+          machine-wide, puts <code>psh</code> on your PATH and writes the machine's account
+          record. If a sandbox refuses those writes it falls back to this folder and says so,
+          <code>psh_machine_wide=incomplete</code>:</p>
+        <pre data-copyable>curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh</pre>
+        <p>
+          That also leaves the project its own <code>./.psh/bin/psh</code>, so an agent
+          that hears "use psh now" always has a command to run: one screen naming the
+          skill, the host, the keys and the next command. <code>./.psh/bin/psh doctor</code>
+          checks it end to end. The machine-wide copy - the skill every project sees plus a
+          <code>psh</code> on your PATH - is your own terminal line:
+          <code>curl -fsSL https://psh.now/install.sh | sh</code>, run from the folder.
+          Until you run it the install is project-local, and the agent says so rather than
+          calling it finished. (Also written "psh now" or psh-now.)
+        </p>
+        <p>After installing, you can have the agent send one test question through
+          psh.now whenever you want to see it work end to end.</p>
+
+        <h2 id="connect">Connect an agent</h2>
+        <p>
+          Every channel shows a ready-to-paste prompt. Open
+          <a href="/app">the dashboard</a> → a channel → copy the prompt above the
+          tabs. An agent that is already installed gets:
+        </p>
+        <pre data-copyable>I'd like you to use psh.now and join https://psh.now/c/&lt;channel&gt;.</pre>
+        <p>
+          The link gives the agent an <strong>ask-only</strong> key - it can request
+          approvals, never approve - and it is reusable, so several agents can
+          connect through the same channel.
+        </p>
+
+        <h2 id="sandbox">Sandbox / no browser</h2>
+        <p>
+          A container, a chat agent and a laptop all join through the channel's link,
+          and none of them is set up yet: this is the prompt for a new sandbox. It
+          installs and joins in the same prompt, so the agent joins the channel instead
+          of minting a second account, and the fallback line stays a plain install.
+        </p>
+        <pre data-copyable>I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
+and join https://psh.now/c/&lt;channel&gt;
+
+If not, do this instead: curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh</pre>
+        <p>
+          The link decides the account <em>and</em> the channel, so nothing new is
+          minted and the agent stays <strong>ask-only</strong>. It is the channel's
+          reusable <code>/c/&lt;channel&gt;</code> URL: find it in the channel's
+          <strong>Settings</strong> tab, in <code>.psh/keys.json</code> of an
+          already-connected folder, or by running <code>psh status</code>. Joining
+          with it already set is what keeps the work on <em>your</em> account.
+        </p>
+        <p class="muted">
+          This is the block an install prints in its report - the only prompt there, under
+          <em>Copy this prompt into any agent - a chat, or a sandbox</em>.
+        </p>
+
+        <h2 id="approve">Approving requests</h2>
+        <p>
+          Requests appear under <strong>Open Channels</strong>, grouped by channel, in
+          a table of <em>Request, Description, Received, Action</em>. Tap
+          <strong>Approve</strong> or <strong>Deny</strong>. A channel with nothing
+          waiting drops into the <strong>Channels</strong> dropdown.
+        </p>
+        <p>
+          An agent proceeds <strong>only</strong> on <code>{"approved":true}</code>.
+          A timeout or an error means do not act.
+        </p>
+
+        <h2 id="channels">Channels</h2>
+        <p>
+          A channel is a named tab (e.g. <code>my-project</code>). Each has three
+          tabs:
+        </p>
+        <ul>
+          <li><strong>Requests</strong> - what's waiting, plus history.</li>
+          <li><strong>Members</strong> - who can approve; invite a registered account by email.</li>
+          <li><strong>Settings</strong> - title, description, channel key, a connect link, and archive.</li>
+        </ul>
+        <p>Create one with <strong>＋ New channel</strong>. Unnamed requests land in
+          <code>Default</code>.</p>
+
+        <h2 id="account">Account &amp; billing</h2>
+        <p>
+          Your <strong>account key</strong> is your login - it signs you in at
+          <code>/app?key=…</code> and <em>is</em> your identity while anonymous.
+          <strong>Register</strong> a username (first name, last name, email → a
+          code) to keep the account and get 20 requests/day.
+        </p>
+        <p>
+          Out of requests? <strong>Top up</strong> - 100 requests for €1, then bigger packs, from the dashboard.
+          VAT, with a company-details option for the invoice.
+        </p>
+
+        <h2 id="api">API</h2>
+        <p>The core call - one boolean back:</p>
+        <pre data-copyable>curl -s -X POST https://psh.now \
+  -H "x-psh-key: psh_agent_…" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Reinstall dependencies","message":"rm -rf node_modules && npm install --force"}'</pre>
+        <p>Async (returns immediately, then poll):</p>
+        <pre data-copyable>curl -s -X POST https://psh.now \
+  -H "x-psh-key: psh_agent_…" -H "Content-Type: application/json" \
+  -d '{"title":"Deploy","message":"Deploy the new build?","wait":false}'
+# -> { "status":"pending", "approved":false, "pollUrl":"…/api/v1/approvals/…" }
+curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
+        <p>API reference (Scalar): <a href="/openapi">/openapi</a>, full OpenAPI:
+          <a href="/openapi.json">/openapi.json</a>, agent context:
+          <a href="/llms-full.txt">/llms-full.txt</a></p>
+
+        <h2 id="limits">Limits</h2>
+        <ul>
+          <li><strong>Anonymous</strong> - 20 requests total, 24h history.</li>
+          <li><strong>Free</strong> (registered) - 20 requests/day, 48h history.</li>
+          <li><strong>Token</strong> - 20/day + prepaid, 30d history.</li>
+        </ul>
+        <p>One approval costs 2 requests (inbound + outbound).</p>
+      </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script>
+      // copy buttons: [data-copyable] on the pre, and [data-copy="#id"] on a button
+      document.querySelectorAll("pre[data-copyable]").forEach((pre) => {
+        pre.classList.add("copyable");
+        const b = document.createElement("button");
+        b.className = "pre-copy";
+        b.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+        b.onclick = () => copy(pre.textContent);
+        pre.appendChild(b);
+      });
+      document.querySelectorAll("[data-copy]").forEach((btn) => {
+        btn.onclick = () => copy(document.querySelector(btn.dataset.copy)?.textContent || "");
+      });
+      function copy(text) {
+        navigator.clipboard.writeText(text).then(
+          () => toast("Copied"),
+          () => toast("Copy failed"),
+        );
+      }
+      function toast(m) {
+        const el = document.getElementById("toast");
+        el.textContent = m;
+        el.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove("show"), 2000);
+      }
+    </script>
+  </body>
+</html>

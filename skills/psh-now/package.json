@@ -1,0 +1,19 @@
+{
+  "name": "psh-now-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "psh.now - approve, deny or answer your agent's questions from your phone.",
+  "license": "MIT",
+  "bin": {
+    "psh-now": "install.sh"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "install.sh",
+    "report.txt",
+    "host",
+    "scripts/"
+  ]
+}

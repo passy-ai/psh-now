@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+  smoke:
+    # The install path a stranger takes: a clean Postgres, migrations, boot, one request.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: psh
+          POSTGRES_PASSWORD: psh
+          POSTGRES_DB: psh
+        options: >-
+          --health-cmd "pg_isready -U psh -d psh"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://psh:psh@127.0.0.1:5432/psh
+      PUBLIC_BASE_URL: http://127.0.0.1:3000
+      PSH_SECRET: ci-only-secret-that-is-long-enough
+      PORT: 3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - name: migrate
+        run: bun run migrate
+      - name: boot and probe
+        run: |
+          bun run start > /tmp/psh.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:3000/api/v1/health && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:3000/api/v1/health
+          curl -sf -H 'accept: text/html' http://127.0.0.1:3000/docs > /dev/null
+          curl -sf -H 'accept: text/html' http://127.0.0.1:3000/self-hosting > /dev/null
+          curl -sf http://127.0.0.1:3000/install.sh > /dev/null
+      - name: show log on failure
+        if: failure()
+        run: tail -50 /tmp/psh.log
+
+  compose:
+    # Compose is the documented path, so a change that cannot start is a broken release.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: refuses to start without the required variables
+        run: |
+          if docker compose config > /dev/null 2>&1; then
+            echo "compose started without PUBLIC_BASE_URL and PSH_SECRET"; exit 1
+          fi
+      - name: accepts a complete environment
+        run: |
+          PUBLIC_BASE_URL=https://psh.example.com PSH_SECRET=$(openssl rand -base64 48) \
+            docker compose config > /dev/null

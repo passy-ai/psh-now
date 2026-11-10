@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Run psh.now yourself: Docker Compose, Postgres, mail, TLS, backups and upgrades."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Self hosting - psh.now</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      <div class="nav-actions">
+        <a href="/docs" class="nav-link">Docs</a>
+        <a href="/self-hosting" class="nav-link">Self hosting</a>
+        <a href="/app" class="btn pill">Open dashboard</a>
+      </div>
+    </header>
+
+    <div class="docs">
+      <aside class="docs-side">
+        <div class="docs-group">Self hosting</div>
+        <a class="docs-link active" href="#what-you-need">What you need</a>
+        <a class="docs-link" href="#quickstart">Quick start</a>
+        <a class="docs-link" href="#environment">Environment</a>
+        <a class="docs-link" href="#mail">Mail</a>
+        <a class="docs-link" href="#tls">TLS</a>
+        <a class="docs-link" href="#first-account">First account</a>
+        <a class="docs-link" href="#agents">Connecting agents</a>
+        <a class="docs-link" href="#operation">Upgrades and backups</a>
+        <a class="docs-link" href="#limits">Limits and proxies</a>
+        <a class="docs-link" href="#not-included">What is not included</a>
+        <a class="docs-link" href="#trouble">Troubleshooting</a>
+      </aside>
+
+      <main class="docs-main">
+        <h1 id="what-you-need">Self hosting</h1>
+        <p>
+          psh.now is MIT licensed and runs as one Bun process in front of Postgres. Two
+          containers, three environment variables, and a domain that resolves to the host.
+          Everything below has been run on a clean machine, in this order.
+        </p>
+
+        <h2 id="quickstart">Quick start</h2>
+        <pre><code>git clone https://github.com/passy-ai/psh-now &amp;&amp; cd psh-now
+cp .env.example .env
+
+# the two that compose refuses to start without
+PUBLIC_BASE_URL=https://psh.example.com
+PSH_SECRET=$(openssl rand -base64 48)
+
+# sign-in needs one of these
+MAIL_FROM="psh.now &lt;no-reply@example.com&gt;"
+SMTP_URL=smtps://user:password@smtp.example.com:465
+
+docker compose up -d --build</code></pre>
+        <p>
+          Migrations run inside the container on start, with retries, so there is no
+          separate migrate step to forget. The app comes up on
+          <code>http://localhost:3000</code>; put TLS in front of it (next section) before
+          you pair anything, because pairing links embed <code>PUBLIC_BASE_URL</code>.
+        </p>
+
+        <h2 id="environment">Environment</h2>
+        <p>Three variables are required. The rest have defaults that work.</p>
+        <pre><code>PUBLIC_BASE_URL   required   the URL people and agents will use, no trailing slash
+PSH_SECRET        required   encrypts stored agent keys; 32+ random bytes
+DATABASE_URL      required   compose builds it from POSTGRES_* for you
+
+MAIL_FROM         mail       the From line, e.g. psh.now &lt;no-reply@example.com&gt;
+SMTP_URL          mail       smtps://user:pass@smtp.host:465
+RESEND_API_KEY    mail       alternative to SMTP_URL
+
+PORT              3000       app port inside the container
+DEFAULT_TIMEOUT_MS  90000    how long an ask waits for a human
+PAIRING_TTL_MS    600000     how long a pairing link lives
+PSH_FREE_REQUESTS 20         requests granted before a confirmed account
+PSH_CLAIMED_REQUESTS 100     requests granted to a confirmed account</code></pre>
+        <p>
+          <strong>Rotating <code>PSH_SECRET</code> is not supported in place.</strong> It
+          encrypts recoverable agent keys at rest, so changing it makes every stored key
+          undecryptable. Back it up with the database, not separately.
+        </p>
+
+        <h2 id="mail">Mail</h2>
+        <p>
+          Email is how a person signs in. Set <code>MAIL_FROM</code> plus one transport:
+        </p>
+        <ul>
+          <li>
+            <strong>SMTP</strong> (<code>SMTP_URL</code>) works with your own Postfix, SES,
+            Postmark, Fastmail, or a Gmail app password. Use <code>smtps://</code> for
+            implicit TLS on 465, <code>smtp://</code> on 587 with STARTTLS.
+          </li>
+          <li>
+            <strong>Resend</strong> (<code>RESEND_API_KEY</code>) if you would rather not
+            run an SMTP relationship. It needs a verified sending domain.
+          </li>
+        </ul>
+        <p>
+          With neither set, the server still runs and says so at boot:
+          <code>no mail transport configured</code>. In development the code prints to the
+          console and comes back in the API response, so local sign-in needs no mail at
+          all. In production, sign-in returns an error rather than pretending an email went
+          out.
+        </p>
+
+        <h2 id="tls">TLS</h2>
+        <p>Two supported shapes. Caddy is the one-liner:</p>
+        <pre><code># Caddyfile
+psh.example.com {
+  reverse_proxy app:3000
+}</code></pre>
+        <p>
+          Or hand certificates to Bun directly with <code>TLS_CERT_FILE</code> and
+          <code>TLS_KEY_FILE</code> and skip the proxy. If you use nginx or Cloudflare in
+          front, read <a href="#limits">Limits and proxies</a> before you test approving.
+        </p>
+
+        <h2 id="first-account">First account</h2>
+        <ol>
+          <li>Open <code>https://psh.example.com/app</code>.</li>
+          <li>Enter your email, then the six digit code from that mailbox.</li>
+          <li>
+            Open <code>/devices</code> and pair a phone or the Notch app. The pairing link
+            is built from <code>PUBLIC_BASE_URL</code>, so a wrong value here is the most
+            common first-run failure.
+          </li>
+        </ol>
+        <p>
+          There is no seeded admin and no default password. The first person to claim a
+          workspace owns it, which is why a self-hosted instance should not be exposed
+          before you claim it.
+        </p>
+
+        <h2 id="agents">Connecting agents</h2>
+        <p>
+          Agents do not need a plugin. In any project, install the skill and run setup:
+        </p>
+        <pre><code>npx skills add passy-ai/psh-now-skill -g -y
+curl -fsSL https://psh.example.com/install.sh | sh</code></pre>
+        <p>
+          Or point an agent at the instance without installing anything: give it the
+          channel key from <code>/channels</code> and the prompt at
+          <a href="/docs#sandbox">/docs#sandbox</a>. The CLI is plain shell plus
+          <code>curl</code>, so it works anywhere an agent can run a command.
+        </p>
+
+        <h2 id="operation">Upgrades and backups</h2>
+        <pre><code>git pull
+docker compose up -d --build          # migrations run on start
+
+# backup: database and the secret together, or neither is useful
+docker compose exec db pg_dump -U psh.now psh.now &gt; psh-$(date +%F).sql
+printf '%s\n' "$PSH_SECRET" &gt; psh-secret.txt</code></pre>
+        <p>
+          Restoring is the same two files: a fresh volume, <code>psql &lt; dump</code>, and
+          the original <code>PSH_SECRET</code>. A dump without the secret restores rows
+          whose encrypted values cannot be read.
+        </p>
+
+        <h2 id="limits">Limits and proxies</h2>
+        <p>
+          An <code>ask</code> blocks until a human answers, so the request is only as long
+          as your proxy allows. Keep <code>DEFAULT_TIMEOUT_MS</code> below it:
+        </p>
+        <ul>
+          <li>Cloudflare: 100s, and a longer wait becomes a 524.</li>
+          <li>nginx <code>proxy_read_timeout</code>: 60s by default.</li>
+          <li>Caddy: no limit.</li>
+        </ul>
+        <p>
+          The default of 90s sits under all three. If agents report timeouts at exactly the
+          same second every time, it is the proxy, not psh.now.
+        </p>
+
+        <h2 id="not-included">What is not included</h2>
+        <ul>
+          <li>
+            <strong>Push notifications.</strong> They need an Apple push key and a signed
+            app, so a self-hosted instance has the web dashboard and the Notch over the
+            network, not push to a locked phone.
+          </li>
+          <li>
+            <strong>A signed Notch build.</strong> The app builds from
+            <code>tools/psh-notch</code> with <code>swiftc</code>; you sign it yourself.
+          </li>
+          <li>
+            <strong>Billing.</strong> Dodo Payments is optional. Unset, checkout reports
+            <code>off</code> and the packs are not offered.
+          </li>
+          <li>
+            <strong>Managed anything.</strong> No uptime monitoring, no off-site backup, no
+            support rotation. It is your instance.
+          </li>
+        </ul>
+
+        <h2 id="trouble">Troubleshooting</h2>
+        <ul>
+          <li>
+            <strong>Compose exits immediately.</strong> It refuses to start without
+            <code>PUBLIC_BASE_URL</code> and <code>PSH_SECRET</code>; the error names the
+            missing one.
+          </li>
+          <li>
+            <strong>Sign-in says the code could not be sent.</strong> No mail transport is
+            configured. Set <code>SMTP_URL</code> or <code>RESEND_API_KEY</code>, plus
+            <code>MAIL_FROM</code>, and restart.
+          </li>
+          <li>
+            <strong>Pairing link points at localhost.</strong>
+            <code>PUBLIC_BASE_URL</code> is still the default. Fix it and restart.
+          </li>
+          <li>
+            <strong>403 on sign-in from another origin.</strong> The app trusts
+            <code>PUBLIC_BASE_URL</code> plus localhost in development. Open the host you
+            configured, not an IP.
+          </li>
+          <li>
+            <strong>Every query is slow.</strong> Postgres over a tunnel or a distant
+            managed database adds a round trip per query. Run the database next to the app.
+          </li>
+        </ul>
+
+        <p style="margin-top: 32px">
+          The long version, including the release checklist and the security notes, is in
+          the repository at <code>docs/self-hosting.md</code>.
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.psh/
+*.log
+.DS_Store
+
+# Market research — working notes, not shipped. See research/README.md
+research/
+
+# Secrets minted by the skill's setup.sh — never commit these.
+.keys.json
+.host
+skills/**/.keys.json
+skills/**/.host
+skill-repo/.keys.json
+
+# The public skill repo is its own clone; keep it linked, not swallowed.
+skill-repo/
+
+# Built from PSHNotch.swift by restart.sh.
+tools/psh-notch/psh-notch
+
+# Built by tools/psh-notch/build-dmg.sh
+
+# Packaged app and dmg from tools/psh-notch/package.sh
+tools/psh-notch/dist/
+tools/psh-notch/dist.root-owned-*/
+
+# Local state that must never be committed: pairing keys, tokens, certificates.
+.home/
+*.token
+*.pem
+credentials*.json
+.DS_Store
+
+# Playwright browsers installed into the workspace by the local verification harness.
+.pw-browsers/
+
+# Throwaway screenshot/verification scripts.
+_*.mjs
+_*.png

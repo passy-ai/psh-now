@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Connect an agent - psh.now</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Connect an agent</h1>
+          <p class="page-sub">Paste this into any agent - it joins the same account.</p>
+        </div>
+      </div>
+
+      <div class="card" style="max-width: 640px">
+        <div class="label">Paste this into your agent</div>
+        <p class="code" id="prompt"></p>
+        <button id="copy" class="btn primary block">Copy prompt</button>
+        <p class="muted" style="margin-top: 14px">
+          One-time link. It hands the agent an <strong>ask-only</strong> key - it can
+          request approvals but can never approve or manage the account.
+        </p>
+        <p class="muted" style="margin-top: 10px">
+          Nothing to do in this browser - the agent does the rest. Works on any
+          machine: three plain POSIX scripts, audit before you run.
+        </p>
+        <p id="status" class="muted"></p>
+      </div>
+
+      <p class="muted" style="text-align: center; margin-top: 14px">
+        <a href="/" style="color: inherit">psh.now</a> - your agents' questions, approved from your phone.
+      </p>
+    </main>
+
+    <script>
+      const token = location.pathname.split("/").filter(Boolean).pop() || "";
+      const host = location.origin;
+      // Hand out the very link that was opened (a channel link, /c/<channel>).
+      // Canonical #2, and only #2: an installed machine must never be told to install
+      // again, because that is what minted a second account (observed 2026-10-17).
+      // The combined install-and-join prompt lives in the docs.
+      const link = `${host}${location.pathname}`;
+      const joinPrompt = `I'd like you to use psh.now and join ${link}.`;
+      const promptText = joinPrompt;
+      document.getElementById("prompt").textContent = promptText;
+
+      // A used or expired link still renders this page, so say so up front
+      // instead of letting an agent discover it as a bare 410.
+      void (async () => {
+        try {
+          const res = await fetch(`/api/v1/join/${encodeURIComponent(token)}`);
+          if (res.ok) return;
+          const card = document.querySelector(".card");
+          if (!card) return;
+          card.innerHTML =
+            '<div class="label">This link is no longer usable</div>' +
+            '<p class="muted" style="margin-top: 10px">It was already used, or the ' +
+            "account behind it is gone. Ask for a fresh one - in the dashboard, the " +
+            'channel\'s <strong>"Copy prompt for agent"</strong> button mints a new link.</p>' +
+            '<p style="margin-top: 14px"><a class="btn primary block" href="/app">Open the dashboard</a></p>';
+        } catch {
+          /* offline: leave the instructions as they are */
+        }
+      })();
+
+      document.getElementById("copy").addEventListener("click", async () => {
+        const status = document.getElementById("status");
+        try {
+          await navigator.clipboard.writeText(promptText);
+          status.textContent = "Copied.";
+        } catch {
+          status.textContent = "Select the text above and copy it.";
+        }
+      });
+    </script>
+  </body>
+</html>

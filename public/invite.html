@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Channel invite - psh.now</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Channel invite</h1>
+          <p class="page-sub">Approve requests for a channel.</p>
+        </div>
+      </div>
+      <div class="card" style="max-width: 520px" id="body">
+        <p class="muted">Loading…</p>
+      </div>
+      <p class="invite-foot" id="inviteFoot">
+        One link, two kinds of guest: a person who signs in joins as a
+        <strong>member</strong> (they can approve), an agent that reads this URL
+        joins as a <strong>requester</strong> (ask-only). The link stops working
+        after 24 hours - the owner can refresh it any time.
+      </p>
+    </main>
+
+    <script>
+      /**
+       * An invite link carries no email and serves both audiences: a person who
+       * opens it in a browser signs up (or signs in) and joins as a member with
+       * approval rights, while an agent fetching the same URL is handed the
+       * markdown for redeeming it as an ask-only requester key.
+       */
+      const token = location.pathname.split("/").filter(Boolean).pop() || "";
+      const esc = (s) =>
+        String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      const body = document.getElementById("body");
+      let apiKey = localStorage.getItem("psh.apiKey") || "";
+      let invite = null;
+
+      const post = (path, payload, key) =>
+        fetch(path, {
+          method: "POST",
+          headers: { "content-type": "application/json", ...(key ? { "x-psh-key": key } : {}) },
+          body: payload ? JSON.stringify(payload) : undefined,
+        }).then(async (r) => {
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+          return data;
+        });
+
+      function dead(reason) {
+        document.getElementById("inviteFoot")?.classList.add("hide");
+        body.innerHTML = `<p class="muted">${esc(reason)}</p>
+          <p style="margin-top:14px"><a class="btn primary block" href="/app">Open the app</a></p>`;
+      }
+
+      function renderAccept() {
+        const name = invite.channelName || "this channel";
+        body.innerHTML = `
+          <div class="settings-head">Join ${esc(name)}</div>
+          <p class="muted">${invite.email
+            ? `You were invited as <strong>${esc(invite.email)}</strong>.`
+            : "Anyone with this link can join."} You will be able to approve its requests.</p>
+          <button id="accept" class="btn primary block" style="margin-top:16px">Join ${esc(name)}</button>
+          <p id="status" class="muted" style="margin-top:12px"></p>`;
+        document.getElementById("accept").addEventListener("click", accept);
+      }
+
+      async function accept() {
+        const status = document.getElementById("status");
+        const btn = document.getElementById("accept");
+        if (btn) btn.disabled = true;
+        try {
+          await post(`/api/v1/invites/${encodeURIComponent(token)}/accept`, null, apiKey);
+          status.textContent = "Joined. Opening the app…";
+          setTimeout(() => (location.href = "/app"), 700);
+        } catch (err) {
+          status.textContent = err.message;
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      function renderSignup(message) {
+        const name = invite.channelName || "this channel";
+        body.innerHTML = `
+          <div class="settings-head">Join ${esc(name)}</div>
+          <p class="muted">${esc(message || "Create your account to join - it takes one code.")}</p>
+          <input id="email" class="field" type="email" placeholder="you@example.com" autocomplete="email" style="margin-top:14px" />
+          <div id="nameRow" class="inline-form-row hide">
+            <input id="firstName" class="field" placeholder="First name" autocomplete="given-name" />
+            <input id="lastName" class="field" placeholder="Last name" autocomplete="family-name" />
+          </div>
+          <div id="codeRow" class="hide">
+            <p class="muted" style="margin-top:12px">Enter the code we emailed you.</p>
+            <input id="code" class="field" placeholder="ABC123" autocomplete="one-time-code" inputmode="numeric" />
+          </div>
+          <button id="go" class="btn primary block" style="margin-top:14px">Continue</button>
+          <p id="status" class="muted" style="margin-top:12px"></p>`;
+
+        let step = "email";
+        const status = document.getElementById("status");
+        document.getElementById("go").addEventListener("click", async () => {
+          const email = document.getElementById("email").value.trim().toLowerCase();
+          const go = document.getElementById("go");
+          go.disabled = true;
+          try {
+            if (step === "email") {
+              if (!email) throw new Error("Enter your email");
+              const { exists } = await post("/api/v1/auth/lookup", { email });
+              if (!exists) {
+                document.getElementById("nameRow").classList.remove("hide");
+                document.getElementById("firstName").focus();
+                status.textContent = "New here - add your name.";
+                step = "name";
+                return;
+              }
+              step = await sendCode(email);
+              return;
+            }
+            if (step === "name") {
+              step = await sendCode(email);
+              return;
+            }
+            const code = document.getElementById("code").value.trim();
+            if (!code) throw new Error("Enter the code");
+            const res = await fetch("/api/auth/sign-in/email-otp", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                email,
+                otp: code,
+                name: `${document.getElementById("firstName").value.trim()} ${document
+                  .getElementById("lastName")
+                  .value.trim()}`.trim(),
+                firstName: document.getElementById("firstName").value.trim() || undefined,
+                lastName: document.getElementById("lastName").value.trim() || undefined,
+              }),
+            });
+            if (!res.ok) throw new Error("That code didn't work. Try again.");
+            const linked = await post("/api/v1/auth/connect", { userKey: apiKey || undefined });
+            apiKey = linked.userKey;
+            localStorage.setItem("psh.apiKey", apiKey);
+            await accept();
+          } catch (err) {
+            status.textContent = err.message;
+          } finally {
+            go.disabled = false;
+          }
+        });
+      }
+
+      async function sendCode(email) {
+        const res = await post("/api/v1/auth/otp", { email });
+        if (res?.devCode) {
+          // Local dev only: the code is never returned in production.
+          document.getElementById("status").textContent = `Dev code: ${res.devCode}`;
+        } else {
+          document.getElementById("status").textContent = `Code sent to ${email}.`;
+        }
+        document.getElementById("email").disabled = true;
+        document.getElementById("nameRow").classList.add("hide");
+        document.getElementById("codeRow").classList.remove("hide");
+        document.getElementById("code").focus();
+        document.getElementById("go").textContent = "Verify";
+        return "code";
+      }
+
+      fetch(`/api/v1/invites/${encodeURIComponent(token)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+        .then(({ invite: data }) => {
+          invite = data;
+          if (invite.accepted) return dead("This invite has already been used.");
+          if (invite.revoked) return dead("This invite link was revoked.");
+          if (invite.expired) return dead("This invite link has expired.");
+          if (apiKey) return renderAccept();
+          // No account in this browser yet: sign up first, then join.
+          renderSignup();
+        })
+        .catch(() => dead("This invite is invalid, expired, or already used."));
+    </script>
+  </body>
+</html>

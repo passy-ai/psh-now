@@ -1,0 +1,52 @@
+# psh.now — self-hosted stack: Postgres + the Elysia gateway.
+#
+#   cp .env.example .env
+#   # set PUBLIC_BASE_URL to the URL your agents/phones will reach
+#   docker compose up -d --build
+#
+# For a public deployment, put a TLS reverse proxy in front (see deploy/Caddyfile)
+# and set PUBLIC_BASE_URL=https://psh.now
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-psh.now}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-psh.now}
+      POSTGRES_DB: ${POSTGRES_DB:-psh.now}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-psh.now} -d ${POSTGRES_DB:-psh.now}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-psh.now}:${POSTGRES_PASSWORD:-psh.now}@db:5432/${POSTGRES_DB:-psh.now}
+      # Both required, and compose refuses to start without them rather than booting an
+      # instance that cannot pair a device or encrypt the keys it stores.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?set PUBLIC_BASE_URL to the URL people will open}
+      PSH_SECRET: ${PSH_SECRET:?set PSH_SECRET to a long random string}
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      DEFAULT_TIMEOUT_MS: ${DEFAULT_TIMEOUT_MS:-300000}
+      PAIRING_TTL_MS: ${PAIRING_TTL_MS:-600000}
+      # Sign-in needs one mail transport. Unset, the server still runs but cannot deliver
+      # a code; see docs/self-hosting.md.
+      SMTP_URL: ${SMTP_URL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,2674 @@
+/* psh.now homepage — design inspired by here.now */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Kept as the fallback face for anything Inter's latin subset does not cover. */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/geist-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/geist-mono-latin.woff2") format("woff2");
+}
+
+:root {
+  --sans: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --bg: #ffffff;
+  --fg: #09090b;
+  --muted: #52525b;
+  --muted-2: #71717a;
+  --muted-3: #a1a1aa;
+  --border: #e4e4e7;
+  --border-2: #f4f4f5;
+  --card: #ffffff;
+  --card-sub: #fafafa;
+  /* The blue of the site: a soft periwinkle bloom on a pale cool field, light coming
+     from the top right and the deep part slightly below centre. Drawn rather than
+     photographed, so it stays sharp at any size and costs nothing to load. */
+  /* Matched to the reference's own values: a #6a80b2 bloom that never goes darker
+     than the photo did, over a field that lifts to #f5f8fb at the rim. */
+  --blue-wash: radial-gradient(
+    96% 116% at 56% 34%,
+    #6a80b2 0%,
+    #7689bb 12%,
+    #8b9dc9 26%,
+    #a3b4d6 41%,
+    #bccbe3 56%,
+    #d2dced 70%,
+    #e1e8f4 82%,
+    #edf1f8 92%,
+    #f5f8fb 100%
+  );
+  --highlight: #e4e4e7;
+
+  --btn-dark-bg: #09090b;
+  --btn-dark-fg: #ffffff;
+  --btn-dark-hover: #27272a;
+  --btn-outline-border: #d4d4d8;
+  /* One accent, spent only on the primary action: the page is otherwise ink on paper,
+     so a single blue does the pointing. */
+  --accent: #2f6bff;
+  --accent-hover: #2259e6;
+  /* A soft grey pill for the hero's copy button — see .copy-prompt. */
+  --btn-soft-bg: #e4e4e7;
+  --btn-soft-hover: #d4d4d8;
+
+  --header-bg: rgba(255, 255, 255, 0.7);
+
+  --chat-bg: #27272a;
+  --chat-bubble: #3f3f46;
+  --chat-text: #f4f4f5;
+
+  --radius: 12px;
+  color-scheme: light;
+
+  /* Shared content boundary: header, main and footer all sit inside this. */
+  --page-max: 960px;
+  --page-pad: 24px;
+}
+
+/* Light (white) mode is the default. The dark theme is kept for later —
+   add data-theme="dark" to <html> to enable it. */
+html[data-theme="dark"] {
+    --bg: #131316;
+    --fg: #fafafa;
+    --muted: #a1a1aa;
+    --muted-2: #8f8f97;
+    --muted-3: #71717a;
+    --border: #2c2c31;
+    --border-2: #232327;
+    --card: #1a1a1e;
+    --card-sub: #17171b;
+    --highlight: #3f3f46;
+
+    --btn-dark-bg: #f4f4f5;
+    --btn-dark-fg: #09090b;
+    --btn-dark-hover: #e4e4e7;
+    --btn-outline-border: #3f3f46;
+    --btn-soft-bg: #27272a;
+    --btn-soft-hover: #3f3f46;
+
+    --header-bg: rgba(19, 19, 22, 0.7);
+    color-scheme: dark;
+}
+html[data-theme="dark"] .invert-on-dark {
+    filter: invert(1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  overflow-anchor: none;
+}
+
+body {
+  font-family: var(--sans);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--header-bg);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+.header-inner {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: var(--page-max);
+  padding: 16px var(--page-pad) 12px;
+}
+
+.header-left {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.brand img {
+  margin-left: -5px;
+  height: 32px;
+  width: 32px;
+}
+
+.header-copy {
+  display: none;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.header-copy.show {
+  display: flex;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  animation: hdr-copy-in 0.3s ease both;
+}
+@keyframes hdr-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .header-right {
+    gap: 16px;
+  }
+}
+
+.nav-link {
+  display: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted-2);
+}
+.nav-link:hover {
+  color: var(--fg);
+}
+@media (min-width: 640px) {
+  .nav-link {
+    display: block;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Filled from the GitHub API and hidden until it answers, so a private or unreachable
+   repo leaves no empty badge behind. */
+.star-pill {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.star-pill[hidden] {
+  display: none;
+}
+.star-pill svg {
+  width: 13px;
+  height: 13px;
+  color: var(--muted-2);
+}
+.star-pill:hover {
+  background: #f6f7f9;
+}
+@media (min-width: 640px) {
+  .star-pill {
+    display: inline-flex;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
+}
+@media (min-width: 640px) {
+  .btn {
+    padding: 6px 12px;
+  }
+}
+
+.btn-dark {
+  background: var(--btn-dark-bg);
+  color: var(--btn-dark-fg);
+}
+.btn-dark:hover {
+  background: var(--btn-dark-hover);
+}
+
+.btn-outline {
+  border-color: var(--btn-outline-border);
+  color: var(--fg);
+  background: transparent;
+}
+.btn-outline:hover {
+  background: var(--card-sub);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(16, 28, 60, 0.22), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: #fff;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgba(16, 28, 60, 0.06);
+}
+.btn-secondary:hover {
+  background: #f6f7f9;
+}
+
+.btn-lg {
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.btn-lg svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--btn-dark-bg);
+  color: var(--btn-dark-fg);
+  transition: background-color 0.15s ease;
+}
+.pill:hover {
+  background: var(--btn-dark-hover);
+}
+
+.pill-sm {
+  max-width: 100%;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.pill-lg {
+  padding: 12px 20px;
+  font-size: 16px;
+}
+
+.pill-label {
+  flex: 1;
+  text-align: left;
+  transition: opacity 0.3s ease;
+}
+.pill-lg .pill-label {
+  white-space: nowrap;
+}
+.pill-sm .pill-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pill-icon {
+  margin-left: 10px;
+  width: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pill-lg .pill-icon {
+  margin-left: 24px;
+  width: 14px;
+}
+
+.pill-icon .ic-check {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pill-icon .ic-copy {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+.pill.copied .ic-check {
+  opacity: 1;
+}
+.pill.copied .ic-copy {
+  opacity: 0;
+}
+
+.pill-overlay {
+  position: absolute;
+  inset-block: 0;
+  display: flex;
+  align-items: center;
+  left: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pill-lg .pill-overlay {
+  left: 20px;
+}
+.pill.copied .pill-label {
+  opacity: 0;
+}
+.pill.copied .pill-overlay {
+  opacity: 1;
+}
+
+/**
+ * The hero's copy button.
+ *
+ * A soft grey pill rather than the dark slab the shared .pill defaults to: the
+ * page already carries a black Log in button and a black CTA in the header, and a
+ * third one in the hero competes with the heading. The pill keeps the prompt
+ * panel's own greys, so button and panel read as one control.
+ */
+.pill-lg.copy-prompt {
+  gap: 12px;
+  padding: 15px 26px;
+  background: var(--btn-soft-bg);
+  color: var(--fg);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pill-lg.copy-prompt:hover {
+  background: var(--btn-soft-hover);
+}
+/* Spacing comes from the pill's own gap, not per-child margins. */
+.pill-lg.copy-prompt .pill-icon {
+  margin-left: 0;
+}
+/*
+ * The agent mark that cycles in the button. A fixed box, so a wide wordmark and a
+ * square mark take the same space and the button never changes width mid-cycle.
+ */
+.pill-agent {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.pill-agent img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+/**
+ * Holds the label and the "Paste in your agent" overlay in one box.
+ *
+ * The overlay is absolutely positioned inside this rather than the pill, because
+ * the pill now starts with the icon: anchored to the pill it would have landed on
+ * top of that icon in the copied state.
+ */
+.pill-text {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+.pill-text .pill-overlay {
+  left: 0;
+}
+
+.sm-hidden {
+  display: inline;
+}
+.sm-inline {
+  display: none;
+}
+@media (min-width: 640px) {
+  .sm-hidden {
+    display: none;
+  }
+  .sm-inline {
+    display: inline;
+  }
+}
+
+/* ---------- Main ---------- */
+main {
+  margin: 0 auto;
+  width: 100%;
+  max-width: var(--page-max);
+  padding: 0 var(--page-pad) 102px;
+  flex: 1;
+  /*
+   * The gap above the headline. The 76px is the sticky header, so this is the
+   * clear space between the nav and the h1, and it is kept modest on purpose:
+   * the headline should be near the top, not floating in the middle.
+   */
+  padding-top: calc(14vh - 76px);
+}
+@media (min-width: 640px) {
+  main {
+    padding-top: min(calc(14vh - 76px), 96px);
+  }
+}
+
+/* ---------- Hero ---------- */
+/* Centred, one column: headline, one sentence, two actions, then the desk. The page
+   reads top to bottom instead of leaning left. */
+.hero {
+  text-align: center;
+}
+.hero h1 {
+  margin: 0;
+  font-size: 37px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+@media (min-width: 640px) {
+  .hero h1 {
+    /* Sized so "Your agents ▢▢ stop" fills the same measure as the header row. */
+    font-size: 54px;
+  }
+}
+.hero h1 .line {
+  display: block;
+}
+/* The headline says what an agent can get back: deny, answer, approve, set inline
+   the way a product mark sits inside a statement. Sized in em so they track the type. */
+.h1-marks {
+  /* inline-block, not inline-flex: a flex box fragments across a line break, and the
+     fragment pushed the following line's text in by its own width on a phone. */
+  display: inline-block;
+  white-space: nowrap;
+  margin: 0 0.14em;
+  vertical-align: -0.12em;
+}
+.h1-mark + .h1-mark { margin-left: 0.07em; }
+/* "One" rides with the tiles: broken apart, the line started with three buttons. */
+.h1-lead { white-space: nowrap; }
+.h1-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.05em;
+  height: 1.05em;
+  border-radius: 0.31em;
+}
+.h1-mark svg {
+  display: block;
+  width: 0.64em;
+  height: 0.64em;
+}
+.h1-mark-no {
+  background: #fdeeec;
+  box-shadow: inset 0 0 0 1px rgba(163, 44, 33, 0.16);
+  color: #b23a2c;
+}
+.h1-mark-answer {
+  background: #eef2f8;
+  box-shadow: inset 0 0 0 1px rgba(18, 48, 110, 0.13);
+  color: #22304a;
+}
+.h1-mark-yes {
+  background: #e9f6ee;
+  box-shadow: inset 0 0 0 1px rgba(24, 108, 60, 0.16);
+  color: #1d7a45;
+}
+/* Three tiles plus the word after them stop fitting one line around 660px, which
+   left "stop" stranded on its own row. Below 700px the headline flows as one
+   sentence instead, balanced. */
+@media (max-width: 699px) {
+  .hero h1 .line {
+    display: inline;
+  }
+  .hero h1 {
+    text-wrap: balance;
+  }
+  .h1-marks {
+    margin: 0 0.12em;
+  }
+  .h1-mark + .h1-mark {
+    margin-left: 0.05em;
+  }
+  .h1-mark {
+    width: 0.98em;
+    height: 0.98em;
+  }
+}
+/* The hero headline is static — the rotating word lived here. */
+
+.hero-sub {
+  margin: 22px auto 0;
+  /* Narrower than the headline, so the sentence breaks in two instead of four. */
+  max-width: 620px;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 34px;
+}
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.hero-note {
+  margin: 20px 0 12px;
+  font-size: 13px;
+  color: var(--muted-2);
+}
+
+/* Full-prompt disclosure */
+.prompt-toggle {
+  margin-top: 16px;
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+.prompt-toggle:hover {
+  color: var(--fg);
+}
+.prompt-toggle .chev {
+  transition: transform 0.2s ease;
+}
+.prompt-toggle[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+.pt-hide {
+  display: none;
+}
+.prompt-toggle[aria-expanded="true"] .pt-show {
+  display: none;
+}
+.prompt-toggle[aria-expanded="true"] .pt-hide {
+  display: inline;
+}
+
+.prompt-wrap {
+  /* The hero centres its text; the disclosure is code and stays ragged right. */
+  text-align: left;
+  display: grid;
+  grid-template-rows: 0fr;
+  /*
+   * The gap above the panel is padding rather than a margin on purpose: padding
+   * belongs to the panel's own hit area, so the pointer can travel from the button
+   * straight onto the text. A margin belongs to neither element, and the panel
+   * would snap shut mid-reach, making the prompt impossible to select.
+   */
+  transition: grid-template-rows 0.3s ease, padding-top 0.3s ease;
+  /*
+   * Closing waits a beat before it starts. A transition takes its delay from the
+   * state being entered, so this delays only the close — every opening rule below
+   * resets it to 0. Without it the panel snaps shut the instant the pointer slips
+   * off the button, which reads as a flicker; with it, brushing past the button
+   * leaves the prompt where it is.
+   */
+  transition-delay: 2s;
+  padding-top: 0;
+}
+.prompt-wrap.open {
+  grid-template-rows: 1fr;
+  padding-top: 12px;
+  transition-delay: 0s;
+}
+
+/*
+ * The prompt is a preview of what the button copies, so it opens on hover rather
+ * than behind a second control.
+ *
+ * Only the button opens it. `.copy-block` spans the whole column so the panel can
+ * be full width, and targeting the block would make the whole row — including the
+ * empty space to the right of the button — a trigger. The panel is a trigger too,
+ * so the pointer can move down and select the text.
+ */
+.copy-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.copy-block .copy-prompt {
+  align-self: center;
+}
+.copy-block .copy-prompt:hover ~ .prompt-wrap,
+.copy-block .copy-prompt:focus-visible ~ .prompt-wrap,
+.copy-block .prompt-wrap:hover {
+  grid-template-rows: 1fr;
+  padding-top: 12px;
+  /* Open at once; only the close is allowed to linger. */
+  transition-delay: 0s;
+}
+/*
+ * With a real pointer the panel already opens on hover, so the toggle would be a
+ * second control for the same thing. It stays for touch: without it a phone could
+ * never read the install prompt at all.
+ */
+@media (hover: hover) {
+  .prompt-toggle {
+    display: none;
+  }
+}
+.prompt-wrap > div {
+  overflow: hidden;
+}
+.prompt-code {
+  margin: 0;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-sub);
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Agents: a plain static row ---------- */
+.agents {
+  /* Close under the button: this row is the reassurance that follows the CTA,
+     not a separate act further down the page. */
+  margin-top: 40px;
+  min-width: 0;
+}
+/* A quiet, muted label — it introduces the row rather than competing with it. */
+.eyebrow {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--muted-3);
+}
+
+/* One static row, spread edge to edge: no scrolling, no mask, no animation. */
+.agents-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px 24px;
+}
+.agent-item {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+.agent-item:hover {
+  opacity: 1;
+}
+.agent-item img {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+
+/* ---------- Divider ---------- */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 96px;
+}
+.divider img {
+  height: 18px;
+  width: 18px;
+}
+.divider .rule {
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+}
+
+
+/* ---------- Product shot ---------- */
+/*
+ * Stands where the brand-mark divider used to be.
+ *
+ * The card inside uses the dashboard's own dark greys rather than the page's
+ * tokens, because it is depicting the product and the dash is dark by default.
+ * The frame around it does follow the page, so the shot reads as a window onto
+ * the product instead of a second theme bolted onto the marketing site.
+ */
+.product-shot {
+  margin-top: 96px;
+}
+.shot-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 64px 32px;
+  background-color: var(--card-sub);
+  /* A blueprint grid, washed out from the middle by the radial layer below. */
+  background-image:
+    linear-gradient(to right, rgba(9, 9, 11, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(9, 9, 11, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+/* The grid is drawn with black lines, which disappear on a dark page. */
+:root[data-theme="dark"] .shot-frame {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+.shot-frame::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 72% at 50% 46%,
+    var(--bg) 0%,
+    rgba(255, 255, 255, 0) 72%
+  );
+}
+.shot {
+  position: relative;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid #232838;
+  border-radius: 16px;
+  background: #111319;
+  color: #eef1f7;
+  text-align: left;
+  box-shadow:
+    0 30px 60px -24px rgba(9, 9, 11, 0.5),
+    0 4px 14px -6px rgba(9, 9, 11, 0.22);
+}
+/* On a dark page the card needs a hairline to separate it from the frame. */
+:root[data-theme="dark"] .shot {
+  box-shadow:
+    0 30px 60px -24px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+.shot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+/*
+ * The agent identity rotates, so the group fades as one unit rather than the
+ * name and the mark swapping separately.
+ */
+.shot-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  transition: opacity 0.22s ease;
+}
+/* The mark sits on its own colour, mirroring the dashboard's agent chips. */
+.shot-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: #4f46e5;
+}
+.shot-chip img {
+  display: block;
+  width: 15px;
+  height: 15px;
+  filter: brightness(0) invert(1);
+}
+.shot-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: #cfd4dd;
+}
+.shot-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: #8b94a7;
+}
+.shot-chdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6c8cff;
+}
+.shot-title {
+  margin: 18px 0 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+/*
+ * What psh.now does that a bare approval prompt does not: it reads the request
+ * and says what it would do about it. Tinted with the same green as the Approve
+ * button, so the recommendation and the button read as one judgement.
+ */
+.shot-advice {
+  display: flex;
+  gap: 11px;
+  margin: 14px 0 0;
+  padding: 13px 15px;
+  border-radius: 11px;
+  background: #16231a;
+}
+.shot-advice-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #6ede8e;
+}
+.shot-advice-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6ede8e;
+}
+.shot-advice-why {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8fa79a;
+}
+.shot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+/* The three verdicts, mirroring the dashboard buttons. */
+.shot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  /* The shot is a still, but the buttons answer the pointer the way the real
+     ones do. Hover tints match the dashboard's own. */
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.shot-btn:hover {
+  transform: translateY(-1px);
+}
+.shot-deny:hover {
+  background: #2e2121;
+}
+.shot-answer:hover {
+  background: #242833;
+}
+.shot-approve:hover {
+  background: #1c2f21;
+}
+.shot-deny {
+  background: #231a1a;
+  color: #f08a8a;
+}
+.shot-answer {
+  background: #1c1f27;
+  color: #eef1f7;
+}
+.shot-approve {
+  background: #16231a;
+  color: #6ede8e;
+}
+@media (max-width: 560px) {
+  .shot-frame {
+    padding: 32px 14px;
+  }
+  .shot {
+    padding: 18px;
+  }
+  .shot-title {
+    font-size: 17px;
+  }
+  .shot-btn {
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+  .shot-advice-why {
+    font-size: 12.5px;
+  }
+}
+
+
+/* ---------- Reveal animation ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  will-change: opacity, transform;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- How it works ---------- */
+.how {
+  /* Same column as the rest of the page: the section was running edge to edge, which
+     left the terminal and the card stretched across the whole viewport. */
+  max-width: var(--page-max, 960px);
+  margin: 0 auto;
+  /* No top padding: the timeline above already carries the break, and the two together
+     left a 203px hole between the note and this heading. */
+  padding: 0 var(--page-pad, 24px);
+}
+.how-heading {
+  margin: 0 0 48px;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+@media (min-width: 640px) {
+  .how-heading {
+    font-size: 41px;
+  }
+}
+.how-grid {
+  display: grid;
+  gap: 24px;
+}
+@media (min-width: 700px) {
+  .how-grid {
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: 20px;
+  }
+}
+
+.mock {
+  height: 176px;
+  border-radius: 12px;
+}
+
+/* chat mock */
+.chat-mock {
+  display: flex;
+  flex-direction: column;
+  background: var(--chat-bg);
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.chat-mock .row-end {
+  display: flex;
+  justify-content: flex-end;
+}
+.chat-mock .bubble-user {
+  max-width: 85%;
+  border-radius: 16px;
+  background: var(--chat-bubble);
+  padding: 6px 14px;
+  color: var(--chat-text);
+}
+.chat-mock .spacer {
+  flex: 1;
+}
+.chat-mock .agent-msg {
+  margin-top: 12px;
+  color: var(--chat-text);
+}
+.chat-mock .agent-msg .q {
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: #71717a;
+  text-underline-offset: 2px;
+}
+.chat-mock .composer {
+  margin-top: 12px;
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid #52525b;
+  padding-left: 12px;
+  padding-right: 4px;
+}
+.chat-mock .caret {
+  margin: 0 1px;
+  display: inline-block;
+  height: 14px;
+  width: 1px;
+  background: var(--chat-text);
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.chat-mock .placeholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #71717a;
+}
+.chat-mock .send {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--chat-bubble);
+}
+
+.how-arrow {
+  justify-self: center;
+  align-self: center;
+  color: var(--muted-3);
+  line-height: 0;
+}
+@media (max-width: 699px) {
+  .how-arrow {
+    display: none;
+  }
+}
+
+/* how-it-works before/after cards */
+.how-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+.how-before {
+  display: flex;
+  flex-direction: column;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #d4d4d8;
+}
+.hb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #27272a;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #a1a1aa;
+}
+.hb-body {
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: #a1a1aa;
+}
+.hb-task {
+  color: #f4f4f5;
+  font-weight: 600;
+}
+.hb-body ol {
+  margin: 10px 0;
+  padding-left: 18px;
+}
+.hb-body li {
+  margin-bottom: 5px;
+}
+.hb-body code {
+  background: #27272a;
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.hb-more {
+  color: #71717a;
+}
+.how-after {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.ha-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.ha-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+.ha-title {
+  margin: 16px 0 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.ha-msg {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ha-msg code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  background: var(--border-2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.ha-actions {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ha-approve,
+.ha-deny {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ha-approve {
+  border: 0;
+  background: var(--btn-dark-bg);
+  color: var(--btn-dark-fg);
+}
+.ha-deny {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+}
+
+/* browser/phone mock */
+.window {
+  height: 176px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.window-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-2);
+  padding: 10px 16px;
+}
+.dots {
+  display: flex;
+  gap: 6px;
+}
+.dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+}
+.dot-r {
+  background: #ff5f57;
+}
+.dot-y {
+  background: #febc2e;
+}
+.dot-g {
+  background: #28c840;
+}
+html[data-theme="dark"] .dot-r {
+    background: #c2554f;
+}
+html[data-theme="dark"] .dot-y {
+    background: #c29434;
+}
+html[data-theme="dark"] .dot-g {
+    background: #37a34a;
+}
+
+/* Verdict colour (check / cross) and risk tags. The light tints below are
+   solid pale blocks on a dark surface, so they get dark-tinted counterparts. */
+html[data-theme="dark"] .tl-without {
+    background: #231a1a;
+    border-color: #3d2626;
+}
+html[data-theme="dark"] .tl-with {
+    background: #16231a;
+    border-color: #26402f;
+}
+html[data-theme="dark"] .tl-col-head {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .tl-step + .tl-step {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .tl-mark-bad {
+    background: #3d2222;
+    color: #f08a8a;
+}
+html[data-theme="dark"] .tl-mark-good {
+    background: #1e3a28;
+    color: #6ede8e;
+}
+html[data-theme="dark"] .tl-badge-bad {
+    color: #f08a8a;
+}
+html[data-theme="dark"] .tl-badge-good {
+    color: #6ede8e;
+}
+html[data-theme="dark"] .point-mark-danger {
+    background: #3d2222;
+    border-color: #4d2b2b;
+    color: #f08a8a;
+}
+html[data-theme="dark"] .risk-critical {
+    border-color: #4d2b2b;
+}
+html[data-theme="dark"] .risk-critical .risk-tag {
+    background: #3d2222;
+    color: #f08a8a;
+}
+html[data-theme="dark"] .risk-high {
+    border-color: #4a3520;
+}
+html[data-theme="dark"] .risk-high .risk-tag {
+    background: #3a2a17;
+    color: #f0b072;
+}
+.window-url {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: var(--border-2);
+  padding: 4px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+/* approval phone mock */
+.approve-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+}
+.approve-card {
+  width: 100%;
+  max-width: 250px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-sub);
+  padding: 12px;
+}
+.approve-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.approve-msg {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  font-family: var(--mono);
+}
+.approve-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+}
+.approve-actions .deny {
+  flex: 1;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 7px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.approve-actions .clarify {
+  flex: 1;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 7px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.approve-actions .allow {
+  flex: 1;
+  border-radius: 8px;
+  background: var(--btn-dark-bg);
+  padding: 7px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--btn-dark-fg);
+}
+
+/* ---------- Walk away (before / after timeline) ---------- */
+.timeline {
+  /* Already inside a padded column, so only the width is capped here. */
+  max-width: var(--page-max, 960px);
+  margin: 0 auto;
+  padding-top: 102px;
+}
+.tl-lead {
+  margin: 16px 0 0;
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Two verdicts side by side: red crosses left, green checks right. */
+.tl-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 36px;
+}
+@media (min-width: 720px) {
+  .tl-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+.tl-col {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+}
+.tl-without {
+  background: #fef7f7;
+  border-color: #f6d9d9;
+}
+.tl-with {
+  background: #f6fdf8;
+  border-color: #cfeeda;
+}
+
+.tl-col-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.tl-badge {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.tl-badge-bad {
+  color: #a81f1f;
+}
+.tl-badge-good {
+  color: #14722f;
+}
+
+/* One circular check or cross. */
+.tl-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+}
+.tl-mark svg {
+  width: 12px;
+  height: 12px;
+}
+.tl-mark-bad {
+  background: #fde8e8;
+  color: #c62828;
+}
+.tl-mark-good {
+  background: #dcf5e4;
+  color: #15803d;
+}
+.tl-col-head .tl-mark {
+  width: 24px;
+  height: 24px;
+}
+.tl-col-head .tl-mark svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Each beat: time, verdict, then what happened — left to right. */
+.tl-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tl-step {
+  display: grid;
+  grid-template-columns: 44px 20px 1fr;
+  align-items: start;
+  gap: 10px;
+  padding: 13px 0;
+}
+.tl-step + .tl-step {
+  border-top: 1px dashed rgba(0, 0, 0, 0.07);
+}
+.tl-time {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 20px;
+  color: var(--muted-2);
+}
+.tl-step .tl-mark {
+  margin-top: 1px;
+}
+.tl-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.tl-end .tl-text {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+@media (max-width: 420px) {
+  /* Stack time above the mark so the text keeps its width. */
+  .tl-step {
+    grid-template-columns: 20px 1fr;
+    gap: 4px 10px;
+  }
+  .tl-time {
+    grid-column: 2;
+    grid-row: 1;
+    line-height: 1.2;
+  }
+  .tl-step .tl-mark {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    margin-top: 2px;
+  }
+  .tl-text {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+.tl-note {
+  margin: 20px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-3);
+}
+
+
+/* ---------- What is psh.now ---------- */
+.whatis {
+  padding-top: 102px;
+}
+.whatis-lead,
+.control-lead {
+  margin: 16px 0 0;
+  max-width: 66ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.flow {
+  display: grid;
+  gap: 16px;
+  margin-top: 40px;
+  align-items: center;
+}
+@media (min-width: 720px) {
+  .flow {
+    grid-template-columns: 1fr auto 1fr;
+  }
+}
+.flow-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.flow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow-list li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-sub);
+  padding: 6px 11px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.flow-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.flow-arrow {
+  color: var(--muted-3);
+  line-height: 0;
+  transform: rotate(90deg);
+}
+@media (min-width: 720px) {
+  .flow-arrow {
+    transform: none;
+  }
+  .flow-mid {
+    flex-direction: row;
+    gap: 12px;
+  }
+}
+.flow-hub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--fg);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 14px 20px;
+  text-align: center;
+}
+.flow-hub img {
+  width: 22px;
+  height: 22px;
+}
+.flow-hub span {
+  font-weight: 600;
+  font-size: 15px;
+}
+.flow-hub em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--muted-3);
+}
+/* A single strip of proof points, not four floating numbers. */
+.fact-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin-top: 36px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--border);
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .fact-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+/*
+ * The value sits above its label rather than beside it. Side by side, four cells
+ * of unequal text length left a ragged baseline, and on a phone the longest one
+ * wrapped and made its row taller than its neighbour.
+ */
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: var(--card);
+  padding: 16px 18px;
+}
+.fact-k {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.fact-v {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--muted-2);
+}
+.whatis-note {
+  margin: 18px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted-3);
+}
+
+/* ---------- Stay in control ---------- */
+.control {
+  padding-top: 102px;
+}
+/* Points on the left, the scored examples they describe on the right. */
+.control-grid {
+  display: grid;
+  gap: 28px;
+  margin-top: 34px;
+}
+@media (min-width: 780px) {
+  .control-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+}
+.control-points {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.point {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.point-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  color: var(--muted-2);
+}
+.point-mark svg {
+  width: 14px;
+  height: 14px;
+}
+.point-mark-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #c62828;
+}
+.point h3 {
+  margin: 2px 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.point p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* The risk engine, shown as what the human actually sees. */
+.risk-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-sub);
+  padding: 16px;
+}
+.risk-panel-label {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.risk-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 11px 13px;
+}
+.risk-row + .risk-row {
+  margin-top: 8px;
+}
+.risk-tag {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.risk-critical {
+  border-color: #fecaca;
+}
+.risk-critical .risk-tag {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.risk-high {
+  border-color: #fed7aa;
+}
+.risk-high .risk-tag {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.risk-medium .risk-tag {
+  background: var(--card-sub);
+  color: var(--muted-2);
+}
+.risk-why {
+  font-size: 13px;
+  font-weight: 500;
+}
+.risk-cmd {
+  grid-column: 2;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted-3);
+  word-break: break-all;
+}
+.risk-panel-foot {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted-3);
+}
+
+/* ---------- Built in the open ---------- */
+.why {
+  /* The laurel is centred, so a left-aligned heading under it read as a mistake:
+     the section had no column either and ran to the viewport edges. */
+  max-width: var(--page-max, 960px);
+  margin: 0 auto;
+  padding: 102px var(--page-pad, 24px) 0;
+}
+.why h2 {
+  text-align: center;
+}
+.why-note {
+  margin: 32px auto 0;
+  max-width: 60ch;
+}
+.why-note p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.why-quote {
+  font-size: 19px !important;
+  line-height: 1.45 !important;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fg) !important;
+}
+.why-small {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  color: var(--muted-3) !important;
+}
+.why-note p:last-child {
+  margin-bottom: 0;
+}
+
+
+/* ---------- Features ---------- */
+.features {
+  padding-top: 102px;
+}
+.features h2,
+.section h2,
+.timeline h2,
+.testimonials h2,
+.faq h2,
+.get-started h2 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+@media (min-width: 640px) {
+  .features h2,
+  .section h2,
+  .timeline h2,
+  .testimonials h2,
+  .faq h2,
+  .get-started h2 {
+    font-size: 41px;
+  }
+}
+
+.feature-tabs {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.feature-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 14px 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
+}
+.feature-tab:hover {
+  background: var(--card-sub);
+}
+.feature-tab.active {
+  border-color: var(--fg);
+  color: var(--fg);
+  background: var(--card);
+}
+.feature-tab svg {
+  height: 18px;
+  width: 18px;
+}
+.feature-tab span {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.feature-detail {
+  margin-top: 56px;
+}
+.feature-detail h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.feature-detail p {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.showcase {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-sub);
+  padding: 16px;
+}
+.showcase-grid {
+  display: grid;
+  gap: 20px;
+}
+@media (min-width: 640px) {
+  .showcase-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+.browser-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.browser-card .bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-2);
+  background: var(--border-2);
+  padding: 8px 12px;
+}
+.browser-card .bar .dots {
+  gap: 4px;
+}
+.browser-card .bar .dot {
+  height: 8px;
+  width: 8px;
+}
+.browser-card .bar .addr {
+  margin-left: 4px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--card);
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.center-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.panel-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-bottom: 48px;
+}
+.gate {
+  display: flex;
+  width: 100%;
+  max-width: 240px;
+  flex-direction: column;
+  gap: 8px;
+}
+.gate .input {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--muted-3);
+}
+.gate .unlock {
+  border-radius: 8px;
+  background: var(--btn-dark-bg);
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--btn-dark-fg);
+}
+.gate-note {
+  font-size: 12px;
+  color: var(--muted-3);
+}
+.panel-title {
+  border-bottom: 1px solid var(--border-2);
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+.panel-code {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted-2);
+  white-space: pre;
+  overflow-x: auto;
+}
+.panel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 8px 12px;
+}
+.panel-row.active {
+  border-color: var(--fg);
+}
+.panel-row .radio {
+  display: flex;
+  height: 14px;
+  width: 14px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--muted-3);
+  flex-shrink: 0;
+}
+.panel-row.active .radio {
+  border-color: var(--fg);
+}
+.panel-row .radio::after {
+  content: "";
+  height: 6px;
+  width: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.panel-row:not(.active) .radio::after {
+  background: transparent;
+}
+.panel-row .label {
+  font-size: 11px;
+  color: var(--muted);
+}
+.panel-row.active .label {
+  color: var(--fg);
+}
+
+.tell-label {
+  margin: 40px 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--muted-2);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-sub);
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.chip b {
+  color: var(--fg);
+  font-weight: 500;
+}
+.learn {
+  display: inline-block;
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted-2);
+}
+.learn:hover {
+  color: var(--fg);
+}
+
+/* ---------- Workspaces strip ---------- */
+.cards-strip {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .cards-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.mini-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.mini-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-2);
+  padding: 8px 10px;
+}
+.mini-bar .dots {
+  gap: 3px;
+}
+.mini-bar .dot {
+  height: 6px;
+  width: 6px;
+}
+.mini-bar .addr {
+  flex: 1;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mini-body {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  background: var(--card-sub);
+}
+.mini-avatar {
+  height: 22px;
+  width: 22px;
+  border-radius: 999px;
+  background: var(--border);
+  border: 1px solid var(--card);
+  margin-left: -8px;
+}
+.mini-avatar:first-child {
+  margin-left: 0;
+}
+.mini-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+}
+.mini-bars i {
+  width: 8px;
+  border-radius: 3px 3px 0 0;
+  background: var(--border);
+  display: block;
+}
+.mini-bars i:nth-child(1) {
+  height: 40%;
+}
+.mini-bars i:nth-child(2) {
+  height: 70%;
+}
+.mini-bars i:nth-child(3) {
+  height: 55%;
+}
+.mini-bars i:nth-child(4) {
+  height: 90%;
+}
+.mini-bars i:nth-child(5) {
+  height: 65%;
+}
+.mini-line {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  width: 80%;
+}
+.mini-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.mini-toggle {
+  height: 20px;
+  width: 36px;
+  border-radius: 999px;
+  background: var(--fg);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2px;
+}
+.mini-toggle::after {
+  content: "";
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--card);
+}
+
+/* ---------- Testimonials ---------- */
+.testimonials {
+  padding-top: 102px;
+}
+.laurel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0 0 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+/* One quote, set off by a rule down the left, then who said it. */
+.review-grid {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 44px;
+}
+@media (min-width: 860px) {
+  .review-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 48px 64px;
+  }
+}
+.review {
+  margin: 0;
+  border-left: 2px solid var(--border);
+  padding-left: 28px;
+}
+.review-quote {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--fg);
+}
+.review-logo {
+  display: block;
+  margin-top: 22px;
+  height: 22px;
+  width: auto;
+}
+.review-who {
+  margin: 22px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+/* When a logo is present the name tucks in under it. */
+.review-logo + .review-who {
+  margin-top: 10px;
+}
+
+/* ---------- FAQ ---------- */
+.faq {
+  padding-top: 102px;
+  /* Every other section sits in this column; the FAQ was the one running edge to edge. */
+  max-width: var(--page-max, 960px);
+  margin: 0 auto;
+  padding-inline: var(--page-pad, 24px);
+}
+/* The heading sits over the list rather than beside it. */
+.faq h2 {
+  text-align: center;
+}
+.faq-list {
+  margin-top: 40px;
+}
+/* No rules between the questions: the rows are separated by space alone. */
+.faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 2px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+/* A chevron rather than a plus: it points down while the answer is shut and
+   turns over once it is open. Drawn from two borders on one box. */
+.faq summary .plus {
+  position: relative;
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+  color: var(--muted-3);
+}
+.faq summary .plus::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.7px solid currentColor;
+  border-bottom: 1.7px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.22s ease;
+}
+.faq details[open] summary .plus::before {
+  transform: rotate(-135deg);
+}
+.faq .answer {
+  padding: 0 2px 24px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.faq .answer code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--border-2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* ---------- Get started ---------- */
+.get-started {
+  padding-top: 102px;
+  text-align: center;
+}
+.get-started h2 {
+  margin-bottom: 32px;
+}
+.get-started .pill {
+  margin: 0 auto;
+}
+
+/* ---------- Gradient CTA ---------- */
+.cta {
+  /* Contained: a panel inside the page column instead of a full-bleed band. */
+  width: calc(100% - 2 * var(--page-pad, 24px));
+  max-width: var(--page-max, 960px);
+  margin: 48px auto 0;
+  border-radius: 18px;
+  background: var(--blue-wash);
+  padding: 76px 32px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+}
+.cta-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #0b1020;
+}
+@media (min-width: 640px) {
+  .cta-title {
+    font-size: 36px;
+  }
+}
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+}
+.cta-actions .cta-button {
+  margin-top: 0;
+}
+
+.cta-sub {
+  margin: 14px auto 0;
+  max-width: 520px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(11, 16, 32, 0.72);
+}
+@media (min-width: 640px) {
+  .cta-sub {
+    font-size: 16px;
+  }
+}
+.cta-button {
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: #0b1020;
+  color: #ffffff;
+  padding: 12px 20px;
+  font-family: var(--sans);
+  /* Sentence case and the hero's own metrics: an uppercase micro-label beside a
+     sentence-case secondary read as two different buttons. */
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.cta-button:hover {
+  background: #1c2438;
+}
+.cta-button-copied {
+  display: none;
+}
+.cta-button.copied .cta-button-label {
+  display: none;
+}
+.cta-button.copied .cta-button-copied {
+  display: inline;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  /* No rule above the footer: the CTA is a contained panel now, and a hairline running
+     edge to edge under it read as a lid on the page rather than a separator. */
+  padding: 48px 24px;
+}
+.footer-inner {
+  margin: 0 auto;
+  max-width: 780px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+}
+@media (min-width: 640px) {
+  .footer-inner {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  }
+}
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.footer-brand img {
+  height: 24px;
+  width: 24px;
+  margin-left: -4px;
+}
+.footer-tag {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted-2);
+}
+.footer-col h4 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted-3);
+}
+.footer-col a {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.footer-col a:hover {
+  color: var(--fg);
+}
+.footer-bottom {
+  margin: 0 auto;
+  max-width: 780px;
+  margin-top: 40px;
+  font-size: 12px;
+  color: var(--muted-3);
+}
+
+/* ---------- Prose (legal / docs pages) ---------- */
+.prose {
+  max-width: 680px;
+}
+.prose h1 {
+  margin: 0 0 8px;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.prose .updated {
+  margin: 0 0 32px;
+  font-size: 13px;
+  color: var(--muted-3);
+}
+.prose h2 {
+  margin: 32px 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.prose p,
+.prose li {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.prose p {
+  margin: 0 0 14px;
+}
+.prose ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+.prose li {
+  margin-bottom: 6px;
+}
+.prose b {
+  color: var(--fg);
+  font-weight: 600;
+}
+.prose a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

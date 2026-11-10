@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Connect this Mac - psh.now</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem("psh.theme")||"dark"}catch(e){}</script>
+    <script>
+      // Decide before anything paints. Redirecting from the body script showed the connect card
+      // for a frame first, which read as a glitch; here the page stays blank and never appears.
+      try {
+        var params = new URLSearchParams(location.hash.replace(/^#/, ""));
+        var early = (params.get("key") || localStorage.getItem("psh.apiKey") || "").trim();
+        if (!early) {
+          document.documentElement.style.visibility = "hidden";
+          location.replace("/login?next=/connect");
+        }
+      } catch (e) {
+        /* storage blocked: the body script repeats the check */
+      }
+    </script>
+    <style>
+      .connect-main {
+        min-height: 100dvh;
+        display: grid;
+        align-items: start;
+        justify-items: center;
+        padding: 76px 24px 48px;
+      }
+      .connect-card {
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
+      }
+      .connect-mark {
+        width: 34px;
+        height: 34px;
+        margin: 0 auto 22px;
+        display: block;
+        opacity: 0.9;
+      }
+      .connect-title {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0 0 10px;
+      }
+      .connect-body {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted, rgba(255, 255, 255, 0.62));
+        margin: 0 0 26px;
+      }
+      .connect-action {
+        width: 100%;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-weight: 550;
+        border-radius: 10px;
+      }
+      .connect-note {
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--muted, rgba(255, 255, 255, 0.5));
+        margin: 14px 0 0;
+      }
+      .connect-note a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .connect-back {
+        margin: 20px 0 0;
+        font-size: 13px;
+      }
+      .connect-back a {
+        color: var(--fg, #fff);
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+      .connect-back a:hover {
+        color: var(--accent, #5b9cff);
+        text-decoration-color: currentColor;
+      }
+      .connect-done {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--muted, rgba(255, 255, 255, 0.62));
+      }
+      .connect-done svg {
+        flex: none;
+      }
+      .connect-fallback {
+        margin: 22px 0 0;
+        font-size: 12px;
+        color: var(--muted, rgba(255, 255, 255, 0.42));
+      }
+      .connect-fallback summary {
+        cursor: pointer;
+        list-style: none;
+      }
+      .connect-fallback summary::-webkit-details-marker {
+        display: none;
+      }
+      .connect-fallback code {
+        display: block;
+        margin-top: 10px;
+        padding: 9px 11px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 11.5px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+        text-align: left;
+        user-select: all;
+        color: var(--muted, rgba(255, 255, 255, 0.6));
+      }
+      .hide {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      <div class="nav-actions">
+        <a href="/docs" class="nav-link nav-docs"><span data-icon="book"></span> Docs</a>
+        <button id="pairQrBtn" class="btn pill hide" aria-label="Pair a device"><span data-icon="qr"></span> Pair device</button>
+        <div class="avatar-wrap">
+          <button id="avatarBtn" class="avatar" aria-label="Account"></button>
+          <div id="avatarMenu" class="menu hide">
+            <div class="menu-head">
+              <div class="menu-id">
+                <span id="menuName">Anony Mous</span>
+                <span class="muted" id="menuEmail">No email yet</span>
+              </div>
+              <span id="menuStatusBadge" class="badge">Anonymous</span>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Account key</span>
+              <div class="menu-key">
+                <code id="menuAccountKey">-</code>
+                <button id="menuCopyKey" class="icon-btn sm" aria-label="Copy account key"><span data-icon="copy"></span></button>
+              </div>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Secret key</span>
+              <div class="menu-key">
+                <code id="menuSecretKey">not generated</code>
+                <button id="menuCopySecret" class="icon-btn sm hide" aria-label="Copy secret key"><span data-icon="copy"></span></button>
+                <button id="menuCreateSecret" class="btn sm">Generate</button>
+              </div>
+            </div>
+            <div class="menu-field">
+              <span class="menu-label">Requests</span>
+              <div class="menu-progress"><div class="bar"><span id="menuBar"></span></div><span class="menu-pct" id="menuPct">0/20 (0%)</span></div>
+            </div>
+            <div id="menuPacks" class="menu-packs"></div>
+<a href="/devices" class="menu-item"><span data-icon="smartphone"></span>Devices</a>
+                        <a href="/docs" class="menu-item"><span data-icon="book"></span>Docs</a>
+            <button id="menuTheme" class="menu-item"><span data-icon="moon"></span>Dark mode</button>
+            <button id="menuSignout" class="menu-item danger"><span data-icon="logout"></span>Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="connect-main">
+      <div class="connect-card">
+        <div class="approvals-empty-mark" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </div>
+
+        <div id="ready">
+          <h1 class="connect-title">Connect this Mac</h1>
+          <p class="connect-body">
+            The notch on this Mac will show the requests waiting for you here, and let you answer them
+            without opening anything else.
+          </p>
+          <button class="btn connect-action" id="connect" type="button">Connect</button>
+          <p class="connect-note" id="hint"></p>
+          <p class="connect-back"><a href="/app">Back to dashboard</a></p>
+        </div>
+
+        <div id="signedOut" class="hide">
+          <h1 class="connect-title">Sign in first</h1>
+          <p class="connect-body">
+            This Mac can only be connected to a workspace you are signed in to on this browser.
+          </p>
+          <a class="btn connect-action" href="/app" style="display:block;text-align:center;text-decoration:none">
+            Open the dashboard
+          </a>
+          <p class="connect-note">Then come back to this page and press Connect.</p>
+        </div>
+
+        <div id="done" class="hide">
+          <h1 class="connect-title">Connected</h1>
+          <p class="connect-body">This Mac is paired. The requests will appear in the notch.</p>
+          <p class="connect-back"><a href="/app">Back to dashboard</a></p>
+        </div>
+
+        <details class="connect-fallback hide" id="fallback">
+          <summary>Didn't connect?</summary>
+          <code id="manual"></code>
+        </details>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+        const key = (hash.get("key") || localStorage.getItem("psh.apiKey") || "").trim();
+        const host = location.origin;
+
+        // No key on this browser means no account to connect to: send them to the login page,
+        // which comes back here afterwards. An anonymous account can be made there in one click.
+        if (!key) {
+          location.replace("/login?next=/connect");
+          return;
+        }
+
+        // The avatar is a :root variable pair, and the dashboard caches it so it paints before
+        // any fetch. Same source here, so this page shows the account rather than a blank disc.
+        try {
+          const cached = JSON.parse(localStorage.getItem("psh.avatar") || "null");
+          if (cached?.bg && cached?.initial) {
+            document.documentElement.style.setProperty("--avatar-bg", cached.bg);
+            document.documentElement.style.setProperty("--avatar-initial", JSON.stringify(cached.initial));
+            document.documentElement.dataset.avatar = "live";
+          }
+        } catch {
+          /* no cache yet: the disc still renders, just without the initial */
+        }
+
+        async function api(path, { method = "GET", body } = {}) {
+          const res = await fetch(path, {
+            method,
+            headers: { "Content-Type": "application/json", "x-psh-key": key },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+          return data;
+        }
+
+        // The same mint-then-claim the dashboard's pairing box uses, so a token from this page is
+        // exactly the one a QR code would have produced.
+        async function connect() {
+          const button = $("connect");
+          button.disabled = true;
+          button.textContent = "Connecting…";
+          $("hint").textContent = "";
+          try {
+            const minted = await api("/api/v1/devices/pairing", { method: "POST" });
+            const claimed = await api(`/api/v1/pairing/${encodeURIComponent(minted.token)}/claim`, {
+              method: "POST",
+              body: { name: "psh notch on this Mac" },
+            });
+            const token = claimed.deviceToken;
+            if (!token) throw new Error("The server did not return a device token. Try again.");
+
+            const target = `psh-notch://paired?token=${encodeURIComponent(token)}&host=${encodeURIComponent(host)}`;
+            $("manual").textContent = `open "${target}"`;
+
+            location.href = target;
+            setTimeout(() => {
+              // The app took the handover and opened itself; the tab has done its job.
+              $("ready").classList.add("hide");
+              $("done").classList.remove("hide");
+            }, 900);
+            setTimeout(() => {
+              if (!$("done").classList.contains("hide")) return;
+              button.disabled = false;
+              button.textContent = "Connect";
+              $("hint").textContent = "Nothing happened. The notch app may not be running.";
+              $("fallback").classList.remove("hide");
+            }, 2600);
+          } catch (err) {
+            button.disabled = false;
+            button.textContent = "Connect";
+            $("hint").textContent = err.message;
+          }
+        }
+
+        $("connect").addEventListener("click", connect);
+      })();
+    </script>
+    <script>
+      // The dashboard's script is written against the dashboard's page and reaches for many
+      // elements directly. This page only needs its account menu, so the elements it does not
+      // have are created empty, invisible and inert, letting that script initialise instead of
+      // throwing on the first missing node.
+      (function () {
+        const ids = ["acctBadge","acctCopyKey","acctEdit","acctEye","acctHandle","acctKeyValue","acctRegisterVerify","acctRevealKey","appNotices","approvals","authBack","authCode","authCodeStep","authCodeTools","authCopyCode","authDevCode","authEmail","authEmailStep","authFirstName","authForm","authHint","authKeyRow","authLastName","authNameRow","authSub","authSubmit","authTitle","authUseKey","billingUsage","channelSearch","channelSearchClear","channelSearchWrap","claimBadge","claimBanner","claimForm","closedChannels","closedSection","companyCountry","companyName","companyVat","keyInput","keyLoginBtn","limitCta","limitCtaBtn","menuBuy","menuRequests","navSearchWrap","newChannelBtn","newChannelForm","newChannelName","openChannels","pairModal","pairModalClose","pairModalCopy","pairModalQr","pairModalUrl","paired","regBtn","regCode","regEmail","regFirst","regLast","regVerifyBtn","rotateBox","rotateBtn","rotateSecretKey","rotateUserKey","secretCopy","secretCreate","secretHint","secretResult","secretValue","signOutBtn","status","statusText","toast","topupBtn","topupSummary","unpaired"];
+        for (const id of ids) {
+          if (document.getElementById(id)) continue;
+          const node = document.createElement("div");
+          node.id = id;
+          node.hidden = true;
+          document.body.appendChild(node);
+        }
+      })();
+    </script>
+    <script>
+      // Safety net: if the dashboard script cannot initialise on this page, the avatar would be a
+      // disc that does nothing. This opens the menu only when the click left it closed, so it
+      // never fights the real handler.
+      (function () {
+        const btn = document.getElementById("avatarBtn");
+        const menu = document.getElementById("avatarMenu");
+        if (!btn || !menu) return;
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const wasClosed = menu.classList.contains("hide");
+          setTimeout(() => {
+            if (wasClosed && menu.classList.contains("hide")) menu.classList.remove("hide");
+          }, 0);
+        });
+        document.addEventListener("click", () => menu.classList.add("hide"));
+        menu.addEventListener("click", (event) => event.stopPropagation());
+      })();
+    </script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

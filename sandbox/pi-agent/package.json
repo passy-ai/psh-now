@@ -1,0 +1,9 @@
+{
+  "name": "demo-service",
+  "version": "1.0.0",
+  "description": "A tiny demo service that the pi agent will try to reset.",
+  "scripts": {
+    "start": "bun index.ts",
+    "reset": "rm -rf node_modules package-lock.json && npm install --force"
+  }
+}
