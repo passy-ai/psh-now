@@ -362,6 +362,8 @@ claude mcp add --transport http psh https://psh.now/mcp --header "x-psh-key: psh
 Only `approved: true` means yes; `denied`, `expired` and errors all mean do not act. MCP is
 cooperative like the skill: it cannot stop an agent that never calls it. The gate is the hook.
 
+Protocol details, error codes and the reasoning behind the smaller surface: [docs/mcp.md](docs/mcp.md).
+
 ### WebSocket frames
 
 Server → phone:
