@@ -21,7 +21,7 @@
       </div>
     </header>
 
-    <main class="wrap">
+    <main class="wrap narrow">
       <div class="page-head">
         <div>
           <h1 class="page-title">Devices</h1>
@@ -198,8 +198,11 @@
           const live = (devices || []).filter((d) => !d.revokedAt);
           $("deviceList").innerHTML = live.length
             ? live.map(row).join("")
-            : `<div class="settings-empty">No devices paired yet.<br />
-                 Pair a phone to approve from anywhere.</div>`;
+            : `<div class="settings-empty empty-state">
+                 <span class="empty-mark" data-icon="smartphone"></span>
+                 <p class="empty-title">No devices paired yet</p>
+                 <p class="empty-copy">Pair a phone and you can approve from anywhere, even with the laptop shut.</p>
+               </div>`;
           hydrateIcons($("deviceList"));
           wire();
         } catch (err) {

@@ -115,6 +115,19 @@ max-width: 1080px;
 max-width: var(--shell-max);
   padding: 24px var(--shell-pad) 48px;
 }
+/* A settings page with two lines of text and one row does not want 1080px: at that
+   width the title and its button sit a screen apart. Same column as the app. */
+.wrap.narrow {
+  max-width: var(--shell-max);
+  padding: 26px var(--shell-pad) 64px;
+}
+@media (max-width: 480px) {
+  .wrap.narrow .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
 /* ---------- nav links ---------- */
 .nav-links {
 display: flex;
@@ -1160,6 +1173,26 @@ color: var(--text);
 .device:last-child {
   border-bottom: 0;
 }
+/* On a phone the revoke button ate the space the facts needed. A grid keeps the icon
+   beside the name and drops only the button onto its own line. */
+@media (max-width: 520px) {
+  .device {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    align-items: center;
+    gap: 10px 14px;
+  }
+  .device .device-body {
+    grid-column: 2;
+  }
+  .device .device-icon {
+    align-self: start;
+  }
+  .device .device-revoke {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
 .device-icon {
   flex: none;
   display: grid;
@@ -1348,6 +1381,34 @@ display: flex;
 color: var(--dim);
   font-size: 13.5px;
   padding: 8px 0;
+}
+/* An empty list should look finished, not like a box that failed to load. */
+.empty-state {
+  padding: 30px 18px 28px;
+  text-align: center;
+}
+.empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+.empty-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.empty-copy {
+  margin: 0 auto;
+  max-width: 36ch;
+  font-size: 13px;
+  line-height: 1.45;
 }
 .settings-danger .settings-title {
 color: var(--red);
