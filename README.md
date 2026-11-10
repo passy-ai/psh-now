@@ -4,6 +4,8 @@ Human approval for AI agents: one host, one key, one boolean.
 
 ![A request lands in the notch; one keystroke answers it](assets/demo.gif)
 
+[![skills.sh](https://skills.sh/b/passy-ai/psh-now-skill)](https://www.skills.sh/passy-ai/psh-now-skill)
+
 An agent that needs a decision sends a short **title** and **message** to psh.now and blocks. You
 tap **Approve** or **Deny** from one page, or answer in your own words, and the agent continues
 with the result. It exists because agents stall in terminals nobody is watching.

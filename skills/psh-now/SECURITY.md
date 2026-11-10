@@ -121,7 +121,7 @@ about it is anonymously readable: a credential-free `git ls-remote` against it
 fails, unlike a public control repo. Use it when you have that access and would
 rather read the repo than the archive.
 
-**The `curl | sh` fallback** exists for machines without npm, git or repo access,
+**The download-and-run fallback** exists for machines without npm, git or repo access,
 and it is the route that needs no credentials. If you would rather not pipe blind
 at all, read this one file first - it is ~300 lines of POSIX `sh`, digest check
 included:

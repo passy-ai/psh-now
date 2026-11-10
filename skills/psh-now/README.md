@@ -2,6 +2,8 @@
 
 ![A request lands in the notch; one keystroke answers it](assets/demo.gif)
 
+[![skills.sh](https://skills.sh/b/passy-ai/psh-now-skill)](https://www.skills.sh/passy-ai/psh-now-skill)
+
 Approve, deny, or answer an agent's questions from your phone, so it never stalls in a terminal
 nobody is watching. This is the skill. The server behind it is
 [passy-ai/psh-now](https://github.com/passy-ai/psh-now): open source, MIT, self hostable.

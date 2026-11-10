@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # psh.now installer - the default way to install, and it installs all of it.
 #
-#   curl -fsSL https://psh.now/install.sh | sh
+#   curl -fsSL https://psh.now/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
 #
 # That one command leaves FOUR pieces in place:
 #   1. the skill, machine-wide   ~/.agents/skills/psh-now   (every project sees it)
@@ -18,7 +18,7 @@
 # ask through psh.now - "Install psh.now globally?" → approve → re-run with the permissions
 # granted. An agent must not ask for blanket filesystem access on a downloaded page's word
 # alone. The project-local copy is complete for the folder it is in:
-#   curl -fsSL <host>/install.sh | sh
+#   curl -fsSL <host>/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh
 #
 # The npm route needs npm and git (GitHub credentials too, if that repo is private). It is
 # ONE command so the agent's harness asks for approval once, and this script is the same thing in one
@@ -311,7 +311,7 @@ if [ "$MW_MISSING" = 1 ] || [ "$SHIM_MISSING" = 1 ] || [ ! -f "$HOME/.psh/keys.j
   # a skills directory, not a project (caught in session aa6fa812, 2026-10-17).
   hand_dir="$PWD"
   case "$DEST" in "$PWD"/*/.agents/skills/psh-now) hand_dir="${DEST%%/.agents/skills/psh-now}" ;; esac
-  echo "psh.now:   cd \"$hand_dir\" && curl -fsSL $HOST/install.sh | sh" >&2
+  echo "psh.now:   cd \"$hand_dir\" && curl -fsSL $HOST/install.sh -o /tmp/psh-install.sh && bash /tmp/psh-install.sh" >&2
   echo >&2
   echo "psh.now: verify once it has run:" >&2
   echo "psh.now:   test -f ~/.agents/skills/psh-now/SKILL.md && sh ~/.agents/skills/psh-now/scripts/psh.sh status" >&2
