@@ -151,7 +151,11 @@ try {
 
   console.log("\nprotocol");
   const get = await fetch(`${BASE}/mcp`);
-  check("GET /mcp is 405 with Allow: POST", get.status === 405 && get.headers.get("allow") === "POST", `got ${get.status}`);
+  const getBody = (await get.json().catch(() => ({}))) as { transport?: { url?: string } };
+  check("GET /mcp answers with the descriptor", get.status === 200 && getBody.transport?.url === `${BASE}/mcp`, `got ${get.status}`);
+
+  const sse = await fetch(`${BASE}/mcp`, { headers: { accept: "text/event-stream" } });
+  check("GET /mcp asking for SSE is 405 with Allow: POST", sse.status === 405 && sse.headers.get("allow") === "POST", `got ${sse.status}`);
 
   const bad = await rpc(null, { raw: "{not json" });
   check("invalid JSON is -32700", bad.body.error?.code === -32700, JSON.stringify(bad.body.error));

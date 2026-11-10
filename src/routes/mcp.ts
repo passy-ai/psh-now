@@ -134,8 +134,16 @@ function toHookBody(args: Record<string, unknown>): HookBody | { error: string }
 }
 
 export const mcpRoutes = new Elysia()
-  // GET is only for clients that expect a server-initiated stream. We never send one.
-  .get("/mcp", () => new Response(null, { status: 405, headers: { allow: "POST" } }))
+  /**
+   * GET is only for clients that expect a server-initiated stream, and this server never
+   * speaks first. An SSE attempt gets the 405 the spec asks for; anything else (a browser,
+   * a readiness scanner, curl) gets the descriptor, so the URL answers rather than shrugs.
+   */
+  .get("/mcp", ({ request }) =>
+    (request.headers.get("accept") ?? "").includes("text/event-stream")
+      ? new Response(null, { status: 405, headers: { allow: "POST" } })
+      : Response.json(mcpDescriptor()),
+  )
   .delete("/mcp", () => new Response(null, { status: 405, headers: { allow: "POST" } }))
   .post(
     "/mcp",
