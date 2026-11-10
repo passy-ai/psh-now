@@ -114,7 +114,13 @@ resolve_psh_dir() {
     [ "$parent" = "$dir" ] && break
     dir="$parent"
   done
-  printf '%s' "$PWD/.psh"
+  # Nothing above us is a project. Started from / (a container's default workdir) that used
+  # to become a workspace root, so the keys landed in /.psh: the machine record is the only
+  # sane place for an install that is not inside a project.
+  case "$PWD" in
+    / | "") [ -n "$HOME" ] && { printf '%s' "$HOME/.psh"; return; } ;;
+  esac
+  printf '%s' "${PWD%/}/.psh"
 }
 PSH_DIR="$(resolve_psh_dir)"
 KEYS="$PSH_DIR/keys.json"
