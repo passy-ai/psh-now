@@ -123,7 +123,8 @@ function toolPayload(reply: RpcReply): Record<string, unknown> {
   try {
     return JSON.parse(text) as Record<string, unknown>;
   } catch {
-    return {};
+    // Keep the body: a proxy error page or an HTML 5xx must be visible in the report.
+    return { _raw: text.slice(0, 200) };
   }
 }
 
@@ -309,7 +310,7 @@ try {
   check(
     "unanswered asks expire and approve nothing",
     burned.every((r) => toolPayload(r.body).approved === false),
-    JSON.stringify(burned.map((r) => toolPayload(r.body).status)),
+    JSON.stringify(burned.map((r) => toolPayload(r.body))),
   );
 
   const overStart = Date.now();

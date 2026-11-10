@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="OpenCode integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Open source agent, open source approval." />
+    <title>OpenCode + psh.now — ask before it acts, from anywhere</title>
+    <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
+    <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="/website/styles.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Agents","item":"https://psh.now/agents"},{"@type":"ListItem","position":3,"name":"OpenCode","item":"https://psh.now/agents/opencode"}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect OpenCode to psh.now","description":"OpenCode integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Open source agent, open source approval.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <div class="header-inner">
+        <div class="header-left">
+          <a class="brand" href="/">
+            <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+            psh.now
+          </a>
+          <nav class="header-nav" aria-label="Main">
+            <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link" href="/agents" aria-current="page">Agents</a>
+            <a class="nav-link" href="/teams">Teams</a>
+            <a class="nav-link" href="/alternatives">Alternatives</a>
+            <a class="nav-link" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </nav>
+        </div>
+        <div class="header-right">
+          <a class="nav-link" href="/app">Log in</a>
+          <a class="btn btn-primary" href="/app">Get started</a>
+        </div>
+        </div>
+      </header>
+      <main class="subpage">
+        <div class="docs-main">
+        <p class="crumbs"><a href="/agents">← All agents</a></p>
+        <section class="agent-head">
+          <span class="logo-tile"><img src="/website/agents/logos/opencode.svg" alt="OpenCode logo" width="26" height="26" /></span>
+          <div>
+            <h1>OpenCode <span class="plus">+</span> psh.now</h1>
+            <p class="agent-tagline">Open source agent, open source approval.</p>
+          </div>
+        </section>
+
+        <p class="docs-lede">OpenCode reads skills from ~/.config/opencode/skills. Both halves of this pairing are MIT licensed, so the whole path from question to answer is code you can read.</p>
+
+        <h2>Install it</h2>
+        <p>Two commands, either one. The first is the packaged skill; the second needs no npm and no git.</p>
+        <pre data-copyable>npx skills add passy-ai/psh-now-skill -g -y</pre>
+        <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
+        <p>
+          It lands in <code>~/.config/opencode/skills/psh-now</code>, so only OpenCode picks it up from there.
+          The shared directory is the fallback every harness reads, so the same install works everywhere else too.
+        </p>
+
+        <h2>Connect a channel</h2>
+        <p>
+          Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and give it to
+          OpenCode. The link carries the channel, so nothing new is minted and the key it gets is
+          <strong>ask-only</strong> - it can request approvals, never approve.
+        </p>
+        <pre data-copyable>I'd like you to use psh.now and join https://psh.now/c/&lt;channel&gt;.</pre>
+
+        <h2>What it asks with</h2>
+        <p>Once installed, the agent's side of the contract is one command:</p>
+        <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
+        <p>
+          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. A timeout
+          or an error means do not act - silence is never consent.
+        </p>
+
+        <h2>Ask or gate</h2>
+        <p>
+          OpenCode runs the skill, and a skill is an <strong>ask</strong>: the model can skip it. If your
+          setup exposes hooks, wire <code>psh hook</code> and the same call becomes a gate instead. Claude
+          Code is the reference: <a href="/agents/claude-code">see its hook</a>.
+        </p>
+
+        <h2>Check it works</h2>
+        <pre data-copyable>psh status</pre>
+        <p>
+          Expect the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code> goes
+          further: the skill path, the keys, the workspace and any stale record.
+        </p>
+
+        <section class="cta-row">
+          <a class="btn btn-primary" href="/app">Get a channel</a>
+          <a class="btn btn-secondary" href="/docs">Read the docs</a>
+        </section>
+
+        <h2>Other agents</h2>
+        <div class="agent-grid">
+        <a class="agent-card" href="/agents/claude-code"><span class="logo-tile sm"><img src="/website/agents/logos/claude.svg" alt="" width="20" height="20" /></span><span><span class="name">Claude Code</span><br /><span class="sub">~/.claude/skills/psh-now</span></span></a>
+        <a class="agent-card" href="/agents/codex"><span class="logo-tile sm"><img src="/website/agents/logos/openai.svg" alt="" width="20" height="20" /></span><span><span class="name">Codex</span><br /><span class="sub">shared skills dir</span></span></a>
+        <a class="agent-card" href="/agents/cursor"><span class="logo-tile sm"><img src="/website/agents/logos/cursor.svg" alt="" width="20" height="20" /></span><span><span class="name">Cursor</span><br /><span class="sub">~/.cursor/skills/psh-now</span></span></a>
+        <a class="agent-card" href="/agents/cline"><span class="logo-tile sm"><img src="/website/agents/logos/cline.svg" alt="" width="20" height="20" /></span><span><span class="name">Cline</span><br /><span class="sub">shared skills dir</span></span></a>
+        <a class="agent-card" href="/agents/windsurf"><span class="logo-tile sm"><img src="/website/agents/logos/windsurf.svg" alt="" width="20" height="20" /></span><span><span class="name">Windsurf</span><br /><span class="sub">shared skills dir</span></span></a>
+        <a class="agent-card" href="/agents/trae"><span class="logo-tile sm"><img src="/website/agents/logos/trae.svg" alt="" width="20" height="20" /></span><span><span class="name">Trae</span><br /><span class="sub">~/.trae/skills/psh-now</span></span></a>
+        <a class="agent-card" href="/agents/hermes-agent"><span class="logo-tile sm"><img src="/website/agents/logos/hermes.svg" alt="" width="20" height="20" /></span><span><span class="name">Hermes Agent</span><br /><span class="sub">~/.hermes/skills/psh-now</span></span></a>
+        <a class="agent-card" href="/agents/warp"><span class="logo-tile sm"><img src="/website/agents/logos/warp.svg" alt="" width="20" height="20" /></span><span><span class="name">Warp</span><br /><span class="sub">shared skills dir</span></span></a>
+        <a class="agent-card" href="/agents/qwen-code"><span class="logo-tile sm"><img src="/website/agents/logos/qwen.svg" alt="" width="20" height="20" /></span><span><span class="name">Qwen Code</span><br /><span class="sub">shared skills dir</span></span></a>
+        </div>
+        <p class="muted">
+          Anything else that can run a shell command can ask too - the skill installer supports 79 agents,
+          and the CLI is the same everywhere.
+        </p>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <div>
+            <div class="footer-brand">
+              <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+              psh.now
+            </div>
+            <p class="footer-tag">One hub for every agent that needs you</p>
+          </div>
+          <div class="footer-col">
+            <h4>PRODUCT</h4>
+            <a href="/docs">Docs</a>
+            <a href="/agents">Agents</a>
+            <a href="/teams">Teams</a>
+            <a href="/alternatives">Alternatives</a>
+            <a href="/self-hosting">Self hosting</a>
+            <a href="/llms.txt">llms.txt</a>
+          </div>
+          <div class="footer-col">
+            <h4>OPEN SOURCE</h4>
+            <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+            <a href="https://github.com/passy-ai/psh-now/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a>
+          </div>
+          <div class="footer-col">
+            <h4>LEGAL</h4>
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+          </div>
+          <div class="footer-col">
+            <h4>COMPANY</h4>
+            <a href="https://absolum.nl">Absolum</a>
+            <a href="mailto:hello@psh.now">Contact</a>
+          </div>
+        </div>
+        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+      </footer>
+    </div>
+    <script>
+      document.querySelectorAll("pre[data-copyable]").forEach((pre) => {
+        pre.classList.add("copyable");
+        const b = document.createElement("button");
+        b.className = "pre-copy";
+        b.textContent = "Copy";
+        b.onclick = () => {
+          navigator.clipboard.writeText(pre.textContent.replace(/Copy$/, "")).then(
+            () => { b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1400); },
+            () => { b.textContent = "Copy failed"; },
+          );
+        };
+        pre.appendChild(b);
+      });
+    </script>
+  </body>
+</html>

@@ -42,3 +42,4 @@ credentials*.json
 # Throwaway screenshot/verification scripts.
 _*.mjs
 _*.png
+pushlab/
