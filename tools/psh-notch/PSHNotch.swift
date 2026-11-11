@@ -2606,11 +2606,20 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         feed.onHello = { [weak self] pending, workspace in
             DispatchQueue.main.async {
                 log("feed snapshot: \(pending.count) pending: \(pending.map { String($0.id.prefix(8)) }.joined(separator: ","))")
-                self?.asks = pending.filter { !(self?.decidedIDs.contains($0.id) ?? false) }
-                self?.refreshTitle()
+                guard let self else { return }
+                self.asks = pending.filter { !self.decidedIDs.contains($0.id) }
+                self.refreshTitle()
                 log("on \(workspace), \(pending.count) waiting")
-                if !pending.isEmpty { self?.showNotch(for: pending[0]) }
-                if !pending.isEmpty { self?.reconcilePending() }
+                // An empty snapshot is a state like any other. Left alone, the bar kept the count
+                // it had before a reconnect (or before a decision made elsewhere) while the list
+                // said nothing was waiting, so the badge and the list disagreed on screen.
+                self.applyAsks()
+                if let first = self.asks.first {
+                    self.showNotch(for: first)
+                    self.reconcilePending()
+                } else {
+                    self.withdrawList()
+                }
             }
         }
         feed.onCreated = { [weak self] ask in
