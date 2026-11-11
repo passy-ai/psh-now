@@ -73,9 +73,11 @@ Then, in the project you want to protect:
 bun /path/to/psh/cli/psh.ts init
 ```
 
-This creates a workspace, prints your API key, renders a pairing QR code, and
-writes a managed rule block into `./agents.md`. Scan the QR with your phone to
-open the PWA, tap **Pair this device**, and you're live.
+This creates a workspace, prints your API key once, saves it to `~/.psh/keys.json`
+(mode 0600), and renders a pairing QR code. Scan the QR with your phone to open
+the PWA, tap **Pair this device**, and you're live. The agent's rules file is the
+block in [the integration section](#integration-the-rule-in-agentsmd-or-a-skill);
+it refers to the key, so it stays safe to commit.
 
 ### Or create a channel in the browser
 
@@ -223,10 +225,13 @@ Migrations are idempotent, so they are safe to run on every boot.
 
 ---
 
-## Integration: a key in `agents.md` (or a skill)
+## Integration: the rule in `agents.md` (or a skill)
 
-The whole wire-up is a host, a key, and one instruction. `psh init` writes the
-block below into `./agents.md` with your real host and key
+The whole wire-up is a host, a key, and one instruction. `psh init` mints the key
+and pairs your phone; it does not write your agent's rules file. The block below
+is safe to commit because it carries no credential: the HTTP form reads
+`PSH_API_KEY` from the environment, and the installed `psh` CLI reads the key
+from `~/.psh/keys.json`
 (see [`templates/agents-snippet.md`](templates/agents-snippet.md)):
 
 ```md
@@ -235,12 +240,15 @@ block below into `./agents.md` with your real host and key
 Before any destructive, irreversible, or production action, ask first:
 
 curl -s -X POST https://psh.now \
-  -H "x-psh-key: psh_live_…" \
+  -H "x-psh-key: $PSH_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"title":"<short label>","message":"<what you are about to do>"}'
 
 Proceed only if the response is {"approved":true}. Otherwise do not act.
 ```
+
+Where the skill or the installer has run, `psh ask "<short label>" "<what you are
+about to do>"` is the same call and reads the key from `~/.psh/keys.json` itself.
 
 Harnesses that support **skills** can load
 [the skill](https://psh.now/skill.md) instead (or as well). It teaches
@@ -258,7 +266,9 @@ npx skills add passy-ai/psh-now-skill -g -y
 curl -fsSL https://psh.now/install.sh | sh
 ```
 
-Then give the agent a host and key (environment or `agents.md`):
+The key stays out of the repo. Either let `psh` read it from `~/.psh/keys.json`
+(mode 0600, written by the installer), or export it in the environment the
+agent runs in:
 
 ```bash
 export PSH_BASE_URL="https://psh.now"
@@ -275,8 +285,8 @@ That is the entire integration surface for an arbitrary agent:
 - **gate**: `psh hook` wired into a harness's pre-tool hook, which cannot be
   skipped. Optional, and only where the harness supports it.
 
-> The API key in `agents.md` is a secret. If that file is committed, gitignore
-> it or keep the key in `PSH_API_KEY` and reference the env var instead.
+> `agents.md` holds the rule, not the key: nothing in it is a secret, so it is
+> safe to commit. The key lives in `~/.psh/keys.json` (0600) or `PSH_API_KEY`.
 
 ---
 

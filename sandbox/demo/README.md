@@ -4,7 +4,8 @@ A tiny project for testing psh with any AI agent.
 
 - **Host:** https://refer-hospitality-immediate-donors.trycloudflare.com
 - **Workspace:** dSkA0Nmw6x7
-- The rule the agent must follow is in **`agents.md`** (it contains the key).
+- The rule the agent must follow is in **`agents.md`**. That file also holds this demo's
+  key, which is why it is in `.gitignore` here.
 
 ---
 
@@ -64,4 +65,6 @@ psh status
 
 ---
 
-> ⚠️ `agents.md` contains a real API key for this demo workspace. Don't commit it.
+> ⚠️ `agents.md` holds a real key for this demo workspace and is gitignored for that
+> reason. Do not copy that pattern into a project you commit: in a real repo the rule
+> belongs in `agents.md` and the key in `PSH_API_KEY` or `~/.psh/keys.json`.

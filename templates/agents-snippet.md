@@ -8,10 +8,16 @@ first:
 
 ```bash
 curl -s -X POST https://psh.now \
-  -H "x-psh-key: psh_live_REPLACE_ME" \
+  -H "x-psh-key: $PSH_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"title":"<short label>","message":"<what you are about to do>"}'
 ```
+
+The key comes from the environment, never from this file, so this block is safe
+to commit. Where the skill or the installer has run, `psh` is on PATH and reads
+the key from `~/.psh/keys.json` (mode 0600) itself, so
+`psh ask "<short label>" "<what you are about to do>"` is the same call with
+nothing to export.
 
 The response is `{"approved":true}` or `{"approved":false}`.
 
