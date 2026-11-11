@@ -1057,68 +1057,10 @@ display: inline-flex;
 .history-body {
 padding: 10px 0;
 }
-/* ---------- channel settings ---------- */
+/* ---------- channel card + device page panels ---------- */
 
-.settings {
-display: flex;
-  flex-direction: column;
-  max-width: 600px;
-}
-.settings-block {
-padding: 22px 0;
-  border-top: 1px solid var(--line-soft);
-}
-.settings-block:first-child {
-border-top: 0;
-  padding-top: 6px;
-}
-.settings-title {
-margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-.settings-desc {
-margin: 4px 0 14px;
-  color: var(--dim);
-  font-size: 13.5px;
-}
-.settings-row {
-display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.settings-row + .settings-desc {
-margin-top: 4px;
-}
-.settings-row .btn {
-flex: none;
-}
-.settings-block .field {
-width: 100%;
-}
-.settings-block .btn.primary,
-.settings-block .btn.danger-ghost {
-margin-top: 14px;
-}
-/* Invite row: the address field and its send button read as one control.
-   (Declared after the rule above so the shared 14px top margin is cancelled.) */
-.settings-invite {
-display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.settings-invite .field {
-flex: 1 1 auto;
-  min-width: 0;
-}
-.settings .settings-invite .btn {
-flex: none;
-  margin: 0;
-  white-space: nowrap;
-}
 /* The agent's key id, next to its "agent" label: what a decision card shows. */
-.settings-meta .settings-id {
+.settings-id {
 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11.5px;
   color: var(--dim);
@@ -1327,56 +1269,6 @@ color: var(--text);
   }
 }
 
-/* ---------- lists of people / agents / devices ---------- */
-.settings-list {
-display: flex;
-  flex-direction: column;
-}
-.settings-item {
-display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line-soft);
-  font-size: 14px;
-}
-.settings-item:last-child {
-border-bottom: 0;
-}
-.settings-name {
-flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 5px 7px;
-}
-.settings-name:hover {
-border-color: var(--line);
-}
-.settings-name:focus {
-outline: none;
-  border-color: var(--hover-border);
-  background: var(--surface-2);
-}
-.settings-name.static,
-.settings-name.static:hover {
-padding-left: 0;
-  border-color: transparent;
-}
-.settings-meta {
-color: var(--dim);
-  font-size: 12.5px;
-  white-space: nowrap;
-}
-.settings-actions {
-display: flex;
-  gap: 4px;
-}
 .settings-empty {
 color: var(--dim);
   font-size: 13.5px;
@@ -1409,9 +1301,6 @@ color: var(--dim);
   max-width: 36ch;
   font-size: 13px;
   line-height: 1.45;
-}
-.settings-danger .settings-title {
-color: var(--red);
 }
 .icon-btn.danger {
 color: var(--red);
@@ -1793,26 +1682,15 @@ display: flex;
   /* Land below the sticky nav when scrolled to. */
   scroll-margin-top: 76px;
 }
-/* The settings view is still a panel, not a line item: it replaces a row in
-   place. The new-channel form is deliberately not in here - it is an ordinary
-   row of the same list, so it inherits the plain .channel-card styling below
-   with no surface, no box and no inset. */
-.channel-card.settings-card {
-  background: var(--surface);
-  border: 1px solid var(--line-soft);
-  border-radius: 20px;
-  padding: 24px;
-  margin-top: 20px;
-}
 /* Clicking a row opens it (its history expands); controls keep their own job. */
-.channel-card[data-id]:not(.settings-card) {
+.channel-card[data-id] {
   cursor: pointer;
   position: relative;
 }
 /* The hover tint is its own rounded panel, bleeding past the row box. The card is
    a list row (2px side padding, square corners, hairline underneath), so tinting
    the box itself reads as a cut-off band that stops flush against the text. */
-.channel-card[data-id]:not(.settings-card)::after {
+.channel-card[data-id]::after {
   content: "";
   position: absolute;
   inset: -6px -14px;
@@ -1821,7 +1699,7 @@ display: flex;
   pointer-events: none;
   transition: background 0.15s ease;
 }
-.channel-card[data-id]:not(.settings-card):hover::after {
+.channel-card[data-id]:hover::after {
   background: color-mix(in srgb, var(--text) 4%, transparent);
 }
 /* The name stays a double-click-to-rename target, so it doesn't read as the

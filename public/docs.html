@@ -32,7 +32,7 @@
             "name": "What does the agent get back?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "One boolean. Approve returns true and the agent continues; deny returns false and it stops. No session, no SDK, no MCP, any agent with shell or HTTP access can use it."
+              "text": "One boolean. Approve returns true and the agent continues; deny returns false and it stops. No session, no SDK: any agent with shell or HTTP access can use it, and a client that only speaks MCP can send the same request to /mcp."
             }
           },
           {
@@ -182,9 +182,9 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         <p>
           The link decides the account <em>and</em> the channel, so nothing new is
           minted and the agent stays <strong>ask-only</strong>. It is the channel's
-          reusable <code>/c/&lt;channel&gt;</code> URL: find it in <strong>More
-          actions</strong> → <strong>Channel settings</strong>, in
-          <code>.psh/keys.json</code> of an already-connected folder, or by running
+          reusable <code>/c/&lt;channel&gt;</code> URL: the share button on the
+          card shows it, and an already-connected folder has it in
+          <code>.psh/keys.json</code> or can print it with
           <code>psh status</code>. Joining
           with it already set is what keeps the work on <em>your</em> account.
         </p>
@@ -213,8 +213,8 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         </p>
         <ul>
           <li><strong>Copy prompt for agent</strong> - the ready-to-paste prompt, with the channel's link inside it.</li>
-          <li><strong>Who's in this channel</strong> - the people and agents on it, and a reusable invite link.</li>
-          <li><strong>More actions</strong> - <em>Channel settings</em> (who has joined, each agent's key, Archive), Rename, Export history (CSV), Delete.</li>
+          <li><strong>Who's in this channel</strong> - the people and agents on it, each agent's key, and a reusable invite link.</li>
+          <li><strong>More actions</strong> - Rename, Export history (CSV), Archive, Delete.</li>
         </ul>
         <p>Create one with <strong>＋ New channel</strong>. Requests that never named a
           channel land in <code>Default</code>.</p>
@@ -248,7 +248,7 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <a href="/openapi.json">/openapi.json</a>, agent context:
           <a href="/llms-full.txt">/llms-full.txt</a></p>
 
-        <h2 id="mcp">MCP (optional)</h2>
+        <h2 id="mcp">MCP</h2>
         <p>The HTTP call above is the contract. For clients that cannot install a skill, the
           same request is also a single MCP tool at <code>/mcp</code> (streamable HTTP, plain JSON
           responses, no OAuth). One tool, <code>psh_ask</code>, with
@@ -259,7 +259,11 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
         <pre data-copyable>{ "mcpServers": { "psh": {
       "url": "https://psh.now/mcp",
       "headers": { "x-psh-key": "psh_agent_…" } } } }</pre>
-        <p>Descriptor: <a href="/.well-known/mcp.json">/.well-known/mcp.json</a>. Only
+        <p>Descriptor: <a href="/.well-known/mcp.json">/.well-known/mcp.json</a>. Published in the
+          official MCP registry as
+          <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.passy-ai%2Fpsh-now" target="_blank" rel="noopener"><code>io.github.passy-ai/psh-now</code></a>,
+          and it answers protocol <code>2025-06-18</code>, <code>2025-03-26</code> and
+          <code>2024-11-05</code>. Only
           <code>approved: true</code> means yes; an <code>answer</code> is the person's own words,
           not permission. MCP is cooperative like the skill - it cannot stop an agent that ignores
           it. The gate is the harness hook.</p>

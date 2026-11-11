@@ -77,7 +77,6 @@ const state = {
   channelReqOpen: {},
   channelHistOpen: {},
   channelConnOpen: {},
-  channelSettingsOpen: {},
   /** Invite links minted in this session, by channel (the server only keeps hashes). */
   inviteLinks: {},
   channelConnect: {},
@@ -1030,52 +1029,12 @@ function historyRow(channelId) {
     <div class="history-body hide" id="hist-${esc(channelId)}"></div>`;
 }
 
-/**
- * The channel settings panel. Three tidy sections, one purpose each:
- * Joined, Archive. (The channel URL lives in the card header and on the share
- * button, so it is not repeated here.)
- */
-function settingsPane(channelId) {
-  const c = channelById(channelId) || {};
-  return `
-    <div class="settings">
-      <section class="settings-block">
-        <header class="settings-row">
-          <h4 class="settings-title">Joined</h4>
-          <button class="btn sm" data-newkey="${esc(channelId)}">${icon("plus", 14)} Add agent</button>
-        </header>
-        <p class="settings-desc">People and agents with access to this channel. To add a person, use the share button in the card header - that link lets them sign up and join.</p>
-        <div class="settings-list" id="set-joined-${esc(channelId)}"><div class="settings-empty">Loading…</div></div>
-      </section>
-
-      <section class="settings-block settings-danger">
-        <button class="btn danger-ghost sm" data-archive="${esc(channelId)}">${icon("archive", 14)} Archive</button>
-      </section>
-    </div>`;
-}
-
 function plural(n, word) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
 function channelSection(c) {
   const accent = c.color || "";
-
-  // Settings replaces the card's contents *in place* - same slot in the list,
-  // no separate screen - and the gear turns into a close button.
-  if (state.channelSettingsOpen[c.id]) {
-    return `
-    <section class="channel-card settings-card" data-id="${esc(c.id)}"${accent ? ` style="--accent:${esc(accent)}"` : ""}>
-      <header class="ch-head">
-        <div class="ch-head-text">
-          <span class="ch-kicker">Channel settings</span>
-          <h3 class="ch-name">${esc(c.name)}</h3>
-        </div>
-        <button class="icon-btn ch-close" data-close="${esc(c.id)}" aria-label="Close settings" title="Close">${icon("x", 16)}</button>
-      </header>
-      ${settingsPane(c.id)}
-    </section>`;
-  }
 
   // Pending requests already show in the big card up top, so the channel card
   // only carries its identity and an optional history.
@@ -1097,9 +1056,9 @@ function channelSection(c) {
         <span class="ch-more-wrap">
           <button class="icon-btn ch-more" data-more="${esc(c.id)}" aria-label="More actions" aria-expanded="false">${icon("more-vertical", 16)}</button>
           <div class="menu ch-more-menu hide" id="more-${esc(c.id)}">
-            <button class="menu-item" data-open="${esc(c.id)}">${icon("settings", 15)}Channel settings</button>
             <button class="menu-item" data-rename="${esc(c.id)}">${icon("pencil", 15)}Rename</button>
             <button class="menu-item" data-csv="${esc(c.id)}">${icon("download", 15)}Export history (CSV)</button>
+            <button class="menu-item" data-archive="${esc(c.id)}">${icon("archive", 15)}Archive channel</button>
             <button class="menu-item danger" data-delete="${esc(c.id)}">${icon("trash", 15)}Delete channel</button>
           </div>
         </span>
@@ -1365,7 +1324,7 @@ function wireChannels() {
   // click anywhere on it. Every control keeps its own job: the buttons, the
   // copy pill, the colour swatch, the … menu, the expanded history, and the
   // name (which is still double-click to rename).
-  for (const card of root.querySelectorAll(".channel-card[data-id]:not(.settings-card)")) {
+  for (const card of root.querySelectorAll(".channel-card[data-id]")) {
     card.onclick = (e) => {
       if (e.target.closest("button, a, input, select, .menu, .pickr, .pcr-app, .ch-name, .ch-history"))
         return;
@@ -1376,12 +1335,6 @@ function wireChannels() {
   for (const el of root.querySelectorAll("[data-name]")) {
     el.ondblclick = () =>
       inlineEdit(el, el.textContent.trim(), (v) => renameChannel(el.dataset.name, v));
-  }
-  for (const btn of root.querySelectorAll("[data-open]")) {
-    btn.onclick = () => openSettings(btn.dataset.open);
-  }
-  for (const btn of root.querySelectorAll("[data-close]")) {
-    btn.onclick = () => closeSettings(btn.dataset.close);
   }
 
   for (const row of root.querySelectorAll(".req-row[id]")) {
@@ -1515,56 +1468,19 @@ function wireChannels() {
     const pickr = attachPickr(swatch, current, (hex) => setChannelColor(id, hex));
     if (pickr) channelPickrs.push(pickr);
   }
-  for (const btn of root.querySelectorAll("[data-newkey]")) {
-    btn.onclick = () => newChannelKey(btn.dataset.newkey);
-  }
   for (const btn of root.querySelectorAll("[data-pair]")) {
     btn.onclick = () => pairFromChannel(btn.dataset.pair, btn);
-  }
-  for (const btn of root.querySelectorAll("[data-save]")) {
-    btn.onclick = () => saveChannelSettings(btn.dataset.save);
   }
   for (const btn of root.querySelectorAll("[data-archive]")) {
     btn.onclick = () => archiveChannel(btn.dataset.archive);
   }
 
-  // Fill each channel's connect prompt, plus any open history / settings.
+  // Fill each channel's connect prompt, plus its history when it is unfolded.
   for (const card of root.querySelectorAll(".channel-card[data-id]")) {
     const id = card.dataset.id;
-    if (state.channelSettingsOpen[id]) {
-      wireSettings(id);
-      void loadSettings(id);
-      continue;
-    }
     void ensureChannelConnect(id);
     if (state.channelHistOpen[id]) void loadHistory(id);
   }
-}
-
-/**
- * Settings swaps the card's own contents in place (the gear becomes an ×), so
- * the fields get the full card width without leaving the page.
- */
-function openSettings(channelId) {
-  state.channelSettingsOpen[channelId] = true;
-  renderChannels();
-}
-
-function closeSettings(channelId) {
-  state.channelSettingsOpen[channelId] = false;
-  renderChannels();
-}
-
-/** Wire the controls inside a card's settings body. */
-function wireSettings(channelId) {
-  const root = document.querySelector(
-    `.channel-card.settings-card[data-id="${channelId}"] .settings`,
-  );
-  if (!root) return;
-  const on = (sel, fn) => root.querySelectorAll(sel).forEach((b) => (b.onclick = fn(b)));
-  on("[data-save]", (b) => () => saveChannelSettings(b.dataset.save));
-  on("[data-newkey]", (b) => () => newChannelKey(b.dataset.newkey));
-  on("[data-archive]", (b) => () => archiveChannel(b.dataset.archive));
 }
 
 /** Fetch and render a channel's decided requests. */
@@ -1687,19 +1603,6 @@ async function exportHistory(channelId, btn) {
   }
 }
 
-/** Settings: members, agents, and devices as separate lists. */
-/** One row in a settings list: a name (editable or not), a status, actions. */
-function settingsItem({ name, meta, id, rename, actions = "" }) {
-  const nameEl = rename
-    ? `<input class="settings-name" ${rename} value="${esc(name)}" aria-label="Name" />`
-    : `<span class="settings-name static">${esc(name)}</span>`;
-  return `<div class="settings-item">
-    ${nameEl}
-    <span class="settings-meta">${esc(meta)}${id ? ` <code class="settings-id">${esc(id)}</code>` : ""}</span>
-    ${actions ? `<span class="settings-actions">${actions}</span>` : ""}
-  </div>`;
-}
-
 /** "in 3 days" - for things that are still ahead of us (links, invites). */
 function untilText(value) {
   const diff = new Date(value).getTime() - Date.now();
@@ -1774,6 +1677,8 @@ async function loadShare(channelId) {
         <span class="share-name"><span class="share-name-text">${esc(k.name)}</span>
           <button class="icon-btn sm" data-renamekey="${esc(k.id)}" aria-label="Rename agent"
             title="Rename agent ${esc(k.name)}">${icon("pencil", 13)}</button>
+          <button class="icon-btn sm" data-copykey="${esc(k.id)}" aria-label="Copy key for ${esc(k.name)}"
+            title="Copy this agent's key">${icon("copy", 13)}</button>
         </span>
         <span class="share-meta">agent <code class="settings-id">${esc(k.id)}</code>
           ${removeBtn(`data-removekey="${esc(k.id)}"`, `Remove agent ${k.name}`)}
@@ -1826,6 +1731,9 @@ async function loadShare(channelId) {
         startKeyRename(channelId, btn.dataset.renamekey, btn.closest(".share-row")?.querySelector(".share-name"), {
           onSaved: () => loadShare(channelId),
         });
+    }
+    for (const btn of body.querySelectorAll("[data-copykey]")) {
+      btn.onclick = () => copyChannelKey(btn.dataset.copykey);
     }
     for (const btn of body.querySelectorAll("[data-removekey]")) {
       btn.onclick = () => revokeChannelKey(channelId, btn.dataset.removekey, () => loadShare(channelId));
@@ -1964,58 +1872,6 @@ async function copyInviteLink(channelId) {
   }
 }
 
-/** One list for everyone with access: people (users) and agents, labelled. */
-async function loadSettings(channelId) {
-  const joined = document.getElementById(`set-joined-${channelId}`);
-  if (!joined) return;
-  const empty = (t) => `<div class="settings-empty">${esc(t)}</div>`;
-
-  try {
-    const [keysRes, memRes] = await Promise.all([
-      api(`/api/v1/channels/${channelId}/keys`).catch(() => ({ keys: [] })),
-      api(`/api/v1/channels/${channelId}/members`).catch(() => ({ members: [] })),
-    ]);
-
-    const people = (memRes.members || []).map((m) => ({
-      name: m.role === "owner" ? "You" : m.email || m.accountId || m.id,
-      meta: m.pending ? "invited user" : m.role === "owner" ? "owner" : "user",
-    }));
-    const agents = keysRes.keys || [];
-
-    joined.innerHTML =
-      people.length || agents.length
-        ? people.map((p) => settingsItem({ name: p.name, meta: p.meta })).join("") +
-          agents
-            .map((k) =>
-              settingsItem({
-                name: k.name,
-                // The key id is the agent's identity: it is what a decision card
-                // shows as "agent id", so it belongs on the agent's own row.
-                meta: "agent",
-                id: k.id,
-                rename: `data-renamekey="${esc(k.id)}"`,
-                actions:
-                  `<button class="icon-btn sm" data-copykey="${esc(k.id)}" title="Copy key (${esc(k.id)})">${icon("copy", 14)}</button>` +
-                  `<button class="icon-btn sm danger" data-revokekey="${esc(k.id)}" title="Revoke">${icon("x", 14)}</button>`,
-              }),
-            )
-            .join("")
-        : empty("Only you so far.");
-
-    for (const inp of joined.querySelectorAll("[data-renamekey]")) {
-      inp.onchange = () => renameKey(inp.dataset.renamekey, inp.value);
-    }
-    for (const btn of joined.querySelectorAll("[data-copykey]")) {
-      btn.onclick = () => copyChannelKey(btn.dataset.copykey);
-    }
-    for (const btn of joined.querySelectorAll("[data-revokekey]")) {
-      btn.onclick = () => revokeChannelKey(channelId, btn.dataset.revokekey);
-    }
-  } catch (err) {
-    joined.innerHTML = empty(err.message);
-  }
-}
-
 /** Set a channel's accent colour. */
 async function setChannelColor(channelId, color) {
   try {
@@ -2054,7 +1910,7 @@ async function revokeChannelKey(channelId, keyId, after) {
     toast("Agent removed");
     if (after) await after();
     else {
-      loadSettings(channelId);
+      void loadShare(channelId);
       loadConnectionsList();
     }
   } catch (err) {
@@ -2076,7 +1932,6 @@ async function revokeDeviceConn(channelId, id) {
   try {
     await api(`/api/v1/devices/${id}`, { method: "DELETE" });
     toast("Device revoked");
-    loadSettings(channelId);
   } catch (err) {
     toast(err.message || "Couldn't revoke device");
   }
@@ -2102,29 +1957,6 @@ async function pairFromChannel(channelId, btn) {
     toast(err.message || "Couldn't create link");
   } finally {
     btn.disabled = false;
-  }
-}
-
-async function saveChannelSettings(channelId) {
-  const name = document.getElementById(`title-${channelId}`)?.value.trim() ?? "";
-  const description = document.getElementById(`desc-${channelId}`)?.value.trim() ?? "";
-
-  try {
-    // The public URL is not part of this: it is minted with the channel and
-    // never changes (a moved URL orphans every agent that attached with it).
-    await api(`/api/v1/channels/${channelId}`, {
-      method: "PATCH",
-      body: { name, description },
-    });
-    const c = channelById(channelId);
-    if (c) {
-      c.name = name;
-      c.description = description;
-    }
-    toast("Saved");
-    loadConnectionsList();
-  } catch (err) {
-    toast(err.message || "Couldn't save");
   }
 }
 
@@ -2182,34 +2014,6 @@ async function archiveChannel(channelId) {
   } catch (err) {
     toast(err.message || "Couldn't archive");
   }
-}
-
-async function newChannelKey(channelId) {
-  try {
-    const data = await api(`/api/v1/channels/${channelId}/keys`, { method: "POST", body: {} });
-    try {
-      await navigator.clipboard.writeText(data.key);
-    } catch {
-      /* ignore */
-    }
-    toast("Channel key created and copied");
-    loadSettings(channelId);
-    loadConnectionsList();
-  } catch (err) {
-    toast(err.message || "Couldn't create key");
-  }
-}
-
-/** Canonical #3 - a new sandbox, which installs and joins in one prompt.
- *  Shared by every "add agent" producer. */
-function channelPrompt(url, { html = false } = {}) {
-    // One line: the link and the sentence. An installed machine must never be told to
-    // install again - re-running the installer is what minted a second account
-    // (observed 2026-10-17). The agent hands this link to the skill's setup.sh, which
-    // redeems it on the account that already exists.
-    const lines = [`I'd like you to use psh.now and join this channel: ${url}`];
-  if (!html) return lines.join("\n");
-  return lines.map((line) => esc(line)).join("<br>");
 }
 
 async function newChannelJoinLink(channelId) {
