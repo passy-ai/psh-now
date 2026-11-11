@@ -571,9 +571,12 @@ main {
   display: inline-block;
   white-space: nowrap;
   margin: 0 0.14em;
-  /* middle, not a hand-tuned offset: it centres the tile on the text's own x-height
-     band, so the marks hold their place at any size the sentence is set in. */
+  /* middle centres the tile on the x-height band, which is right for the glyphs but
+     leaves a 1.16em tile hanging under the baseline; the nudge lifts it onto the cap
+     band instead, where the eye reads the sentence as one line. In em, so it tracks
+     whatever size the sentence is set in. */
   vertical-align: middle;
+  transform: translateY(-0.07em);
 }
 .h1-mark + .h1-mark { margin-left: 0.07em; }
 /* "One" rides with the tiles: broken apart, the line started with three buttons. */
@@ -581,14 +584,14 @@ main {
 .h1-mark {
   display: inline-grid;
   place-items: center;
-  width: 1.05em;
-  height: 1.05em;
-  border-radius: 0.31em;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 0.35em;
 }
 .h1-mark svg {
   display: block;
-  width: 0.64em;
-  height: 0.64em;
+  width: 0.75em;
+  height: 0.75em;
 }
 .h1-mark-no {
   background: #fdeeec;
@@ -622,8 +625,8 @@ main {
     margin-left: 0.05em;
   }
   .h1-mark {
-    width: 0.98em;
-    height: 0.98em;
+    width: 1.12em;
+    height: 1.12em;
   }
 }
 /* The hero headline is static, the rotating word lived here. */
