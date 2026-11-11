@@ -3129,9 +3129,14 @@ pre:hover .pre-copy,
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+/* Fixed layout, because the columns were being sized by whichever cell happened to
+   hold the longest phrase: the four options came out at four different widths and the
+   grid read as wobbly. With widths pinned the option columns are equal whatever the
+   copy says, and no cell can push the table past its container. */
 .cmp {
   width: 100%;
-  min-width: 660px;
+  min-width: 620px;
+  table-layout: fixed;
   border: 1px solid var(--border);
   border-collapse: separate;
   border-spacing: 0;
@@ -3141,18 +3146,29 @@ pre:hover .pre-copy,
 }
 .cmp th,
 .cmp td {
-  padding: 14px 16px;
+  padding: 15px 18px;
   text-align: left;
-  vertical-align: middle;
+  /* Top, not middle: a row is a band. Centring floated the one-line cells against
+     two-line neighbours and nothing lined up across the row. */
+  vertical-align: top;
   border-bottom: 1px solid var(--border-2);
+}
+.cmp thead th:first-child,
+.cmp tbody td:first-child {
+  width: 22%;
 }
 .cmp thead th {
   border-bottom-color: var(--border);
   background: #fafbfd;
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--fg);
-  white-space: nowrap;
+}
+/* The tinted column gets a hairline of its own at the top, so the column that is you
+   is identifiable before a single word is read. */
+.cmp thead th.ours {
+  box-shadow: inset 0 2px 0 var(--accent);
 }
 .cmp thead th:first-child {
   border-top-left-radius: 16px;
@@ -3240,12 +3256,15 @@ pre:hover .pre-copy,
   }
 }
 
+/* A hanging glyph: the check sits in the padding and every wrapped line starts under
+   the words, not under the check. inline-flex centred the glyph against a two-line
+   cell, which is what made these cells look like they were floating. */
 .cmp .yes,
 .cmp .no,
 .cmp .part {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+  display: block;
+  padding-left: 1.15em;
+  text-indent: -1.15em;
   font-weight: 500;
 }
 .cmp .yes {
@@ -3256,6 +3275,75 @@ pre:hover .pre-copy,
 }
 .cmp .part {
   color: var(--muted-2);
+}
+/* Five options side by side do not fit a phone, and a sideways scroll that cuts
+   "Auto-approve (YOLO)" after four letters is worse than no table at all. Below 720px
+   each row becomes its own block: the dimension, then each option under its own name.
+   The name comes from data-col, which the markup carries for exactly this. */
+@media (max-width: 720px) {
+  .cmp {
+    min-width: 0;
+    border-radius: 14px;
+  }
+  .cmp thead {
+    display: none;
+  }
+  .cmp tbody,
+  .cmp tr,
+  .cmp td {
+    display: block;
+  }
+  .cmp tr {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-2);
+  }
+  .cmp tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .cmp td {
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+  /* width auto, or the 22% from the grid above survives (that selector is one
+     element heavier) and the dimension wraps into four lines on its own row. */
+  .cmp tbody td:first-child {
+    width: auto;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .cmp td[data-col] {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+  .cmp td[data-col]::before {
+    content: attr(data-col);
+    display: block;
+    margin-bottom: 3px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted-3);
+  }
+  /* Our column keeps a band of its own in the stack, so the answer still reads as
+     the answer rather than as one of five equal lines. */
+  .cmp td.ours {
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(47, 107, 255, 0.05);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .cmp td.ours::before {
+    color: var(--muted-2);
+  }
+  .cmp .yes,
+  .cmp .no,
+  .cmp .part {
+    padding-left: 0;
+    text-indent: 0;
+  }
 }
 .cmp-note {
   margin: 12px 0 0;
