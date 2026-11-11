@@ -3168,8 +3168,8 @@ function archivedRow(c) {
       <span class="arch-dot" style="background:${esc(c.color || "#6c8cff")}" aria-hidden="true"></span>
       <span class="arch-name">${esc(c.name)}</span>
       <span class="arch-when">${c.archivedAt ? esc(relTime(c.archivedAt)) : ""}</span>
-      <button class="btn pill sm" data-restore="${esc(c.id)}">Restore</button>
-      <button class="btn pill sm danger-ghost" data-purge="${esc(c.id)}">Delete</button>
+      <button class="btn pill sm green-ghost" data-restore="${esc(c.id)}">${icon("refresh", 14)}<span>Restore</span></button>
+      <button class="icon-btn danger" data-purge="${esc(c.id)}" aria-label="Delete channel" title="Delete channel">${icon("trash", 15)}</button>
     </div>`;
 }
 

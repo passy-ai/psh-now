@@ -1355,18 +1355,20 @@ body.view-archive #paired {
   font-size: 13.5px;
   line-height: 1.5;
 }
-.arch-list {
-  display: grid;
-  gap: 8px;
-}
+/* No card, no border: the same rhythm as the channel list, so the archive reads as
+   the same list with different actions on it. */
 .arch-row {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--line-soft);
-  border-radius: 12px;
+  padding: 17px 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.arch-list {
+  display: block;
+  margin-top: 10px;
 }
 .arch-dot {
   flex: 0 0 auto;
@@ -1388,6 +1390,24 @@ body.view-archive #paired {
   font-size: 12px;
   white-space: nowrap;
 }
+/* Just the icon, red: it says what it does and the confirm asks before it does it. */
+.arch-row .icon-btn.danger {
+  background: none;
+  border-color: transparent;
+}
+.arch-row .icon-btn.danger:hover {
+  border-color: var(--red);
+}
+
+/* The action that gives a channel back, in the colour of an approval. */
+.btn.green-ghost {
+  background: transparent;
+  color: var(--approve-ink);
+  border-color: #1f3526;
+}
+.btn.green-ghost:hover {
+  border-color: var(--approve-ink);
+}
 .arch-empty {
   padding: 26px 2px;
   color: var(--dim);
@@ -1396,6 +1416,11 @@ body.view-archive #paired {
 @media (max-width: 560px) {
   .arch-when {
     display: none;
+  }
+  /* The date was what pushed the actions over; without it they line up on the
+     right edge of every row instead of trailing each name. */
+  .arch-row [data-restore] {
+    margin-left: auto;
   }
 }
 
