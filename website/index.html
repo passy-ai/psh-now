@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>psh.now: the open source approval hub for agents</title>
+    <title>psh.now: approve what your agents do, from your phone</title>
     <meta
       name="description"
-      content="psh.now is the open source approval hub for AI agents. Your agent asks from the terminal, phone or sandbox, a person taps approve, deny or answer, and the work continues. MIT licensed, self-hosted, no account needed."
+      content="An agent posts the step it is about to take and waits. A person approves, denies or answers from a phone, a browser or the macOS notch, and the call returns with that decision. MIT licensed and self-hostable."
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <!-- canonical, Open Graph and Twitter tags are generated at serve time from the
@@ -379,12 +379,12 @@
         <!-- ============ Hero ============ -->
         <section class="hero">
           <h1>
-            <span class="line">The open source approval</span>
-            <span class="line">hub for your agents</span>
+            <span class="line">Approve what your agents</span>
+            <span class="line">do, from your phone</span>
           </h1>
           <p class="hero-sub">
-            Your agents ask instead of stalling. One <span class="h1-marks" role="img" aria-label="deny, answer or approve"><span class="h1-mark h1-mark-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span><span class="h1-mark h1-mark-answer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="h1-mark h1-mark-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span></span> from your phone,
-            tablet, desktop or the notch on your MacBook, and the work keeps going.
+            An agent posts the step it is about to take. It reaches your phone, a browser tab, or the notch on your Mac. You <span class="h1-marks" role="img" aria-label="deny, answer or approve"><span class="h1-mark h1-mark-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span><span class="h1-mark h1-mark-answer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="h1-mark h1-mark-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span></span> from
+            your phone, tablet or desktop, and the call returns with that decision. One HTTP call, no SDK.
           </p>
 
           <div class="hero-cta">
@@ -395,7 +395,7 @@
                 Star on GitHub
               </a>
             </div>
-            <p class="hero-note">No account needed. Open source, MIT licensed, yours to run.</p>
+            <p class="hero-note">Free to start, no account and no card. MIT licensed, so the server is yours to run.</p>
             <!-- Hovering this block drops the full prompt open below the button
                  (see .copy-block). The button itself still copies on click. -->
             <div class="copy-block">
@@ -432,7 +432,7 @@
           </div>
 
           <div class="agents">
-            <p class="eyebrow">WORKS WITH EVERY AGENT</p>
+            <p class="eyebrow">WORKS WITH ANY AGENT THAT CAN POST</p>
             <div class="agents-row" id="agentsRow"></div>
           </div>
         </section>
@@ -451,17 +451,17 @@
             <div class="notch-demo" data-notch aria-hidden="true"></div>
           </div>
           <a class="notch-download" href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">
-            Download Psh Notch
+            Get the notch app
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
         </div>
       </section>
 
         <section class="section timeline reveal">
-          <h2>Walk away. Come back to finished work.</h2>
+          <h2>Same pause. A different place to answer it.</h2>
           <p class="tl-lead">
-            The failure isn't a wrong decision: it's a decision nobody saw.
-            A blocked agent doesn't retry, it just sits there until you notice.
+            An agent that needs permission stops either way. What changes is whether
+            answering it requires being at that terminal.
           </p>
 
           <div class="tl-grid">
@@ -478,14 +478,14 @@
                   <span class="tl-mark tl-mark-bad">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
                   </span>
-                  <span class="tl-text">Hand off a long task and walk away.</span>
+                  <span class="tl-text">The agent prints a permission prompt and waits on stdin.</span>
                 </li>
                 <li class="tl-step tl-end">
                   <span class="tl-time">9:51</span>
                   <span class="tl-mark tl-mark-bad">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
                   </span>
-                  <span class="tl-text">You come back. It hasn't moved in 37 minutes, and it never will until you answer.</span>
+                  <span class="tl-text">You are back at the terminal. The prompt is still there, and so is the agent.</span>
                 </li>
               </ol>
             </div>
@@ -503,30 +503,30 @@
                   <span class="tl-mark tl-mark-good">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                   </span>
-                  <span class="tl-text">Hand off the same task and walk away for real.</span>
+                  <span class="tl-text">The same prompt becomes a request that stays open while the agent waits.</span>
                 </li>
                 <li class="tl-step">
                   <span class="tl-time">9:14</span>
                   <span class="tl-mark tl-mark-good">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                   </span>
-                  <span class="tl-text">The request lands on your phone: <em>Restart the dev server?</em> You tap Approve.</span>
+                  <span class="tl-text">It reaches your phone, a browser tab, or the notch. You tap Approve.</span>
                 </li>
                 <li class="tl-step tl-end">
                   <span class="tl-time">9:51</span>
                   <span class="tl-mark tl-mark-good">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                   </span>
-                  <span class="tl-text">You come back. The task finished half an hour ago.</span>
+                  <span class="tl-text">The call returned at 09:14 with <code>approved: true</code>, and the run continued without you.</span>
                 </li>
               </ol>
             </div>
           </div>
 
           <p class="tl-note">
-            An illustration, not a benchmark, but the shape is the same for
-            every unattended agent: the work only continues once someone sees
-            the question.
+            Both columns end when someone answers. Only one of them needs you at the
+            keyboard to start with.
+            
           </p>
         </section>
 
@@ -535,7 +535,7 @@
 
         <!-- ============ How it works ============ -->
         <section class="how reveal">
-          <h2 class="how-heading">Your agents ask instead of stalling.</h2>
+          <h2 class="how-heading">The same prompt, turned into a request.</h2>
           <div class="how-grid">
             <div class="how-card how-before">
               <div class="hb-bar">
@@ -544,17 +544,15 @@
                   <span class="dot dot-y"></span>
                   <span class="dot dot-g"></span>
                 </span>
-                <span>agent, waiting for input</span>
+                <span>claude-code, waiting for permission</span>
               </div>
               <div class="hb-body">
-                <div class="hb-task">Task: restart the dev server <span class="hb-more">(1 step)</span></div>
-                <div>Before I continue, please answer:</div>
+                <div class="hb-task">Task: clean and reinstall before the release build <span class="hb-more">(1 step)</span></div>
+                <div>Bash command:</div>
                 <ol>
-                  <li>Which shell profile should I source: zsh, bash, fish, nushell, dash, or custom?</li>
-                  <li>Preferred signal for PID 41922: SIGTERM, SIGINT, SIGHUP, or SIGQUIT?</li>
-                  <li>Backoff: linear, exponential, or fibonacci-jittered?</li>
-                  <li>May I read <code>.env</code>? (y / n / ask again)</li>
-                  <li>Which IANA timezone for the log timestamps?</li>
+                  <li><code>rm -rf node_modules dist &amp;&amp; npm ci</code></li>
+                  <li>Allow Bash to run this command?</li>
+                  <li>1. Yes &nbsp; 2. Yes, and don't ask again for rm &nbsp; 3. No</li>
                 </ol>
               </div>
             </div>
@@ -571,8 +569,8 @@
                 <div class="notch">
                   
                   <div class="notch-body-detail">
-                    <div class="notch-title"><span class="notch-live" aria-hidden="true"></span>Can I restart the server with recommended options?</div>
-                    <div class="notch-sub">Approve to confirm this arrives quietly.</div>
+                    <div class="notch-title"><span class="notch-live" aria-hidden="true"></span>rm -rf node_modules dist &amp;&amp; npm ci</div>
+                    <div class="notch-sub">Critical: recursive force delete. Approve to run it once.</div>
                     <div class="notch-actions">
                       <div class="act deny" role="button" tabindex="0" aria-label="Deny">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>
@@ -607,17 +605,16 @@
         <section class="ask reveal">
           <h2 class="ask-h2">Approve, deny, or clarify</h2>
           <p class="ask-lead">
-            Six things, one habit: when an agent needs you, it asks, and you answer from wherever
-            you are. No tab to find, no terminal to wake up.
+            What a request can carry, where it can be answered, and who is allowed to answer it.
           </p>
 
           <div class="ask-grid">
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><strong>One hub</strong><span>Every agent asks in the same place, so nothing waits unnoticed.</span></div>
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M2 17h11"/><rect x="17" y="9" width="5" height="11" rx="1.5"/></svg></span><strong>Any device</strong><span>Laptop, phone, tablet: whichever is in your hand when it asks.</span></div>
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><path d="M16 6.5a3 3 0 0 1 0 5.6"/><path d="M18 19a5.5 5.5 0 0 0-2-4.2"/></svg></span><strong>Team</strong><span>Somebody else can answer without you repeating the context.</span></div>
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-4.6A8 8 0 1 1 21 12z"/><path d="M12 8.2v.2"/><path d="M12 11.4v4"/></svg></span><strong>Clarify</strong><span>Answer in a sentence, not just yes or no, and the run continues with it.</span></div>
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h12"/><path d="M13 4l3 3-3 3"/><path d="M20 17H8"/><path d="M11 14l-3 3 3 3"/></svg></span><strong>Agent to agent</strong><span>One agent's question can be another's input, with no human relay.</span></div>
-            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21l9-4"/></svg></span><strong>Channels</strong><span>A question belongs to a project, not to a terminal that may be gone.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><strong>One queue</strong><span>Every agent posts to the same workspace, so a request is a row you can find later instead of a prompt that dies with the terminal.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M2 17h11"/><rect x="17" y="9" width="5" height="11" rx="1.5"/></svg></span><strong>Any device</strong><span>Phone, tablet, desktop, or the notch. The dashboard is an installable PWA and web push works once notifications are allowed.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><path d="M16 6.5a3 3 0 0 1 0 5.6"/><path d="M18 19a5.5 5.5 0 0 0-2-4.2"/></svg></span><strong>Team</strong><span>Invite people to a channel. Anyone in it can decide, and the decision records which member answered.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-4.6A8 8 0 1 1 21 12z"/><path d="M12 8.2v.2"/><path d="M12 11.4v4"/></svg></span><strong>Answer in words</strong><span>The reply text comes back to the agent inside the response, so a question can be answered in a sentence instead of a yes.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h12"/><path d="M13 4l3 3-3 3"/><path d="M20 17H8"/><path d="M11 14l-3 3 3 3"/></svg></span><strong>Scoped keys</strong><span>Give an agent a key limited to one channel and it can answer routine requests itself, escalating the rest to a person.</span></div>
+            <div class="ask-item"><span class="ask-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21l9-4"/></svg></span><strong>Channels</strong><span>Requests are grouped by channel, so one project's history stays readable and separate from the next.</span></div>
           </div>
         </section>
 
@@ -630,30 +627,28 @@
 
         <!-- ============ Why / built-in-the-open ============ -->
         <section class="section why reveal">
-          <p class="laurel">BUILT IN THE OPEN</p>
-          <h2>Built for agents, loved by humans</h2>
+          <p class="laurel">MIT LICENSED, SELF-HOSTABLE</p>
+          <h2>Run this server yourself</h2>
 
           <div class="why-note">
             <p class="why-quote">
-              Every agent I ran eventually stopped on a question I never saw.
+              One endpoint. One decision in the response.
             </p>
             <p>
-              So the decision moves to wherever you already are: the agent asks,
-              you tap, the work continues. If you're not the right person to
-              answer, a teammate or a scoped agent can be.
+              The gateway is a Bun service with a Postgres database; <code>docker compose up</code> in the
+              repository starts both. Self-hosted, nothing passes through this host: requests, keys and
+              history stay in your own database, and you decide how long they are kept.
             </p>
             <p class="why-small">
-              No logos we haven't earned and no quotes we can't attribute. If
-              you're running agents and want to shape this, the
-              <a href="./docs.html">docs</a> are the fastest way in.
+              Setup is on the <a href="/self-hosting">self-hosting page</a>. The source is
+              <a href="https://github.com/passy-ai/psh-now">github.com/passy-ai/psh-now</a>, under the MIT licence.
             </p>
           </div>
         </section>
 
         <!-- ============ Reviews ============ -->
-        <!-- PLACEHOLDERS. Replace with real, attributable quotes before this
-             ships: the section above promises "no quotes we can't attribute".
-             Each review is quote → optional logo → name, role. -->
+        <!-- PLACEHOLDERS. Real, attributable quotes only. Each review is
+             quote, optional logo, name and role. -->
         <!-- Hidden until there are real ones: see REVIEWS in app.js. Nothing invented ships. -->
         <section class="testimonials reveal" id="reviews" hidden>
           <h2>What people say</h2>
@@ -669,59 +664,59 @@
           <div class="faq-list">
             <details>
               <summary>What is psh.now?<span class="plus"></span></summary>
-              <div class="answer">One hub for the agents that need a decision. Local, remote, or sandboxed, they ask here, and you or a teammate approve, deny, or clarify from any device.</div>
+<div class="answer">A server that holds an approval request open while an agent waits on it. The agent makes one HTTP call, a person approves, denies or answers from a phone, a browser or the notch, and the call returns with that decision.</div>
             </details>
             <details>
               <summary>Why not just let the agent wait in the terminal?<span class="plus"></span></summary>
-              <div class="answer">Because you lose track. A terminal prompt blocks the agent and you end up swapping windows to find who's stuck. psh.now holds the request open and drops it into one queue you can check from anywhere.</div>
+<div class="answer">That prompt is only visible in that one terminal. If you closed the window, the agent stays blocked until you go back to it. A request in psh.now can be answered from every device you have paired.</div>
             </details>
             <details>
               <summary>What can an agent ask?<span class="plus"></span></summary>
-              <div class="answer">Three kinds of request: a <b>command</b> to run, an <b>action</b> to take, or a <b>question</b> to answer. Approve or deny, and whatever reason you attach travels back to the agent in the response, so an open question comes back answered in words, not just as a yes.</div>
+<div class="answer">A command to run, an action to take, or a question with a text answer. One request is one decision: a message that lists several options is rejected, because a single tap cannot answer it.</div>
             </details>
             <details>
               <summary>Is my code sent to psh.now?<span class="plus"></span></summary>
-              <div class="answer">No. An agent sends the <b>step that needs you</b> (a title and a short message), not your codebase. The gateway stores the request only while it's open, and once it's answered or times out the request data is deleted. It never sees your files, and the agent keeps its own credentials.</div>
+<div class="answer">No. A request is a title, a message and, if the agent includes it, the command line. Your files stay on your machine. The request and its decision are kept in your workspace history, or in your own database when you self-host.</div>
             </details>
             <details>
               <summary>How is this different from YOLO mode or auto-approve?<span class="plus"></span></summary>
-              <div class="answer">YOLO mode says yes to everything, including the <code>rm</code> and the deploy. psh.now risk-scores every request first (recursive deletes, force pushes, <code>DROP TABLE</code>, <code>terraform destroy</code>, deploys, <code>sudo</code>) and shows you <em>why</em> it was flagged instead of a wall of shell. You decide; nothing is auto-approved for you.</div>
+<div class="answer">Auto-approve never asks. psh.now asks about the requests you route to it, and labels the dangerous ones from the command text: rm -rf, force push, DROP TABLE, terraform destroy, sudo, deploys. The label says why it was flagged. You still decide.</div>
             </details>
             <details>
               <summary>What are permission hooks?<span class="plus"></span></summary>
-              <div class="answer">The place your agent normally pauses for a yes: Claude Code's permission prompt, Codex's approval gate, Cursor's confirmation. A hook is what lets psh.now intercept that pause and turn it into a request you can answer from anywhere. There's a ready-made Claude Code hook, plus a CLI (<code>psh hook</code>) that reads JSON on stdin for anything else.</div>
+<div class="answer">The point where an agent would stop for a yes: Claude Code's permission prompt, Codex's approval gate, Cursor's confirmation. The hook turns that stop into a request. There is a ready-made Claude Code hook, and a psh hook command that reads JSON on stdin for anything else.</div>
             </details>
             <details>
               <summary>Does it work with my agent?<span class="plus"></span></summary>
-              <div class="answer">All of them. psh.now is an agnostic skill: any agent that can make an HTTP request works, including Claude Code, Codex, Cursor, Cline, Gemini CLI, OpenClaw, or your own script. There's also a CLI: <code>psh ask "…" --title "…"</code>. A client that only speaks MCP can add <code>https://psh.now/mcp</code> instead.</div>
+<div class="answer">Any client that can send an HTTP POST. The agents pages carry the setup for a dozen harnesses, the CLI does the same with psh ask, and a client that only speaks MCP can use https://psh.now/mcp.</div>
             </details>
             <details>
               <summary>What does it cost?<span class="plus"></span></summary>
-              <div class="answer">Nothing to start, and no account needed. Connect an agent, pair a device, and answer. There's no trial clock and no card.</div>
+<div class="answer">Free to start, with no account and no card. An approval costs two requests, one in and one out; a request that expires or is cancelled costs nothing. <a href="/pricing">Pricing</a> has the limits for each plan.</div>
             </details>
             <details>
               <summary>What if nobody answers?<span class="plus"></span></summary>
-              <div class="answer">Every request has a window: 90 seconds by default, configurable per deployment. Unanswered means declined, so a forgotten prompt never turns into a surprise. The agent gets a clear "not approved" and can adapt.</div>
+<div class="answer">The window is 90 seconds by default and 15 minutes at most. When it closes the request expires, and the agent's call returns status expired, which is not an approval.</div>
             </details>
             <details>
               <summary>Do I need an account?<span class="plus"></span></summary>
-              <div class="answer">No. Connect an agent and pair a device, and you're answering questions. Create an account when you want the workspace to persist or to invite a team.</div>
+<div class="answer">No. Post a request and pair a device. An account keeps the workspace and its history after the anonymous allowance is used up.</div>
             </details>
             <details>
               <summary>How do I answer from my phone or tablet?<span class="plus"></span></summary>
-              <div class="answer">Pair each device once with a simple link. It's an installable PWA, so the dashboard travels with you. Open it on your phone and the request is waiting there, still open, until you decide. Push notifications aren't in yet, so the dash is where you answer.</div>
+<div class="answer">Open /app on the device and add it to the home screen; it is a PWA, and web push works once you allow notifications. Pairing a device takes one link from the dashboard.</div>
             </details>
             <details>
               <summary>Can someone else on my team answer for me?<span class="plus"></span></summary>
-              <div class="answer">Yes. Invite teammates to a channel and whoever is free can approve, deny, or clarify. Every decision is logged against the person who made it.</div>
+<div class="answer">Yes. Members of a channel can decide any request in it, and the decision records which member answered.</div>
             </details>
             <details>
               <summary>Can agents approve each other's work?<span class="plus"></span></summary>
-              <div class="answer">Yes. A central agent can hold a scoped key on the channels you trust and answer on your behalf, escalating to a human whenever it isn't sure.</div>
+<div class="answer">A key can be scoped to one channel and used by another agent, so it can answer there. Anything outside that channel stays with a person.</div>
             </details>
             <details>
               <summary>I'm an agent, what should I do first?<span class="plus"></span></summary>
-              <div class="answer">Paste the prompt from the <code>Copy prompt for agent</code> button at the top of this page. It is one command: it installs psh.now as a skill and runs the setup, and if npm or git is missing it falls back to <code>curl -fsSL https://psh.now/install.sh | sh</code>. Then read the docs at <code>https://psh.now/docs</code> and route your questions through psh.now.</div>
+<div class="answer">Read <a href="https://psh.now/skill.md">/skill.md</a>, or paste the prompt from the Copy prompt button at the top of this page into your agent. It installs the skill, writes the rule into agents.md, and keeps the key in PSH_API_KEY.</div>
             </details>
           </div>
         </section>
@@ -731,8 +726,8 @@
 
         <!-- ============ Gradient CTA ============ -->
         <section class="cta reveal">
-          <h2 class="cta-title">Try It With Your Own Agents</h2>
-          <p class="cta-sub">Open source and MIT licensed, so you can run it yourself. Connect an agent and clear your first decision in a minute.</p>
+          <h2 class="cta-title">Post one request</h2>
+          <p class="cta-sub">Give an agent the setup prompt, or send a POST to the endpoint yourself. Answer from your phone and the call returns.</p>
           <div class="cta-actions">
             <button class="cta-button copy-prompt" type="button" title="Copy instructions">
             <span class="cta-button-label">Start for free</span>
@@ -751,7 +746,7 @@
               <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
