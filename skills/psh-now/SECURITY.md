@@ -63,7 +63,8 @@ Act on `approved: true` only when `status` is exactly `approved`. `answered` is
 
 - The skill **guides the model; it does not enforce**. An agent can skip
   asking. Enforcement belongs to the harness, the OS, or your own
-  policy - psh.now deliberately stays harness-agnostic (no SDK, no MCP).
+  policy - psh.now deliberately stays harness-agnostic (no SDK; MCP is a thin optional
+    adapter, not a requirement).
 - Approvals are granted per decision, not per session. Silence is never
   consent; a timed-out ask resolves to `false`.
 - The message is written by the asking agent. The human and the network

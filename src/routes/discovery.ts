@@ -50,8 +50,8 @@ boolean. It is open source (MIT), self-hostable, and works with any harness that
 make an HTTP call.
 
 ## What it is not
-- Not MCP-only and not an SDK: one HTTP POST is the contract, no client library. An optional
-MCP endpoint exists for clients that cannot install a skill, and nothing depends on it.
+- Not an SDK: one HTTP POST is the contract, no client library. An MCP endpoint exists for
+clients that cannot install a skill, and nothing depends on it.
 - Not hosted-only: the same code runs in your own VPC under MIT.
 - Not a chat UI or an agent framework: it answers one question at a time.
 - Not seat-priced: the hosted instance is a convenience, self-hosting is free.
@@ -102,7 +102,8 @@ taps Approve or Deny. The response is a single boolean.
 - Team members can approve on your behalf.
 - Channels: scoped, ask-only keys bound to one place.
 - Agent-to-agent approval: a central agent holds a scoped key and answers for you.
-- Harness-agnostic: one HTTP call, no SDK; MCP is optional.
+- Harness-agnostic: one HTTP call, no SDK, and an MCP endpoint for clients that only speak
+the protocol.
 - Live alerts over WebSocket while the dashboard is open.
 
 ## When to use
@@ -134,7 +135,7 @@ ${POSITIONING}
 - Skill: ${base}/skill.md
 - Pricing: ${base}/pricing
 - Full agent context: ${base}/llms-full.txt
-- MCP endpoint (optional, one tool): ${base}/mcp
+- MCP endpoint (one tool, psh_ask): ${base}/mcp
 - Sitemap: ${base}/sitemap.xml
 - OpenAPI: ${base}/openapi/json
 - Agent card: ${base}/.well-known/agent-card.json
@@ -251,7 +252,7 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: …"   # holds up to 30s
 
 Cancel an unneeded request with \`POST /api/v1/approvals/<id>/cancel\`.
 
-## MCP (optional)
+## MCP
 
 The HTTP call above is the contract. MCP is a second front door for clients that cannot
 install a skill: hosted builders, connector UIs, and apps that only speak the protocol.
@@ -261,6 +262,8 @@ One tool, one endpoint, plain JSON responses, no OAuth and no server-initiated s
 - Tool: \`psh_ask\` with \`{title?, message, timeoutSec?}\`. It blocks, then returns
   \`{"approved":bool,"status":"approved"|"denied"|"answered"|"expired","answer":string|null,"promptId":"..."}\`
 - Auth: \`x-psh-key: psh_agent_...\`, or \`Authorization: Bearer ...\`. The tool is never anonymous.
+- Registry: \`io.github.passy-ai/psh-now\` in the official MCP registry
+- Protocol versions: 2025-06-18, 2025-03-26, 2024-11-05
 - Descriptor: \`${base}/.well-known/mcp.json\`
 
 \`\`\`bash

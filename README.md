@@ -10,7 +10,8 @@ An agent that needs a decision sends a short **title** and **message** to psh.no
 tap **Approve** or **Deny** from one page, or answer in your own words, and the agent continues
 with the result. It exists because agents stall in terminals nobody is watching.
 
-- Works with any agent that can run a shell command or make an HTTP request. No SDK, no MCP.
+- Works with any agent that can run a shell command or make an HTTP request. No SDK, no
+  session. A client that only speaks MCP connects to `/mcp`.
 - One page for every agent and every machine, including sandboxes you cannot attach to.
 - Self hostable: MIT licensed, two containers, three environment variables.
 
@@ -372,7 +373,10 @@ claude mcp add --transport http psh https://psh.now/mcp --header "x-psh-key: psh
 Only `approved: true` means yes; `denied`, `expired` and errors all mean do not act. MCP is
 cooperative like the skill: it cannot stop an agent that never calls it. The gate is the hook.
 
-Protocol details, error codes and the reasoning behind the smaller surface: [the MCP section of the docs](https://psh.now/docs#mcp).
+Published in the official MCP registry as
+[`io.github.passy-ai/psh-now`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.passy-ai%2Fpsh-now),
+and it answers protocol `2025-06-18`, `2025-03-26` and `2024-11-05`. Protocol details, error
+codes and the reasoning behind the smaller surface: [the MCP section of the docs](https://psh.now/docs#mcp).
 
 ### WebSocket frames
 

@@ -8,9 +8,9 @@ description: >
   anything risky", "need your approval to continue", "don't wait for me", "I'm stepping away",
   "check with me first", "run this overnight", or "ping me if you need anything". Also before
   irreversible or destructive actions: rm -rf, --force, sudo, force-push, migrations, deploys,
-  spending money. One HTTP call, no SDK, no MCP.
+  spending money. One HTTP call, no SDK, no session.
 metadata:
-  tags: [approval, human-approval, approve, phone, human-in-the-loop, questions, permissions, safety, notifications]
+  tags: [approval, human-approval, approve, phone, human-in-the-loop, questions, permissions, safety, notifications, mcp]
   category: productivity
   requires_toolsets: [shell]
   config:
@@ -76,7 +76,8 @@ Never describe a project-local install as machine-wide. Bare `psh` makes no netw
 psh.now is the smallest human-approval layer: a host, a key, and one page the
 user checks from their phone. It sends a one-line **title** and a short
 **message**, blocks until a person taps **Approve** or **Deny**, and returns a
-boolean. Nothing else - no SDK, no MCP, no session to manage.
+boolean. Nothing else - no SDK, no session to manage. A client that only speaks MCP can
+call the same request at `/mcp`.
 
 It exists for one reason: **agents stop working because they ask a question in
 the terminal.** With many terminals open (and remote agents on sandboxes) the
