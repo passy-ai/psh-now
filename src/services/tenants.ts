@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../db";
 import { apiKeys, auditLog, devices, prompts, sessions, tenants, type Tenant } from "../db/schema";
 import { generateApiKey, sha256 } from "../lib/crypto";
@@ -403,6 +403,13 @@ export async function revealAccountKey(tenant: Tenant): Promise<string | null> {
  */
 export function approverOf(tenant: { email: string | null; apiKeyPrefix: string }): string {
   return tenant.email || `${tenant.apiKeyPrefix}…`;
+}
+
+/** Several accounts by id, keyed by id: for naming the people on a channel. */
+export async function getTenants(ids: string[]): Promise<Map<string, Tenant>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db.select().from(tenants).where(inArray(tenants.id, ids));
+  return new Map(rows.map((t) => [t.id, t]));
 }
 
 export async function getTenant(id: string): Promise<Tenant | null> {

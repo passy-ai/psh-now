@@ -34,7 +34,7 @@ import { sendPushToTenant } from "../services/push";
 import { signExportToken, verifyExportToken } from "../lib/export-token";
 import { buildChannelExport, countChannelExport } from "../services/export";
 import { consumeTokens } from "../services/tenants";
-import { approverOf, findKeyAuth, findTenantByEmail, getTenant } from "../services/tenants";
+import { approverOf, findKeyAuth, findTenantByEmail, getTenant, getTenants } from "../services/tenants";
 import {
   activeChannelInvite,
   countChannelInvites,
@@ -799,15 +799,33 @@ export const promptRoutes = new Elysia({ prefix: "/api/v1" })
       const scope = await askScope(request.headers);
       if (scope && scope.sessionId !== params.id) throw notFound("Channel not found");
       const channel = await getSessionById(params.id);
-      if (!channel) throw notFound("Channel not found");
-      const [shares, invites] = await Promise.all([
+      // The list now names accounts by email, so it is only for people on the
+      // channel: a stranger holding a channel id must not learn who owns it.
+      if (!channel || !(await canAccessChannel(tenant.id, channel.id))) {
+        throw notFound("Channel not found");
+      }
+      const [shares, invites, owner] = await Promise.all([
         listChannelShares(tenant.id, params.id),
         listChannelInvites(tenant.id, params.id),
+        getTenant(channel.tenantId),
       ]);
+      // Named by address, not by account id: "You" told a viewer nothing about who
+      // they were looking at, and an id told them less.
+      const shared = await getTenants(shares.map((s) => s.sharedWith));
       return {
         members: [
-          { id: channel.tenantId, role: "owner", accountId: channel.tenantId },
-          ...shares.map((s) => ({ id: s.sharedWith, role: "approver", accountId: s.sharedWith })),
+          {
+            id: channel.tenantId,
+            role: "owner",
+            accountId: channel.tenantId,
+            email: owner?.email ?? null,
+          },
+          ...shares.map((s) => ({
+            id: s.sharedWith,
+            role: "approver",
+            accountId: s.sharedWith,
+            email: shared.get(s.sharedWith)?.email ?? null,
+          })),
           ...invites.map((i) => ({
             id: i.id,
             role: "invited",

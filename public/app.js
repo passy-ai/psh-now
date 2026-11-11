@@ -1593,13 +1593,32 @@ async function loadShare(channelId) {
   if (!body || !linkBox) return;
 
   try {
-    const [keysRes, memRes, linkRes] = await Promise.all([
-      api(`/api/v1/channels/${channelId}/keys`).catch(() => ({ keys: [] })),
-      api(`/api/v1/channels/${channelId}/members`).catch(() => ({ members: [] })),
-      api(`/api/v1/channels/${channelId}/invite-link`).catch(() => ({ active: false })),
-    ]);
+    const memRes = await api(`/api/v1/channels/${channelId}/members`).catch(() => ({ members: [] }));
 
     const members = memRes.members || [];
+    // The owner's row names the account, never "You": a shared channel is not
+    // always yours, and "You" on someone else's channel reads as a lie. An account
+    // that never signed in with an email has none to show, so it keeps "You" for
+    // its own owner and its id for everyone else.
+    const owner = members.find((m) => m.role === "owner");
+    const ownerIsMe = !!owner && owner.accountId === store.workspace?.id;
+    const ownerLabel = owner?.email || (ownerIsMe ? "You" : owner?.accountId || "Owner");
+    // Minting keys, renaming agents and rotating the invite link are the owner's
+    // jobs. A member looking at someone else's channel gets the people list, which
+    // is what they can act on. Unknown means owner: never hide a control because
+    // the workspace id had not arrived yet.
+    const canManage = !owner || !store.workspace?.id || ownerIsMe;
+
+    // Keys and the invite link belong to the owner's view, so a member does not
+    // ask for them: each is a 404 for controls that will not be drawn.
+    const [keysRes, linkRes] = canManage
+      ? await Promise.all([
+          api(`/api/v1/channels/${channelId}/keys`).catch(() => ({ keys: [] })),
+          // null, not {active:false}: "you cannot see this link" is not the same as
+          // "this channel has no live link", and only the second one should mint.
+          api(`/api/v1/channels/${channelId}/invite-link`).catch(() => null),
+        ])
+      : [{ keys: [] }, null];
     const keys = keysRes.keys || [];
     // People, not things: the channel's own invite link is the field above, so
     // its placeholder row is dropped here. `acceptedBy` marks an invite someone
@@ -1617,7 +1636,7 @@ async function loadShare(channelId) {
       </div>`;
 
     const peopleRows = [
-      row("You", "owner"),
+      row(ownerLabel, "owner"),
       ...people.map((m) =>
         row(
           m.email || m.accountId || m.id,
@@ -1656,41 +1675,15 @@ async function loadShare(channelId) {
 
     body.innerHTML =
       `<div class="share-section"><div class="share-label">People</div>${peopleRows}</div>` +
-      `<div class="share-section"><div class="share-label">Agents</div>${agentRows}</div>`;
+      (canManage
+        ? `<div class="share-section"><div class="share-label">Agents</div>${agentRows}</div>`
+        : "");
 
-    // Just the link, a copy button and a refresh button - no "create" step and
-    // no explaining: one link serves both audiences (an agent that redeems it
-    // becomes a requester, a person who signs in becomes a member) and it lives
-    // 24 hours. A channel with no live link gets one minted quietly here.
-    let url = state.inviteLinks[channelId] || linkRes.url || null;
-    let expiresAt = linkRes.expiresAt ?? null;
-    if (!url) {
-      const { invite } = await api(`/api/v1/channels/${channelId}/invite-link`, { method: "POST" });
-      url = invite.url;
-      expiresAt = invite.expiresAt;
-      state.inviteLinks[channelId] = url;
+    if (canManage && linkRes) {
+      await renderInviteLink(channelId, linkBox, linkRes);
     } else {
-      state.inviteLinks[channelId] = url;
-    }
-
-    const rotateLabel = expiresAt
-      ? `New link - this one stops working ${untilText(expiresAt)}`
-      : "New link - this one stops working";
-    linkBox.innerHTML = `
-      <div class="menu-key">
-        <code class="share-url" title="${esc(url)}">${esc(url)}</code>
-        <button class="icon-btn sm" data-copylink="${esc(channelId)}" aria-label="Copy invite link"
-          title="Copy invite link">${icon("copy", 14)}</button>
-        <button class="icon-btn sm" data-newlink="${esc(channelId)}" title="${esc(rotateLabel)}"
-          aria-label="New invite link">${icon("refresh", 15)}</button>
-      </div>`;
-
-    // The link box is re-rendered on every load, so bind its buttons here.
-    for (const btn of linkBox.querySelectorAll("[data-newlink]")) {
-      btn.onclick = () => createInviteLink(channelId);
-    }
-    for (const btn of linkBox.querySelectorAll("[data-copylink]")) {
-      btn.onclick = () => copyInviteLink(channelId);
+      // Nothing to mint and nothing to show: the link belongs to the owner.
+      linkBox.innerHTML = "";
     }
     for (const btn of body.querySelectorAll("[data-renamekey]")) {
       btn.onclick = () =>
@@ -1712,6 +1705,47 @@ async function loadShare(channelId) {
     }
   } catch (err) {
     body.innerHTML = `<div class="share-empty">${esc(err.message || "Couldn't load")}</div>`;
+  }
+}
+
+/**
+ * The channel's invite link: the URL, a copy button and a button that mints a new
+ * one. No "create" step and no explaining: one link serves both audiences (an
+ * agent that redeems it becomes a requester, a person who signs in becomes a
+ * member) and it lives 24 hours. A channel with no live link gets one minted
+ * quietly here, because arriving at a channel with an empty field and a button
+ * is worse than arriving at a link.
+ */
+async function renderInviteLink(channelId, linkBox, link) {
+  let url = state.inviteLinks[channelId] || link.url || null;
+  let expiresAt = link.expiresAt ?? null;
+  if (url) {
+    state.inviteLinks[channelId] = url;
+  } else {
+    const { invite } = await api(`/api/v1/channels/${channelId}/invite-link`, { method: "POST" });
+    url = invite.url;
+    expiresAt = invite.expiresAt;
+    state.inviteLinks[channelId] = url;
+  }
+
+  const rotateLabel = expiresAt
+    ? `New link - this one stops working ${untilText(expiresAt)}`
+    : "New link - this one stops working";
+  linkBox.innerHTML = `
+    <div class="menu-key">
+      <code class="share-url" title="${esc(url)}">${esc(url)}</code>
+      <button class="icon-btn sm" data-copylink="${esc(channelId)}" aria-label="Copy invite link"
+        title="Copy invite link">${icon("copy", 14)}</button>
+      <button class="icon-btn sm" data-newlink="${esc(channelId)}" title="${esc(rotateLabel)}"
+        aria-label="New invite link">${icon("refresh", 15)}</button>
+    </div>`;
+
+  // The link box is re-rendered on every load, so bind its buttons here.
+  for (const btn of linkBox.querySelectorAll("[data-newlink]")) {
+    btn.onclick = () => createInviteLink(channelId);
+  }
+  for (const btn of linkBox.querySelectorAll("[data-copylink]")) {
+    btn.onclick = () => copyInviteLink(channelId);
   }
 }
 
