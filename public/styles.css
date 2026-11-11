@@ -1308,6 +1308,31 @@ color: var(--red);
 .icon-btn.danger:hover {
 border-color: var(--red);
 }
+/* The chevron turns over instead of being swapped out: the button is the thing
+   that was just pressed, and replacing its contents mid-click loses the event. */
+.ch-fold svg {
+  transition: transform 0.16s ease;
+}
+.ch-fold[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+/* The page boundary of the history: the rest is one press away, not one scroll. */
+.hist-more {
+  display: block;
+  margin: 14px auto 2px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--dim);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.hist-more:hover {
+  color: var(--text);
+  border-color: var(--hover-border);
+}
 /* requests table bits still used by channel history */
 .hist-table .req-row {
 grid-template-columns: auto 1.2fr 1.6fr 0.5fr 1fr auto;

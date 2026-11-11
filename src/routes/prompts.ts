@@ -412,9 +412,12 @@ export const promptRoutes = new Elysia({ prefix: "/api/v1" })
       }
       const scope = await askScope(request.headers);
       if (scope && connection.id !== scope.sessionId) throw notFound("Connection not found");
+      // The dashboard draws the newest rows first and asks for the rest when someone
+      // scrolls to them, so the page size is the caller's. `listPrompts` caps it.
+      const asked = Number(new URL(request.url).searchParams.get("limit"));
       const items = await listPrompts(connection.tenantId, {
         sessionId: connection.id,
-        limit: 100,
+        limit: Number.isFinite(asked) && asked > 0 ? Math.trunc(asked) : 100,
         since: historyCutoff(getPlan(tenant.plan)),
       });
       // The channel owner is who approves - use their identity, not the viewer's.

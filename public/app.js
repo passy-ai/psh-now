@@ -76,6 +76,9 @@ const state = {
   channelOpen: {},
   channelReqOpen: {},
   channelHistOpen: {},
+  /** Rendered history by channel, so re-opening and re-rendering cost nothing. */
+  hist: {},
+  histTimer: {},
   channelConnOpen: {},
   /** Invite links minted in this session, by channel (the server only keeps hashes). */
   inviteLinks: {},
@@ -949,11 +952,14 @@ function handle(frame) {
       break;
     case "prompt.created":
       state.pending.set(frame.prompt.id, frame.prompt);
+      invalidateHistory(frame.prompt.connectionId);
       refresh();
       toast(frame.prompt.title || "Approval needed");
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
       break;
     case "prompt.decided":
+      // The decided prompt is what names its channel, so read it before dropping it.
+      invalidateHistory(state.pending.get(frame.promptId)?.connectionId);
       state.pending.delete(frame.promptId);
       refresh();
       break;
@@ -1062,7 +1068,7 @@ function channelSection(c) {
             <button class="menu-item danger" data-delete="${esc(c.id)}">${icon("trash", 15)}Delete channel</button>
           </div>
         </span>
-        <button class="icon-btn ch-fold" data-hist="${esc(c.id)}" aria-label="${histOpen ? "Hide" : "Show"} request history" aria-expanded="${histOpen}">${histOpen ? icon("chevron-up", 16) : icon("chevron-down", 16)}</button>
+        <button class="icon-btn ch-fold" data-hist="${esc(c.id)}" aria-label="${histOpen ? "Hide" : "Show"} request history" aria-expanded="${histOpen}">${icon("chevron-down", 16)}</button>
       </header>
 
       <pre class="ch-prompt hide" id="cprompt-${esc(c.id)}">-</pre>
@@ -1326,6 +1332,9 @@ function wireChannels() {
   // name (which is still double-click to rename).
   for (const card of root.querySelectorAll(".channel-card[data-id]")) {
     card.onclick = (e) => {
+      // A control inside the card keeps its own job, and a click whose element has
+      // already left the DOM is not a click on the card.
+      if (!card.contains(e.target)) return;
       if (e.target.closest("button, a, input, select, .menu, .pickr, .pcr-app, .ch-name, .ch-history"))
         return;
       toggleChannelOpen(card.dataset.id);
@@ -1483,15 +1492,63 @@ function wireChannels() {
   }
 }
 
-/** Fetch and render a channel's decided requests. */
-async function loadHistory(channelId) {
+/**
+ * The history table asks for the newest page first, not the whole channel: a
+ * busy channel is a hundred rows and 50 KB of JSON, and all of it had to arrive
+ * before the first row was drawn. `HIST_MAX` is the list's own ceiling
+ * (`listPrompts` pages at 200); the CSV export is what reads further back.
+ */
+const HIST_PAGE = 30;
+const HIST_MAX = 200;
+
+/** Bind what the history rows can do (an agent name is renameable in place). */
+function wireHistory(channelId) {
   const box = document.getElementById(`hist-${channelId}`);
-  if (!box || box.dataset.loaded) return;
+  if (!box) return;
+  for (const btn of box.querySelectorAll("[data-renameagent]")) {
+    btn.onclick = () =>
+      startKeyRename(
+        channelId,
+        btn.dataset.renameagent,
+        btn,
+        {
+          // A nameless agent gets an empty field with a placeholder, not the
+          // "Unnamed agent" text the cell shows.
+          current: btn.dataset.agentname ?? "",
+          onSaved: async () => {
+            delete state.hist[channelId];
+            await loadHistory(channelId);
+            // The same key is listed in the share panel, if it happens to be open.
+            if (!document.getElementById(`share-${channelId}`)?.classList.contains("hide"))
+              await loadShare(channelId);
+          },
+        },
+      );
+  }
+  for (const btn of box.querySelectorAll("[data-histmore]")) {
+    btn.onclick = () => loadHistory(channelId, { limit: HIST_MAX, force: true });
+  }
+}
+
+/** Fetch and render a channel's decided requests, from cache when we have it. */
+async function loadHistory(channelId, { limit = HIST_PAGE, force = false } = {}) {
+  const box = document.getElementById(`hist-${channelId}`);
+  if (!box) return;
+
+  // Re-opening a channel, or any re-render of the list, reuses what was drawn.
+  const cached = state.hist[channelId];
+  if (!force && cached && cached.limit >= limit) {
+    box.innerHTML = cached.html;
+    wireHistory(channelId);
+    return;
+  }
+
   box.innerHTML = `<div class="muted">Loading…</div>`;
   try {
-    const { prompts } = await api(`/api/v1/channels/${channelId}`);
+    const { prompts } = await api(`/api/v1/channels/${channelId}?limit=${limit}`);
     const prev = (prompts || []).filter((p) => p.status !== "pending");
-    box.innerHTML = prev.length
+    const more = prev.length >= limit && limit < HIST_MAX;
+    const html = prev.length
       ? `<div class="req-table hist-table">
           <div class="req-row req-head">
             <span>Agent</span><span>Request</span><span>Details</span><span>Time</span><span>Approved by</span><span>Status</span>
@@ -1510,26 +1567,34 @@ async function loadHistory(channelId) {
               </div>`,
             )
             .join("")}
-        </div>`
+        </div>${
+          more
+            ? `<button class="hist-more" data-histmore="${esc(channelId)}">Show older requests</button>`
+            : ""
+        }`
       : `<div class="muted">No previous requests.</div>`;
-    for (const btn of box.querySelectorAll("[data-renameagent]")) {
-      btn.onclick = () =>
-        startKeyRename(channelId, btn.dataset.renameagent, btn, {
-          // A nameless agent gets an empty field with a placeholder, not the
-          // "Unnamed agent" text the cell shows.
-          current: btn.dataset.agentname ?? "",
-          onSaved: async () => {
-            delete box.dataset.loaded;
-            await loadHistory(channelId);
-            // The same key is listed in the share panel, if it happens to be open.
-            if (!document.getElementById(`share-${channelId}`)?.classList.contains("hide"))
-              await loadShare(channelId);
-          },
-        });
-    }
-    box.dataset.loaded = "1";
+    state.hist[channelId] = { html, limit };
+    // The channel may have been closed while this was in flight.
+    const live = document.getElementById(`hist-${channelId}`);
+    if (live) live.innerHTML = html;
+    wireHistory(channelId);
   } catch (err) {
-    box.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+    const live = document.getElementById(`hist-${channelId}`);
+    if (live) live.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+  }
+}
+
+/**
+ * A decision changes a channel's history. Drop the cache so the next open is
+ * fresh, and quietly re-read the one history that is on screen right now.
+ */
+function invalidateHistory(channelId) {
+  if (!channelId) return;
+  delete state.hist[channelId];
+  if (state.channelHistOpen[channelId]) {
+    clearTimeout(state.histTimer[channelId]);
+    // Debounced: a burst of decisions is one re-read.
+    state.histTimer[channelId] = setTimeout(() => loadHistory(channelId, { force: true }), 400);
   }
 }
 
@@ -3008,10 +3073,30 @@ function clearChannelSearch(focus = false) {
   if (focus) input.focus();
 }
 
-/** Open (expand) or close a channel row, the same state the chevron toggles. */
+/**
+ * Open (expand) or close a channel row, the same state the chevron toggles.
+ *
+ * Only the card in hand is touched. A full re-render used to rebuild every card
+ * (colour pickers included) and re-request every open history, which is why the
+ * chevron used to sit there while the list caught up. When the card is not in the
+ * DOM - it was filtered out of view - the list is redrawn so the state still
+ * applies when it comes back.
+ */
 function toggleChannelOpen(id) {
-  state.channelHistOpen[id] = !(state.channelHistOpen[id] ?? false);
-  renderChannels();
+  const open = !(state.channelHistOpen[id] ?? false);
+  state.channelHistOpen[id] = open;
+  const card = document.querySelector(`.channel-card[data-id="${CSS.escape(id)}"]`);
+  if (!card) {
+    renderChannels();
+    return;
+  }
+  card.querySelector(`#hist-${CSS.escape(id)}`)?.classList.toggle("hide", !open);
+  const btn = card.querySelector("[data-hist]");
+  if (btn) {
+    btn.setAttribute("aria-expanded", String(open));
+    btn.setAttribute("aria-label", `${open ? "Hide" : "Show"} request history`);
+  }
+  if (open) void loadHistory(id);
 }
 
 $("channelSearch")?.addEventListener("input", () => {
