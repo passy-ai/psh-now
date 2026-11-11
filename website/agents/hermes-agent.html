@@ -68,7 +68,7 @@
         <p>With the skill installed, the agent asks with one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          The call blocks until you answer. It exits <code>0</code> on approval and non-zero otherwise. On a
+          The call blocks until you answer, then prints the decision. Read it before running the step. On a
           timeout the response carries status expired, which is not an approval, and an error means the step was not approved.
         </p>
 

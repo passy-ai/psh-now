@@ -99,7 +99,7 @@
         <h2>What every integration shares</h2>
         <ul>
           <li><strong>One channel</strong> holds the requests for a project; every agent in it posts to the same queue, and any member can decide.</li>
-          <li><strong>Scoped keys</strong>: a key can be limited to one channel, so another agent can answer there and nothing outside it.</li>
+          <li><strong>Ask-only keys</strong>: an agent's key can request a decision and cannot make one, and it can be limited to a single channel.</li>
           <li><strong>Blocks until answered</strong>: the HTTP call stays open, so there is no polling loop to write and no webhook to host.</li>
           <li><strong>MCP if you prefer it</strong>: a client that only speaks the protocol adds <code>https://psh.now/mcp</code> and calls <code>psh_ask</code>; the request is the same one.</li>
           <li><strong>MIT licensed</strong>: the same code runs self-hosted against your own Postgres, and the hooks are readable.</li>

@@ -68,8 +68,8 @@
         <p>Once the skill is installed, the agent's side of the contract is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until someone answers, then exits <code>0</code> on approval and non-zero otherwise.
-          An expired request or a failed call is not an approval, so the step should not run.
+          It blocks until someone answers, then prints the decision. An expired request or a failed call
+          is not an approval, so the step should not run.
         </p>
 
         <h2>Ask or gate</h2>

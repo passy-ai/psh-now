@@ -69,8 +69,8 @@
         <p>The agent's side of the contract is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          The call stays open until someone answers, then exits <code>0</code> on approval and non-zero
-          otherwise. A timeout or an error is not an approval.
+          The call stays open until someone answers, then prints the decision. Read it before running the
+          step. A timeout or an error is not an approval.
         </p>
 
         <h2>Skill or hook</h2>

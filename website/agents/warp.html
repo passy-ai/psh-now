@@ -68,7 +68,7 @@
         <p>The agent's side of the exchange is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. The
+          It blocks until you answer, then prints the decision. The
           window is 90 seconds by default and 15 minutes at most. When it closes the call returns
           <code>expired</code>, which is not an approval.
         </p>

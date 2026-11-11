@@ -69,8 +69,8 @@
         <p>Once installed, the agent's side is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until a person answers, then exits <code>0</code> on approval and non-zero otherwise.
-          A timeout, an expiry or an error means the step did not happen. The default window is 90
+          It blocks until a person answers, then prints the decision. A timeout, an expiry or an error
+          means the step did not happen. The default window is 90
           seconds, 15 minutes at most.
         </p>
 

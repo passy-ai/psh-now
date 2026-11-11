@@ -71,9 +71,8 @@
         <p>Once the skill is installed, the agent's side of the contract is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          The call stays open while the agent waits. It exits <code>0</code> on approval and non-zero
-          otherwise. When the request expires or is cancelled the exit is non-zero, because an expiry
-          is not an approval.
+          The call stays open while the agent waits, then prints the decision. An expiry is not an
+          approval, and neither is a cancellation, so the step should not run on either.
         </p>
 
         <h2>Ask or gate</h2>
