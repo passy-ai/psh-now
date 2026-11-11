@@ -2698,6 +2698,37 @@ html[data-theme="dark"] .risk-high .risk-tag {
   line-height: 1.65;
   color: var(--muted);
 }
+/* A list that reads as prose: no markers, no indent, one hairline dot per item.
+   Used by the per-alternative pages to state what psh.now does not do. */
+.subsection > .plain-list {
+  margin: 20px 0 0;
+  padding: 0;
+  max-width: 660px;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.subsection > .plain-list li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.subsection > .plain-list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.subsection > .plain-list strong {
+  color: var(--fg);
+  font-weight: 600;
+}
 
 /* The CTA already subtracts the page padding for the home page's full-bleed column;
    inside a sub page that has padding of its own, it would shrink twice. */
@@ -3139,6 +3170,66 @@ pre:hover .pre-copy,
 .cmp thead .ours {
   background: rgba(47, 107, 255, 0.08);
 }
+/* On a phone a three-column comparison is unreadable and the swipe is worse than
+   scrolling, so the per-tool tables stack: row label first, then one line per
+   column with the column name in front. Only `.stackable` does this; the
+   five-column table on /alternatives keeps its grid. */
+@media (max-width: 640px) {
+  .cmp.stackable {
+    min-width: 0;
+    display: block;
+    border-radius: 14px;
+  }
+  .cmp.stackable thead {
+    display: none;
+  }
+  .cmp.stackable tbody,
+  .cmp.stackable tr,
+  .cmp.stackable td {
+    display: block;
+    width: auto;
+  }
+  .cmp.stackable tr {
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--border-2);
+  }
+  .cmp.stackable tr:last-child {
+    border-bottom: 0;
+  }
+  .cmp.stackable td {
+    padding: 0 0 8px;
+    border: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .cmp.stackable td:last-child {
+    padding-bottom: 0;
+  }
+  .cmp.stackable td:first-child {
+    padding-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .cmp.stackable td:not(:first-child)::before {
+    content: attr(data-col);
+    display: block;
+    margin-bottom: 1px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--muted-3);
+  }
+  .cmp.stackable td.ours::before {
+    color: var(--accent);
+  }
+  .cmp.stackable tr:has(td.ours) {
+    background: rgba(47, 107, 255, 0.03);
+  }
+}
+
 .cmp .yes,
 .cmp .no,
 .cmp .part {
@@ -3203,6 +3294,20 @@ pre:hover .pre-copy,
   font-size: 14px;
   line-height: 1.62;
   color: var(--muted);
+}
+/* A card whose heading is the link, on /alternatives: the title should look like
+   a title until it is hovered, then read as clickable. */
+.card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.card h3 a:hover {
+  color: var(--accent);
+}
+.card h3 a::after {
+  content: " →";
+  color: var(--muted-3);
+  font-weight: 500;
 }
 
 .toast {

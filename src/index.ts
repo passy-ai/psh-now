@@ -555,6 +555,12 @@ const app = new Elysia({ serve: { reusePort: false } })
       : notFound(),
   )
   .get("/alternatives", () => websiteResponse("alternatives.html"))
+  // One page per named tool, for "X alternative" searches. Same shape as /agents.
+  .get("/alternatives/:slug", ({ params }) =>
+    /^[a-z0-9-]+$/.test(params.slug)
+      ? websiteResponse(`alternatives/${params.slug}.html`)
+      : notFound(),
+  )
   .get("/listed-on", () => websiteResponse("listed-on.html"))
   .get("/privacy", () => websiteResponse("privacy.html"))
   .get("/terms", () => websiteResponse("terms.html"))

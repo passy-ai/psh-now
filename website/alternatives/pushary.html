@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="How psh.now differs from Pushary: MIT licensed and self-hostable against a hosted service, one HTTP call against an SDK, no per-seat price. What Pushary does better, and when to pick it instead." />
+    <title>Open source alternative to Pushary, self-hosted and no per-seat fee | psh.now</title>
+    <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
+    <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/website/fonts/geist-mono-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="/website/styles.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Alternatives","item":"https://psh.now/alternatives"},{"@type":"ListItem","position":3,"name":"Pushary","item":"https://psh.now/alternatives/pushary"}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is there an open source alternative to Pushary?","acceptedAnswer":{"@type":"Answer","text":"Yes. psh.now does the same job as Pushary, sending an agent's yes/no question to a person and returning one boolean, and it is MIT licensed, including the server. Pushary is a hosted service: its SDKs are MIT but the server is not published, and a paid plan is required after the trial."}},{"@type":"Question","name":"Does psh.now send push notifications like Pushary?","acceptedAnswer":{"@type":"Answer","text":"No. Nothing wakes a closed tab or a locked phone today, so the page has to be open. The dashboard installs to the home screen as a PWA, and that is the honest claim. Pushary does send real push notifications to iOS and Android, including lock-screen answers, and that is a genuine advantage."}},{"@type":"Question","name":"How much does psh.now cost compared to Pushary?","acceptedAnswer":{"@type":"Answer","text":"psh.now is MIT licensed and free to self-host, and the hosted instance is free while payments are not yet switched on. Pushary is $59 a month for five people with $12 per additional person after a free trial. Neither product charges your agents per request."}}]}</script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <div class="header-inner">
+        <div class="header-left">
+          <a class="brand" href="/">
+            <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+            psh.now
+          </a>
+          <nav class="header-nav" aria-label="Main">
+            <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link" href="/agents">Agents</a>
+            <a class="nav-link" href="/teams">Teams</a>
+            <a class="nav-link" href="/alternatives" aria-current="page">Alternatives</a>
+            <a class="nav-link" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </nav>
+        </div>
+        <div class="header-right">
+          <a class="nav-link" href="/app">Log in</a>
+          <a class="btn btn-primary" href="/app">Get started</a>
+        </div>
+        </div>
+      </header>
+
+      <main class="subpage">
+        <section class="subhead">
+          <span class="tag"><span class="dot"></span>vs Pushary</span>
+          <h1>An open source alternative to Pushary</h1>
+          <p>Pushary is the closest thing to psh.now on the market: an agent asks a person, and the answer comes back as one boolean. It sends a real push notification and enforces per-tool policy in hooks. psh.now is the same idea with one HTTP call, an MIT licence, and no per-seat price. Both are reasonable choices, and this page is where they part.</p>
+        </section>
+
+        <section class="subsection">
+          <h2>What Pushary is, in its own terms</h2>
+          <p>Everything below is what Pushary publishes on <a href="https://pushary.com" target="_blank" rel="noopener noreferrer">pushary.com</a> and its <code>llms.txt</code>, read on 11 November 2026. If any of it changes, their site is the source of truth, not this page.</p>
+          <div class="cards">
+            <div class="card">
+              <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+              <h3>A hosted service, at a per-seat price</h3>
+              <p>Built by Aadil Ghani and operated by RalphNex OÜ in Estonia. A plan is required after the trial: $59 a month for five people, then $12 per person.</p>
+            </div>
+            <div class="card">
+              <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+              <h3>Real push, to the lock screen</h3>
+              <p>Confirm questions are answered from the iOS or Android lock screen. Multiple-choice and free-text questions open the app. Also the Mac notch, Slack and n8n.</p>
+            </div>
+            <div class="card">
+              <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="18" r="3"/></svg></div>
+              <h3>Per-tool policy, enforced in hooks</h3>
+              <p>Each tool rule can auto-approve, deny, escalate or time out, applied where the agent supports hooks or the application gates the action itself.</p>
+            </div>
+            <div class="card">
+              <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+              <h3>An SDK for every framework</h3>
+              <p>MCP server, TypeScript and Python SDKs under MIT, plus adapters for the Vercel AI SDK, LangGraph, LangChain, CrewAI, Mastra, the OpenAI Agents SDK and others.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="subsection">
+          <h2>Where the two differ</h2>
+          <p>The rows that actually change a decision, not a checkbox grid. Where Pushary is the better answer, this table says so.</p>
+        <div class="cmp-wrap">
+          <table class="cmp stackable">
+            <thead><tr>
+              <th scope="col"></th>
+              <th scope="col" class="ours">psh.now</th>
+              <th scope="col">Pushary</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td>Where the answer lands</td>
+                <td data-col="psh.now">The dashboard, on any browser, installable to the home screen as a PWA</td>
+                <td data-col="Pushary">Real push on iOS and Android, the Mac notch, Slack, n8n</td>
+              </tr>
+              <tr>
+                <td>Reaching you when the app is closed</td>
+                <td data-col="psh.now">No. Nothing wakes the phone: the page has to be open</td>
+                <td data-col="Pushary">Yes, including a lock-screen answer to a confirm question</td>
+              </tr>
+              <tr>
+                <td>Who runs the server</td>
+                <td data-col="psh.now">You can. Docker Compose, your Postgres, your mail</td>
+                <td data-col="Pushary">They do: an account and a plan. The SDKs are MIT; the decision store is theirs</td>
+              </tr>
+              <tr>
+                <td>Enforcement</td>
+                <td data-col="psh.now">The agent must honour the boolean. Ask-only keys cannot grant anything</td>
+                <td data-col="Pushary">Per-tool rules applied in agent hooks and application code</td>
+              </tr>
+              <tr>
+                <td>Question shapes</td>
+                <td data-col="psh.now">Approve or deny, and one free-text answer to a question</td>
+                <td data-col="Pushary">Approve or deny, multiple choice, free text</td>
+              </tr>
+              <tr>
+                <td>Team answering</td>
+                <td data-col="psh.now">One shared channel per project; whoever is awake answers, and the record names them</td>
+                <td data-col="Pushary">Per-person routing, roles, lead escalation, and an append-only trail</td>
+              </tr>
+              <tr>
+                <td>Price</td>
+                <td data-col="psh.now">Free to self-host under MIT. The hosted instance is free while payments are off</td>
+                <td data-col="Pushary">$59 a month for five people, $12 per additional person</td>
+              </tr>
+              <tr>
+                <td>What the agent needs</td>
+                <td data-col="psh.now">One HTTP POST. No SDK, no MCP server, no session</td>
+                <td data-col="Pushary"><code>npx pushary@latest setup</code>, which wires their MCP server and hooks</td>
+              </tr>
+              <tr>
+                <td>Harness coverage</td>
+                <td data-col="psh.now">Anything that can POST. Ten harnesses have a written guide</td>
+                <td data-col="Pushary">26 harnesses, plus SDK adapters and a published host matrix</td>
+              </tr>
+              <tr>
+                <td>Licence</td>
+                <td data-col="psh.now">MIT, server and skill</td>
+                <td data-col="Pushary">The service is proprietary, the client libraries are MIT</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section class="subsection">
+          <h2>Pick Pushary when</h2>
+          <div class="cards">
+            <div class="card">
+              <h3>The phone has to buzz</h3>
+              <p>If the whole point is that the question reaches you with the phone in your pocket and the screen off, Pushary does that today and psh.now does not.</p>
+            </div>
+            <div class="card">
+              <h3>You want policy in the hook</h3>
+              <p>Rules that block a tool call before it runs, rather than an agent that is trusted to honour the answer. That is a stronger guarantee, and it is theirs.</p>
+            </div>
+            <div class="card">
+              <h3>You need more than yes or no</h3>
+              <p>A choice between three routes, or a question answered in a sentence. psh.now takes one typed answer; Pushary takes multiple choice too.</p>
+            </div>
+            <div class="card">
+              <h3>Slack is where the team lives</h3>
+              <p>Delivering into an existing room, and letting the answer come back from there, is a solved problem for them.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="subsection">
+          <h2>Pick psh.now when</h2>
+          <div class="cards">
+            <div class="card">
+              <h3>The approval path has to be inspectable</h3>
+              <p>MIT on both the server and the skill. You can read every line that decides whether your agent proceeds, and change the line you disagree with.</p>
+            </div>
+            <div class="card">
+              <h3>The question cannot leave your network</h3>
+              <p>Self-hosted with your own Postgres, your own mail and your own domain. Nothing about a deploy, an invoice or a customer reply crosses to a third party.</p>
+            </div>
+            <div class="card">
+              <h3>You do not want a per-seat meter</h3>
+              <p>No seats, no per-request charge, no plan to upgrade because a sixth person joined the on-call rota.</p>
+            </div>
+            <div class="card">
+              <h3>The integration should be one line</h3>
+              <p>One POST with a title and a message, one boolean back. Nothing to install on the agent side, and nothing to keep in sync when the agent changes.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="subsection">
+          <h2>What psh.now does not do</h2>
+          <p>Stated plainly, because a comparison that only lists wins is marketing.</p>
+          <ul class="plain-list">
+            <li><strong>No push notifications today.</strong> Nothing wakes a closed tab or a locked phone. A PWA on the home screen is the honest claim, and it needs the page open.</li>
+            <li><strong>No policy engine.</strong> psh.now cannot intercept a tool call. The agent asks, and then the agent has to honour the answer. Ask-only keys stop a leaked key from approving anything, but they are not a hook.</li>
+            <li><strong>No multiple choice.</strong> One question, one approve or deny, or one typed answer. A list of options is rejected by the hook on purpose.</li>
+            <li><strong>No Slack, no n8n.</strong> The dashboard is the surface, plus the agent's own terminal.</li>
+          </ul>
+          <p>If those four matter more than licence, self-hosting and price, Pushary is the better product for you. That is not a sales line, it is the honest reading of the table above.</p>
+        </section>
+
+        <section class="subsection">
+          <h2>Also compared</h2>
+          <p><a href="/alternatives/agentpeek">AgentPeek, the Mac command centre for coding agents</a>. Read the general case in <a href="/alternatives">all the alternatives</a>.</p>
+        </section>
+
+        <section class="cta">
+          <h2 class="cta-title">Give Your Team One Answer</h2>
+          <p class="cta-sub">Open source and MIT licensed. One channel, every agent, and the person on call answers from wherever they are.</p>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="/app">Get started free</a>
+            <a class="btn btn-secondary btn-lg" href="/self-hosting">Self-host it</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <div>
+            <div class="footer-brand">
+              <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+              psh.now
+            </div>
+            <p class="footer-tag">One hub for every agent that needs you</p>
+          </div>
+          <div class="footer-col">
+            <h4>PRODUCT</h4>
+            <a href="/docs">Docs</a>
+            <a href="/agents">Agents</a>
+            <a href="/teams">Teams</a>
+            <a href="/alternatives">Alternatives</a>
+            <a href="/self-hosting">Self hosting</a>
+            <a href="/listed-on">Listed on</a>
+            <a href="/llms.txt">llms.txt</a>
+          </div>
+          <div class="footer-col">
+            <h4>OPEN SOURCE</h4>
+            <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+            <a href="https://github.com/passy-ai/psh-now/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a>
+          </div>
+          <div class="footer-col">
+            <h4>LEGAL</h4>
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+          </div>
+          <div class="footer-col">
+            <h4>COMPANY</h4>
+            <a href="https://absolum.nl">Absolum</a>
+            <a href="mailto:hello@psh.now">Contact</a>
+          </div>
+        </div>
+        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+      </footer>
+    </div>
+  </body>
+</html>

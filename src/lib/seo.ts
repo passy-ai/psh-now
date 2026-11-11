@@ -37,6 +37,9 @@ const PAGES = [
   { rel: "docs.html", path: "/docs", file: "public/docs.html", priority: "0.9", changefreq: "weekly" },
   { rel: "teams.html", path: "/teams", file: "website/teams.html", priority: "0.8", changefreq: "monthly" },
   { rel: "alternatives.html", path: "/alternatives", file: "website/alternatives.html", priority: "0.8", changefreq: "monthly" },
+  // One page per named tool: "<tool> alternative" is what people actually search.
+  { rel: "alternatives/pushary.html", path: "/alternatives/pushary", file: "website/alternatives/pushary.html", priority: "0.7", changefreq: "monthly" },
+  { rel: "alternatives/agentpeek.html", path: "/alternatives/agentpeek", file: "website/alternatives/agentpeek.html", priority: "0.7", changefreq: "monthly" },
   // The agent hub and one page per harness, right behind the docs in the sitemap.
   { rel: "agents/index.html", path: "/agents", file: "website/agents/index.html", priority: "0.9", changefreq: "monthly" },
   { rel: "agents/claude-code.html", path: "/agents/claude-code", file: "website/agents/claude-code.html", priority: "0.8", changefreq: "monthly" },

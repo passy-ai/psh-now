@@ -103,7 +103,7 @@ taps Approve or Deny. The response is a single boolean.
 - Channels: scoped, ask-only keys bound to one place.
 - Agent-to-agent approval: a central agent holds a scoped key and answers for you.
 - Harness-agnostic: one HTTP call, no SDK; MCP is optional.
-- Live alerts over WebSocket and web push.
+- Live alerts over WebSocket while the dashboard is open.
 
 ## When to use
 ${WHEN}
