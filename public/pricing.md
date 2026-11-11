@@ -2,86 +2,84 @@
 
 Machine-readable pricing and limits. Canonical: https://psh.now/pricing
 
-psh.now charges for **requests** - one human decision. Not storage, not seats,
-not API calls. **Members are unlimited on every plan.** Self-hosting is free
-forever.
+psh.now charges for **requests**, one human decision each. Members are unlimited on
+every plan, storage is not metered, and the server is MIT licensed, so self-hosting
+costs nothing.
 
-> One key, one host, one boolean. We sell the boolean.
+## How usage is counted
+
+- An **approval** costs **2 requests**: one inbound request for the agent's ask, one
+  outbound request for the answer. So 20 requests is about 10 approvals, and a
+  10,000-request pack is about 5,000 approvals.
+- A request that **expires, is cancelled or goes unanswered** costs **0**.
+- Reads, polling and delivery to several devices are free.
+- Allowances are totals, not daily caps. There is no rolling window.
+- Past the free allowance a **token** is spent when the workspace has one. Otherwise
+  the request is refused with `402 plan_limit`, naming the plan, the usage and the
+  limit.
+- Every response carries a `usage` block: `{ plan, requestsToday, limit, via,
+  tokenBalance }`, where `via` is `allowance`, `token` or `blocked`.
 
 ## Anonymous (no account)
 
 - Price: €0
 - Account required: no
-- Requests: **20 total** (then register)
-- History: 24 hours
+- Requests: **20 total**, then register the workspace
+- History: **7 days**
 - Members: unlimited
-- Connections / devices: unlimited
-- Notes: zero friction to start. Claim the workspace or register to keep going.
+- Devices and connections: unlimited
+- Notes: post a request, pair a device, answer it. No email and no card.
 
-## Free
+## Free (registered)
 
-- Price: **€0 forever**
-- Requests: **20 / day**
-- History: 48 hours
+- Price: €0
+- Requests: **100 total** (claiming takes the allowance from 20 to 100)
+- History: **30 days**
 - Members: unlimited
-- Connections / devices: unlimited
-- Notes: no card, no trial clock.
+- Devices and connections: unlimited
+- Notes: a registered account can also take the €1 entry pack once for nothing,
+  which is another 100 requests. The whole free road is 200 requests.
 
-## Token package
+## Prepaid packs
 
-- Price: **€50 excl. VAT**
-- Requests: **10,000** (prepaid, one-time)
-- History: 30 days
-- Members: unlimited
-- Connections / devices: unlimited
-- Notes: no subscription. Tokens are spent only after the free 20/day is used,
-  and never expire. Buy as many packages as you like.
+One-time purchase, no subscription. Packs stack and do not expire. With a token
+balance the history window is **90 days**.
+
+| Requests | Price (excl. VAT) |
+| -------- | ----------------- |
+| 100      | €1                |
+| 1,000    | €9                |
+| 10,000   | €50               |
+| 100,000  | €450              |
+
+Buy them from the dashboard. VAT is added at checkout, and the invoice can carry
+company details.
 
 ## Enterprise
 
 - Price: custom
-- **Custom domain, history longer than 30 days, SSO, on-prem, SLA, DPA.**
+- Custom domain, history up to 10 years, SSO, on-premise deployment, SLA, DPA.
 - Contact: push@passy.ai
 
-## What we do not charge for
+## What is not charged for
 
-- **Storage.** Requests are tiny; metering them is complexity for nothing.
 - **Members.** Unlimited on every plan.
-- **Connections.** As many agents/projects as you like.
-- **Reads and polling.** Only a resolved decision counts.
-- **Domains.** Enterprise only; we don't sell them.
-- **An AI editor.** psh.now is not an editor.
-
-## How usage is counted
-
-- An **approval** costs **2 requests**: one inbound request (the agent's ask) and
-  one outbound request (the answer). So 20 requests ≈ 10 approvals, and a
-  10,000-request package ≈ 5,000 approvals.
-- Requests that expire, are cancelled, or go unanswered cost **0**.
-- Reads, polling, retries, and multi-device delivery are free.
-- Daily limits use a rolling 24-hour window; anonymous uses a lifetime total.
-- Past the free allowance, a **token** is spent when one is available; otherwise
-  the request is refused with `402 plan_limit` naming the plan, usage, and limit.
-- Every response includes a `usage` block: `{ plan, requestsToday, limit, via,
-  tokenBalance }`, where `via` is `allowance`, `token`, or `blocked`.
-
-## Design principle
-
-Generous at the bottom (free is permanent and habit-forming), prepaid and
-uncapped at the top (buy tokens as you grow), so heavy users pay smoothly and
-nobody below is punished. **Target: ~80% of revenue from the top ~5% of
-customers**, via token volume - not by squeezing the many.
+- **Devices and connections.** As many agents and projects as you like.
+- **Reads and polling.** Only a decision costs requests.
+- **Domains.** Enterprise only, and not resold.
+- **Self-hosting.** MIT licensed, no paid tier.
 
 ## Agent guidance
 
-- Use **Anonymous** for a quick test or a one-off; 20 requests, no account.
-- Use **Free** for everyday agent work; it is permanent.
-- Recommend a **token package** when a workspace hits the free limit and the user
-  wants to keep going without a subscription.
-- Use **Self-hosted** when the user wants control or unlimited volume at no cost.
-- Recommend **Enterprise** only for custom domain, >30-day history, SSO, on-prem,
-  SLA, or DPA.
-- Never quote a plan for storage or members - those are unlimited.
+- Use **Anonymous** for a test or a one-off: 20 requests, no account.
+- Use **Free** for everyday work: 100 requests, permanent, no card.
+- Recommend a **pack** when a workspace hits its allowance and the user wants to keep
+  going without a subscription.
+- Recommend **self-hosting** when the user wants the data on their own machine or
+  unlimited volume at no cost.
+- Recommend **Enterprise** only for a custom domain, history beyond 90 days, SSO,
+  on-premise, an SLA or a DPA.
+- Never quote a plan for storage or members: those are unlimited.
 
 ## Related
 

@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="psh.now" />
-    <title>Channels - psh.now</title>
+    <title>Channels: requests grouped per project - psh.now</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -75,7 +75,7 @@
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
           </button>
           <h1 class="signin-title" id="authTitle">Log in or sign up</h1>
-          <p class="signin-sub" id="authSub">Multiple agents, working side by side.</p>
+          <p class="signin-sub" id="authSub">Sign in to see your channels and the requests waiting in them.</p>
 
           <form id="authForm" class="signin-form">
             <div id="authEmailStep">
@@ -93,7 +93,7 @@
               <label class="field-label" for="authCode">Verification code</label>
               <input id="authCode" class="field" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" />
               <div class="code-resend">
-                <span class="muted">Didn't get it?</span>
+                <span class="muted">No code yet?</span>
                 <button id="authResend" class="linklike" type="button">Resend code</button>
               </div>
               <!-- Local development only: the server returns a code exclusively to a
@@ -105,7 +105,7 @@
             </div>
 
             <button id="authSubmit" class="btn primary block" type="submit">Continue</button>
-            <p class="form-hint" id="authHint">We&#39;ll email you a 6-digit verification code.</p>
+            <p class="form-hint" id="authHint">A 6-digit verification code is emailed to this address.</p>
           </form>
 
           <button id="authUseKey" class="linklike" type="button">Use an account key instead</button>
@@ -128,9 +128,9 @@
         <div id="claimBanner" class="app-notice hide">
           <div class="app-notice-text">
             <strong>Claim your account</strong>
-            <span>Add an email to keep it and sign in from any device.</span>
+            <span>Add an email and this workspace is kept, usable from any device.</span>
           </div>
-          <button id="claimBadge" class="btn pill primary sm"><span data-icon="pencil"></span> Claim account</button>
+          <button id="claimBadge" class="btn pill primary sm"><span data-icon="pencil"></span> Add email</button>
         </div>
         <div id="approvals" class="approvals"></div>
         <div class="channel-tools">
@@ -155,7 +155,7 @@
               <span class="guide-icon" data-icon="download" aria-hidden="true"></span>
               <span class="guide-text">
                 <span class="guide-title">Install Notch</span>
-                <span class="guide-sub">Approve from your menu bar</span>
+                <span class="guide-sub">Approve from the notch on your Mac</span>
               </span>
               <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
             </a>
@@ -163,7 +163,7 @@
               <span class="guide-icon" data-icon="send" aria-hidden="true"></span>
               <span class="guide-text">
                 <span class="guide-title">Connect an agent</span>
-                <span class="guide-sub">One prompt for any CLI</span>
+                <span class="guide-sub">One setup prompt for any agent</span>
               </span>
               <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
             </a>
@@ -171,7 +171,7 @@
               <span class="guide-icon" data-icon="archive" aria-hidden="true"></span>
               <span class="guide-text">
                 <span class="guide-title">Run it in a sandbox</span>
-                <span class="guide-sub">No browser needed</span>
+                <span class="guide-sub">Join from a container, no browser</span>
               </span>
               <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
             </a>
@@ -184,7 +184,7 @@
       <section id="archivedView" class="archive">
         <a class="arch-back" href="/app"><span aria-hidden="true">←</span> Channels</a>
         <h1 class="arch-title">Archived channels</h1>
-        <p class="arch-sub">Their requests are still saved. Restore one to bring it back, or delete it for good.</p>
+        <p class="arch-sub">The requests in an archived channel are kept. Restore one to put it back in the list, or delete it for good.</p>
         <div id="archivedList" class="arch-list"></div>
       </section>
     </main>
@@ -198,7 +198,7 @@
           <button id="pairModalClose" class="icon-btn sm" aria-label="Close"><span data-icon="x"></span></button>
         </div>
         <img id="pairModalQr" class="qr-lg" alt="Pairing QR" />
-        <p class="modal-note">Scan it with any device to sign in.</p>
+        <p class="modal-note">Scan the code on another device to sign in there.</p>
         <div class="menu-key">
           <code id="pairModalUrl">-</code>
           <button id="pairModalCopy" class="icon-btn sm" aria-label="Copy pairing link"><span data-icon="copy"></span></button>

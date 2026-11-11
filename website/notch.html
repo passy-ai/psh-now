@@ -275,17 +275,17 @@
       <main class="subpage notch-page">
         <section class="subhead">
           <span class="tag"><span class="dot"></span>macOS 13 or later</span>
-          <h1>The approval is already in the notch.</h1>
+          <h1>Answer an agent without leaving the window.</h1>
           <p>
-            psh notch is a small Mac app that puts the queue where your eyes already
-            are. A request lands, the notch opens with the question, and Command-L
-            answers it. No window to find, no tab to switch to, no Dock icon.
+            psh notch keeps the queue in the notch of your MacBook. A request arrives, the
+            panel opens with the question, and Command-L approves it. There is no window to
+            find, no tab to switch to, and no Dock icon.
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary btn-lg" href="https://github.com/passy-ai/psh-now/releases">Download for macOS</a>
             <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now/blob/main/tools/psh-notch/PSHNotch.swift">Read the source</a>
           </div>
-          <p class="hero-note">Free, MIT licensed, one Swift file. No dependencies, no Xcode project.</p>
+          <p class="hero-note">Free and MIT licensed. One Swift file, no dependencies, no Xcode project.</p>
         </section>
 
         <section class="stage-wrap">
@@ -309,11 +309,10 @@
         </section>
 
         <section class="subsection">
-          <h2 class="twotone">Three keys, no window.<span>Approve where you are already looking.</span></h2>
+          <h2 class="twotone">Three keys, no window.<span>Every action sits on a shortcut.</span></h2>
           <p>
-            The notch that holds the question also holds the answer. The three plates
-            under it are the whole interface, and each one has a key, because a hand on
-            the keyboard should not have to find the pointer.
+            The panel is the whole interface: three choices, each on a key, so the pointer is
+            optional. What each one returns to the agent:
           </p>
           <div class="keys">
             <div class="key">
@@ -337,8 +336,8 @@
         <section class="subsection">
           <h2>What it does while you are not looking</h2>
           <p>
-            The point of the notch is that it is where attention already lands, so the
-            app is built around that one surface rather than around a window.
+            One surface, with a fixed set of behaviours. Nothing here needs a setting
+            explained first.
           </p>
           <div class="tiles">
             <div class="tile">
@@ -375,7 +374,7 @@
         </section>
 
         <section class="subsection">
-          <h2>Install it in a minute</h2>
+          <h2>Install it</h2>
           <ol class="steps">
             <li class="step">
               <div>
@@ -392,9 +391,8 @@
                 <h3>Open it once, on purpose</h3>
                 <p>
                   macOS refuses the first launch of an app it cannot notarise. Right-click
-                  the app, choose <strong>Open</strong>, and confirm. That is asked once,
-                  and it is the whole of the friction: the app is signed ad hoc, with no
-                  Developer ID behind it.
+                  the app, choose <strong>Open</strong>, and confirm. It asks once. The app
+                  is signed ad hoc, with no Developer ID behind it.
                 </p>
               </div>
             </li>
@@ -437,7 +435,7 @@ swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
         </section>
 
         <section class="subsection">
-          <h2>Small on purpose</h2>
+          <h2>What it is made of</h2>
           <p>
             Everything the notch needs is in one Swift file and the AppKit that ships with
             macOS. There is no helper process, no background service, and nothing to keep
@@ -445,7 +443,7 @@ swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
           </p>
           <table class="facts">
             <tbody>
-              <tr><th>Runs on</th><td>macOS 13 or later, Intel or Apple silicon</td></tr>
+              <tr><th>Runs on</th><td>macOS 13 or later, Apple silicon</td></tr>
               <tr><th>Built from</th><td>One Swift file, AppKit only, no dependencies</td></tr>
               <tr><th>Credential</th><td>A device token with approve scope, revocable per device</td></tr>
               <tr><th>Where it keeps it</th><td><code>~/.config/psh-notch/device.json</code>, mode 0600</td></tr>
@@ -456,8 +454,8 @@ swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
         </section>
 
         <section class="cta">
-          <h2 class="cta-title">Answer From the Notch</h2>
-          <p class="cta-sub">Install it once, and the next question your agent asks opens above the window you are already in.</p>
+          <h2 class="cta-title">Install psh notch</h2>
+          <p class="cta-sub">Once it is running, the next request opens above whatever you are working in.</p>
           <div class="cta-actions">
             <a class="btn btn-primary btn-lg" href="https://github.com/passy-ai/psh-now/releases">Download psh notch</a>
             <a class="btn btn-secondary btn-lg" href="/app">Open the dashboard</a>
@@ -472,7 +470,7 @@ swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
               <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -502,7 +500,7 @@ swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
       </footer>
     </div>
 

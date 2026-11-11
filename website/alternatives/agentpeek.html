@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="How psh.now differs from AgentPeek: a Mac notch app against an approval hub on any device, a one-time licence against MIT, session monitoring against one shared channel a team answers." />
-    <title>AgentPeek alternative for when the approver is not at the Mac | psh.now</title>
+    <meta name="description" content="How psh.now differs from AgentPeek: a Mac app against one endpoint that holds an approval open, a one-time licence against MIT, session monitoring against a channel any member can answer from a phone." />
+    <title>An AgentPeek alternative for approvals answered off the Mac | psh.now</title>
     <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/geist-mono-latin.woff2" crossorigin />
@@ -41,27 +41,27 @@
         <section class="subhead">
           <span class="tag"><span class="dot"></span>vs AgentPeek</span>
           <h1>An open source alternative to AgentPeek</h1>
-          <p>AgentPeek is a command centre for coding agents on a Mac: every session in the notch, permission prompts answered with a keystroke, token spend on a gauge. psh.now answers the case it leaves open, where the person who has to say yes is not at that machine. Different surfaces, different jobs, and most teams could use both.</p>
+          <p>AgentPeek is a Mac app for coding agent sessions: the notch, the menu bar, a floating pill, token spend. psh.now is one HTTP call that stays open until a person approves it, denies it, or answers it in words, from a phone, a browser or the macOS notch app. Most teams can run both.</p>
         </section>
 
         <section class="subsection">
           <h2>What AgentPeek is, in its own terms</h2>
-          <p>Everything below is what AgentPeek publishes on <a href="https://agentpeek.app" target="_blank" rel="noopener noreferrer">agentpeek.app</a> and in its docs, read on 11 November 2026. Their site is the source of truth if anything here goes stale.</p>
+          <p>The AgentPeek details below come from <a href="https://agentpeek.app" target="_blank" rel="noopener noreferrer">agentpeek.app</a> and its docs, read on 11 November 2026. Their site is the source of truth if something here has gone stale.</p>
           <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-              <h3>A Mac app, nothing else</h3>
-              <p>macOS 14 or newer, Apple silicon. The notch, the menu bar and a floating pill are the interface. There is no server to run and no account to create.</p>
+              <h3>A Mac app, no server</h3>
+              <p>macOS 14 or newer on Apple silicon. The interface is the notch, the menu bar and a floating pill. No server to run, no account to create.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5C17 4.6 14.8 3 12 3S7 4.6 7 6.5 9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg></div>
               <h3>One-time purchase, one seat per Mac</h3>
-              <p>$14.99 for one Mac, $24.99 for two, $34.99 for three. A free 3-day trial per machine, no subscription, and a seat is a physical Mac.</p>
+              <p>$14.99 for one Mac, $24.99 for two, $34.99 for three. A 3-day trial per machine, no subscription. A seat is a physical Mac.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></div>
               <h3>26 agents in one window</h3>
-              <p>Claude Code, Codex, Cursor, Copilot, Cline, Aider, Goose, Qwen, Kimi, Devin and the rest, each with a documented host matrix of what it can do.</p>
+              <p>Claude Code, Codex, Cursor, Copilot, Cline, Aider, Goose, Qwen, Kimi, Devin and others, each with a documented host matrix of what it supports.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 3-4 6 6"/><path d="M3 20h18"/></svg></div>
@@ -73,40 +73,40 @@
 
         <section class="subsection">
           <h2>Where the two differ</h2>
-          <p>They overlap on one thing, answering an agent's permission prompt, and split on everything around it. Where AgentPeek is the better answer, it says so.</p>
+          <p>They overlap on one thing: answering a permission prompt. The rows below cover the rest, including where AgentPeek is the better fit.</p>
         <div class="versus">
   <div class="vs-row">
     <div class="vs-key">What runs it</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>A server you host, and any browser, including an installed PWA</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>A hosted server or your own, and any browser, including an installed PWA</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>A Mac app: macOS 14+, Apple silicon</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Where you answer</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>Any device: phone, tablet, another laptop, or the terminal</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Any device: phone, tablet, another laptop, a browser tab, or the macOS notch app</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>The notch, the menu bar or the panel on that Mac</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Who can answer</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>A shared channel, so whoever is awake answers, and the record names them</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Every member of a channel, and the decision records which member answered</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>You, at the machine the agents run on</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Agents on other machines</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>Yes. A cron job in a container and a laptop share one channel</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Yes. A cron job in a container and a laptop post to the same channel</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>One Mac at a time; a seat is a physical machine</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Scope</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>Questions and answers, nothing else</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>One request, one decision: approve, deny, or answer in words</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Sessions, permissions, prompts, token spend, servers, routes, actions, widgets</span></p>
     </div>
   </div>
@@ -120,28 +120,28 @@
   <div class="vs-row">
     <div class="vs-key">Self-hosting</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>Docker Compose, your Postgres, your mail</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>docker compose up: a Bun service and Postgres, data in your own database</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Not applicable: the app is local by design</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Licence</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>MIT, server and skill</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>MIT, for the server, the CLI and the skill</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Proprietary, one-time licence, updates included while supported</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">Price</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>Free to self-host. The hosted instance is free while payments are off</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Free to start, no account and no card. An approval costs two requests, one in and one out; a prepaid package of 10,000 costs 50 EUR</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>$14.99 once for one Mac, up to $34.99 for three</span></p>
     </div>
   </div>
   <div class="vs-row">
     <div class="vs-key">How an agent asks</div>
     <div class="vs-vals">
-      <p class="vs-us"><span class="vs-who">psh.now</span><span>One HTTP POST with a title and a message</span></p>
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>One POST to /api/v1/approvals with an x-psh-key header, and the call stays open</span></p>
       <p class="vs-them"><span class="vs-who">AgentPeek</span><span>The agent runs under a supported host, and AgentPeek reads its session</span></p>
     </div>
   </div>
@@ -153,19 +153,19 @@
           <div class="cards">
             <div class="card">
               <h3>You are at the Mac all day</h3>
-              <p>Six parallel sessions in a notch, answered with a keystroke, is faster than switching to a browser tab and back. That is the whole point of it.</p>
+              <p>Several sessions in the notch, answered with a keystroke, beat switching to a browser tab and back.</p>
             </div>
             <div class="card">
               <h3>You want the spend view</h3>
-              <p>Rate-limit windows and budget alerts per agent, in the same window as the approvals. psh.now has nothing like it.</p>
+              <p>Rate-limit windows and budget alerts per agent, in the same window as the approvals. psh.now does not track spend.</p>
             </div>
             <div class="card">
               <h3>A one-time price suits you</h3>
-              <p>Fifteen dollars once, no account, no subscription, no server to keep alive. For a single developer on one Mac, that is hard to beat.</p>
+              <p>One payment, no account, no subscription, no server to keep alive. For one developer on one Mac, that is the whole cost.</p>
             </div>
             <div class="card">
               <h3>You want the whole toolkit</h3>
-              <p>Session transcripts, follow-up prompts, dev servers, widgets on any display. It is a cockpit, not an approval endpoint.</p>
+              <p>Session transcripts, follow-up prompts, dev servers and widgets on any display, in one app.</p>
             </div>
           </div>
         </section>
@@ -175,45 +175,45 @@
           <div class="cards">
             <div class="card">
               <h3>The approver is not at that Mac</h3>
-              <p>A deploy at 2am, a question while you are on a train, a teammate covering for you. The dashboard is a URL, not a machine.</p>
+              <p>A deploy at night, a question while you are on a train, a teammate covering for you. The dashboard is a URL, and web push reaches a phone once notifications are allowed.</p>
             </div>
             <div class="card">
               <h3>Several people share the on-call</h3>
-              <p>One channel per project, anyone on it can answer, and the record says who did. No handover of a laptop required.</p>
+              <p>One channel per project, any member can decide, and the decision records who did.</p>
             </div>
             <div class="card">
               <h3>Agents run somewhere you do not sit</h3>
-              <p>A CI runner, a cron job, a container on a server. It needs one HTTP call, not a Mac app watching the process.</p>
+              <p>A CI runner, a cron job, a container on a server. Each one needs a single HTTP call, whatever machine it runs on.</p>
             </div>
             <div class="card">
               <h3>You want to read and host the code</h3>
-              <p>MIT, self-hosted, your Postgres, your mail. The approval path is yours to audit and change.</p>
+              <p>MIT. A Bun service and Postgres, started with docker compose up, and requests, keys and history stay in your own database.</p>
             </div>
           </div>
         </section>
 
         <section class="subsection">
           <h2>What psh.now does not do</h2>
-          <p>The other side of the table, stated plainly.</p>
+          <p>The limits of the approval layer, stated plainly.</p>
           <ul class="plain-list">
-            <li><strong>No spend tracking.</strong> Not a token, not a limit, not a budget alert. psh.now records answers, not money.</li>
+            <li><strong>No spend tracking.</strong> No token counts, no rate-limit windows, no budget alerts. psh.now records decisions.</li>
             <li><strong>No session monitoring.</strong> It never sees the agent's transcript, only the question the agent chose to ask.</li>
-            <li><strong>No Mac notch.</strong> The surface is a web page, and the honest claim is a PWA on the home screen, with no push notifications behind it.</li>
+            <li><strong>No session view.</strong> The surfaces are the dashboard, the installable PWA and the macOS notch app. There is no session list, no transcript pane and no agent board.</li>
             <li><strong>No local tooling.</strong> No dev-server list, no quick routes, no saved shell actions.</li>
           </ul>
-          <p>If you work at one Mac and want the cockpit, AgentPeek is the better buy. If the person who has to say yes might be somewhere else, that is what psh.now is for.</p>
+          <p>If you work at one Mac and want the session view, AgentPeek covers more. If the person who has to say yes is somewhere else, psh.now covers that.</p>
         </section>
 
         <section class="subsection">
           <h2>Also compared</h2>
-          <p><a href="/alternatives/pushary">Pushary, the hosted approval service with real push notifications</a>. Read the general case in <a href="/alternatives">all the alternatives</a>.</p>
+          <p><a href="/alternatives/pushary">Pushary, a hosted approval service</a>. The general case is in <a href="/alternatives">all the alternatives</a>.</p>
         </section>
 
         <section class="cta">
-          <h2 class="cta-title">Give Your Team One Answer</h2>
-          <p class="cta-sub">Open source and MIT licensed. One channel, every agent, and the person on call answers from wherever they are.</p>
+          <h2 class="cta-title">One channel for the whole team</h2>
+          <p class="cta-sub">MIT licensed. One channel per project, and whoever is on call answers the request from whatever device they have.</p>
           <div class="cta-actions">
-            <a class="btn btn-primary btn-lg" href="/app">Get started free</a>
+            <a class="btn btn-primary btn-lg" href="/app">Get started</a>
             <a class="btn btn-secondary btn-lg" href="/self-hosting">Self-host it</a>
           </div>
         </section>
@@ -226,7 +226,7 @@
               <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -256,7 +256,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed</div>
       </footer>
     </div>
   </body>

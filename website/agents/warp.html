@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Warp integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. The terminal asks, your phone answers." />
-    <title>Warp + psh.now: ask before it acts, from anywhere</title>
+    <meta name="description" content="Warp integration for psh.now. Install the skill with one command, then Warp can post a request before a step and wait while a person approves, denies, or answers it from a phone, a browser, or the notch." />
+    <title>Warp + psh.now: approve a command from your phone</title>
     <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
     <link rel="stylesheet" href="/website/styles.css" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Agents","item":"https://psh.now/agents"},{"@type":"ListItem","position":3,"name":"Warp","item":"https://psh.now/agents/warp"}]}</script>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect Warp to psh.now","description":"Warp integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. The terminal asks, your phone answers.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect Warp to psh.now","description": "Warp integration for psh.now. Install the skill with one command, then Warp can post a request before a step and wait while a person approves, denies, or answers it from a phone, a browser, or the notch.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
   </head>
   <body>
     <div class="page">
@@ -42,52 +42,54 @@
           <span class="logo-tile"><img src="/website/agents/logos/warp.svg" alt="Warp logo" width="26" height="26" /></span>
           <div>
             <h1>Warp <span class="plus">+</span> psh.now</h1>
-            <p class="agent-tagline">The terminal asks, your phone answers.</p>
+            <p class="agent-tagline">One request per step, answered from a phone, a browser, or the notch.</p>
           </div>
         </section>
 
-        <p class="docs-lede">Warp reads the universal skills directory, and the agent runs commands in the terminal it already owns. One command changes from 'do it' to 'ask first'.</p>
+        <p class="docs-lede">Warp reads the shared skills directory, so the skill is installed once. From then on the agent posts a request over HTTP before a step and its call stays open while you decide.</p>
 
-        <h2>Install it</h2>
-        <p>Two commands, either one. The first is the packaged skill; the second needs no npm and no git.</p>
+        <h2>Install the skill</h2>
+        <p>Either command works. The first installs the packaged skill; the second pipes the installer to a shell and needs no npm and no git.</p>
         <pre data-copyable>npx skills add passy-ai/psh-now-skill -g -y</pre>
         <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
-          It lands in <code>~/.agents/skills/psh-now</code> - the shared directory every harness reads, so the install is the setup.
+          It lands in <code>~/.agents/skills/psh-now</code>, the shared directory that agents read, and no further setup is needed.
         </p>
 
         <h2>Connect a channel</h2>
         <p>
           Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and give it to
-          Warp. The link carries the channel, so nothing new is minted and the key it gets is
-          <strong>ask-only</strong> - it can request approvals, never approve.
+          Warp. The link names the channel, and the key the agent receives is
+          <strong>ask-only</strong>: it can post a request, never decide one.
         </p>
         <pre data-copyable>I'd like you to use psh.now and join this channel: https://psh.now/c/&lt;channel&gt;</pre>
 
-        <h2>What it asks with</h2>
-        <p>Once installed, the agent's side of the contract is one command:</p>
+        <h2>The command the agent runs</h2>
+        <p>The agent's side of the exchange is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. A timeout
-          or an error means do not act - silence is never consent.
+          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. The
+          window is 90 seconds by default and 15 minutes at most. When it closes the call returns
+          <code>expired</code>, which is not an approval.
         </p>
 
         <h2>Ask or gate</h2>
         <p>
           Warp runs the skill, and a skill is an <strong>ask</strong>: the model can skip it. If your
-          setup exposes hooks, wire <code>psh hook</code> and the same call becomes a gate instead. Claude
-          Code is the reference: <a href="/agents/claude-code">see its hook</a>.
+          setup exposes hooks, wire <code>psh hook</code> and the request comes from the hook instead, so
+          the step cannot proceed without an answer. <code>psh hook</code> reads JSON on stdin, and the
+          Claude Code hook is the reference: <a href="/agents/claude-code">see its hook</a>.
         </p>
 
-        <h2>Check it works</h2>
+        <h2>Check the install</h2>
         <pre data-copyable>psh status</pre>
         <p>
-          Expect the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code> goes
-          further: the skill path, the keys, the workspace and any stale record.
+          It prints the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code>
+          reports the skill path, the keys, the workspace and any stale record.
         </p>
 
         <section class="cta-row">
-          <a class="btn btn-primary" href="/app">Get a channel</a>
+          <a class="btn btn-primary" href="/app">Get started</a>
           <a class="btn btn-secondary" href="/docs">Read the docs</a>
         </section>
 
@@ -104,8 +106,8 @@
         <a class="agent-card" href="/agents/qwen-code"><span class="logo-tile sm"><img src="/website/agents/logos/qwen.svg" alt="" width="20" height="20" /></span><span><span class="name">Qwen Code</span><br /><span class="sub">shared skills dir</span></span></a>
         </div>
         <p class="muted">
-          Anything else that can run a shell command can ask too - the skill installer supports 79 agents,
-          and the CLI is the same everywhere.
+          Any other agent that can run a shell command can ask the same way. The installer handles the
+          skills directory, and the CLI is the same everywhere.
         </p>
         </div>
       </main>
@@ -117,7 +119,7 @@
               <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -147,7 +149,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
       </footer>
     </div>
     <script>

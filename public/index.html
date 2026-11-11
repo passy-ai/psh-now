@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="psh.now" />
-    <title>Approvals - psh.now</title>
+    <title>psh.now: approvals waiting on a decision</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -82,8 +82,8 @@
           <button id="authBack" class="signin-back hide" type="button" aria-label="Back to log in">
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
           </button>
-          <h1 class="signin-title" id="authTitle">Log in or sign up</h1>
-          <p class="signin-sub" id="authSub">Multiple agents, working side by side.</p>
+          <h1 class="signin-title" id="authTitle">Sign in or create an account</h1>
+          <p class="signin-sub" id="authSub">Requests from your agents wait here. Approve, deny or answer one, and the call that sent it returns with that decision.</p>
 
           <form id="authForm" class="signin-form">
             <div id="authEmailStep">
@@ -107,10 +107,10 @@
             </div>
 
             <button id="authSubmit" class="btn primary block" type="submit">Continue</button>
-            <p class="form-hint" id="authHint">We&#39;ll email you a 6-digit verification code.</p>
+            <p class="form-hint" id="authHint">A 6-digit code goes to that address.</p>
           </form>
 
-          <button id="authUseKey" class="linklike" type="button">Use an account key instead</button>
+          <button id="authUseKey" class="linklike" type="button">Sign in with an account key</button>
 
           <div id="authKeyRow" class="hide">
             <input id="keyInput" class="field" placeholder="psh_user_…" autocomplete="off" spellcheck="false" />
@@ -128,7 +128,7 @@
         <div id="claimBanner" class="app-notice hide">
           <div class="app-notice-text">
             <strong>Claim your account</strong>
-            <span>Add an email to keep it and sign in from any device.</span>
+            <span>Add an email to keep the workspace and sign in from another device.</span>
           </div>
           <button id="claimBadge" class="btn pill primary sm"><span data-icon="pencil"></span> Claim account</button>
         </div>
@@ -145,7 +145,7 @@
           <button id="pairModalClose" class="icon-btn sm" aria-label="Close"><span data-icon="x"></span></button>
         </div>
         <img id="pairModalQr" class="qr-lg" alt="Pairing QR" />
-        <p class="modal-note">Scan it with any device to sign in.</p>
+        <p class="modal-note">The link signs in whatever device opens it.</p>
         <div class="menu-key">
           <code id="pairModalUrl">-</code>
           <button id="pairModalCopy" class="icon-btn sm" aria-label="Copy pairing link"><span data-icon="copy"></span></button>

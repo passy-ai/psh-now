@@ -2887,10 +2887,10 @@ function resetAuth() {
   $("authUseKey")?.classList.remove("hide");
   $("authBack")?.classList.add("hide");
   $("authKeyRow")?.classList.add("hide");
-  if ($("authTitle")) $("authTitle").textContent = "Log in or sign up";
-  if ($("authSub")) $("authSub").textContent = "Multiple agents, working side by side.";
+  if ($("authTitle")) $("authTitle").textContent = "Sign in or create an account";
+  if ($("authSub")) $("authSub").textContent = "Your channels and the requests waiting in them.";
   if ($("authSubmit")) $("authSubmit").textContent = "Continue";
-  if ($("authHint")) $("authHint").textContent = "We'll email you a 6-digit verification code.";
+  if ($("authHint")) $("authHint").textContent = "A 6-digit code goes to that address.";
   if ($("authCode")) $("authCode").value = "";
   codeEmail = "";
   resendAt = 0;

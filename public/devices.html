@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="psh.now" />
-    <title>Devices - psh.now</title>
+    <title>Devices: psh.now</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -25,7 +25,7 @@
       <div class="page-head">
         <div>
           <h1 class="page-title">Devices</h1>
-          <p class="page-sub">Phones and tablets that can approve for this account.</p>
+          <p class="page-sub">Devices paired to this account. Pairing takes one link, and any of them can approve, deny or answer a request.</p>
         </div>
         <button id="pairNew" class="btn pill"><span data-icon="qr"></span> Pair device</button>
       </div>
@@ -35,7 +35,7 @@
           <div>
             <div class="settings-head">Scan to pair</div>
             <p class="pair-hint">
-              Open the camera on the phone and scan this code.
+              Open the camera on the phone and scan this code, or open the link below on that device.
               <span id="pairExpiry" class="pair-expiry"></span>
             </p>
           </div>
@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <div id="deviceList" class="card"><div class="settings-empty">Loading…</div></div>
+      <div id="deviceList" class="card"><div class="settings-empty">Loading devices…</div></div>
     </main>
 
     <div id="toast" class="toast"></div>
@@ -124,7 +124,7 @@
 
       function fmtRel(v) {
         const secs = Math.max(0, (Date.now() - new Date(v).getTime()) / 1000);
-        if (secs < 90) return "just now";
+        if (secs < 90) return "seconds ago";
         const mins = secs / 60;
         if (mins < 60) return `${Math.round(mins)} min ago`;
         const hours = mins / 60;
@@ -159,7 +159,7 @@
 
       if (!key) {
         $("deviceList").innerHTML =
-          '<div class="settings-empty">Open this page from the app (sign in first).</div>';
+          '<div class="settings-empty">Open this page from the app after signing in.</div>';
         $("pairNew").classList.add("hide");
       }
 
@@ -201,7 +201,7 @@
             : `<div class="settings-empty empty-state">
                  <span class="empty-mark" data-icon="smartphone"></span>
                  <p class="empty-title">No devices paired yet</p>
-                 <p class="empty-copy">Pair a phone and you can approve from anywhere, even with the laptop shut.</p>
+                 <p class="empty-copy">Pair a phone and a request lands there. Approve, deny or answer it on that device, and the open call returns with the decision.</p>
                </div>`;
           hydrateIcons($("deviceList"));
           wire();

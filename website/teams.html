@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Give a team one place to answer their agents: shared channels, ask-only agent keys, answers from phone, tablet or desktop, and a record of who approved what. Open source, MIT licensed." />
-    <title>Teams: shared channels for agents, answered from any device | psh.now</title>
+    <meta name="description" content="Channels group an agent's requests per project. Any member can decide from a phone, a browser or the notch, each decision records who made it, and the service is MIT licensed." />
+    <title>Teams: one channel per project, answered by any member | psh.now</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="./fonts/inter-latin.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="./fonts/geist-mono-latin.woff2" crossorigin />
@@ -39,51 +39,51 @@
       <main class="subpage">
         <section class="subhead">
           <span class="tag"><span class="dot"></span>For teams</span>
-          <h1>One channel, every agent, and the whole team answering</h1>
-          <p>Your agents ask the team instead of one person's terminal. Shared channels, ask-only keys for the agents, and a record of who answered what, so nobody is the bottleneck at two in the morning.</p>
+          <h1>One channel per project, answered by any member</h1>
+          <p>An agent posts the step it is about to take to a channel, and any member of that channel can decide, from a phone, a browser or the notch. Each decision records who made it.</p>
         </section>
 
         <section class="subsection">
-          <h2 class="twotone">One channel for every agent.<span>Answered by whoever is awake.</span></h2>
-          <p>psh.now is one page your agents can reach and your people can answer. Nothing to install on the machines that answer.</p>
-          <a class="text-arrow" href="./docs.html">How approval works<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+          <h2 class="twotone">One channel, several agents.<span>Any member of it can decide.</span></h2>
+          <p>The call stays open while the agent waits, and returns with the decision. The dashboard is a web page that any member can open, and pairing a device takes one link.</p>
+          <a class="text-arrow" href="./docs.html">How a request works<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
           <div class="tiles">
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
               <h3>Shared channels</h3>
-              <p>Every agent on a project asks the same channel. Whoever is awake answers, and the others see the decision.</p>
+              <p>Every agent on the project asks the same channel, so a request does not belong to one person's terminal.</p>
             </div>
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12 20 3M17 6l2 2M14 9l2 2"/></svg></div>
               <h3>Ask-only keys</h3>
-              <p>An agent's key can request a decision and never grant one. A leaked agent key cannot approve itself.</p>
+              <p>A key can be limited to asking and never granting. A key scoped to a channel can also answer requests there.</p>
             </div>
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="11" rx="2"/><rect x="17" y="9" width="5" height="11" rx="1.6"/></svg></div>
               <h3>Any device answers</h3>
-              <p>Phone, tablet, desktop, or the notch on a MacBook. The person on call does not need a terminal open.</p>
+              <p>The dashboard is an installable PWA with web push, and the notch app runs on macOS. The person on call does not need a terminal open.</p>
             </div>
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></svg></div>
-              <h3>A record, not a scrollback</h3>
-              <p>Each request keeps its title, the agent that asked, who answered, and when - searchable afterwards.</p>
+              <h3>Decision history</h3>
+              <p>Each request keeps its title, the command text and the decision, with the member who made it.</p>
             </div>
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></svg></div>
               <h3>Bring your own harness</h3>
-              <p>Claude Code, Codex, Cursor, a cron job in a container. If it can make an HTTP call, it can ask.</p>
+              <p>Claude Code, Codex, Cursor, a cron job in a container. Anything that can send an HTTP POST can ask, and psh hook reads JSON on stdin.</p>
             </div>
             <div class="tile">
               <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/></svg></div>
-              <h3>Self-hosted when it matters</h3>
-              <p>Run psh.now in your own VPC from MIT-licensed code. The questions never leave your infrastructure.</p>
+              <h3>Self-hosting</h3>
+              <p>A Bun service and Postgres, started with docker compose up. The data stays in your own database, and the licence is MIT.</p>
             </div>
           </div>
         </section>
 
         <section class="subsection">
-          <h2>How teams answer agents today</h2>
-          <p>A team has four ways to unblock an agent. Three of them either need a person at a keyboard or move the decision to the agent.</p>
+          <h2>Four ways a team unblocks an agent</h2>
+          <p>Terminal prompts need someone at that keyboard. Auto-approve hands the decision to the agent. A hosted approval product answers in its own app, and a DIY webhook is a service the team writes and maintains.</p>
         <div class="cmp-wrap">
           <table class="cmp">
             <thead><tr>
@@ -112,8 +112,8 @@
                 <td data-col="DIY webhook"><span class="no">✗ Build it</span></td>
               </tr>
               <tr>
-                <td>Agents cannot approve themselves</td>
-                <td class="ours" data-col="psh.now"><span class="yes">✓ Ask-only keys</span></td>
+                <td>A key can be ask-only</td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ Yes</span></td>
                 <td data-col="Terminal prompts"><span class="yes">✓ You type it</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="no">✗ They decide</span></td>
                 <td data-col="Hosted approval SaaS"><span class="part">Varies</span></td>
@@ -152,29 +152,29 @@
                 <td data-col="DIY webhook"><span class="yes">✓ Yes</span></td>
               </tr>
               <tr>
-                <td>Time to the first decision</td>
-                <td class="ours" data-col="psh.now"><span class="part">About a minute</span></td>
+                <td>Charged when a request expires</td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ Nothing</span></td>
                 <td data-col="Terminal prompts"><span class="part">-</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="part">-</span></td>
-                <td data-col="Hosted approval SaaS"><span class="part">Minutes</span></td>
-                <td data-col="DIY webhook"><span class="part">Days</span></td>
+                <td data-col="Hosted approval SaaS"><span class="part">-</span></td>
+                <td data-col="DIY webhook"><span class="part">-</span></td>
               </tr>
             </tbody>
           </table>
         </div>
-          <p class="cmp-note">Refers to how the decision is made, not to how fast an individual page loads. Self hosting, pricing and limits are in the <a href="/docs">docs</a>.</p>
+          <p class="cmp-note">Each row compares how the decision is made. Self-hosting, keys and limits are in the <a href="/docs">docs</a>.</p>
         </section>
 
         <section class="subsection">
           <h2>For the person on call</h2>
-          <p>Approvals are not a chat channel and not a dashboard you remember to open. A request arrives as a notification with the question in it, you tap once, and the agent continues, or it stops and says why. If several people share the channel, the first answer settles it: an agent never has to wait for a second opinion it cannot see.</p>
+          <p>A request carries its own title and the command text, and reaches a member as a web push notification on the dashboard or in the notch. One tap sends the decision back to the agent. Any member of the channel can decide, and the first decision is the one the call returns.</p>
         </section>
 
         <section class="cta">
-          <h2 class="cta-title">Give Your Team One Answer</h2>
-          <p class="cta-sub">Open source and MIT licensed. One channel, every agent, and the person on call answers from wherever they are.</p>
+          <h2 class="cta-title">Point one agent at a channel</h2>
+          <p class="cta-sub">Free to start, with no account and no card. MIT licensed, so the same service runs on your own Postgres.</p>
           <div class="cta-actions">
-            <a class="btn btn-primary btn-lg" href="/app">Get started free</a>
+            <a class="btn btn-primary btn-lg" href="/app">Get started</a>
             <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">Star on GitHub</a>
           </div>
         </section>
@@ -187,7 +187,7 @@
               <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -217,7 +217,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed</div>
       </footer>
     </div>
   </body>

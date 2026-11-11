@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="The terms for using psh.now - the human-approval hub for AI agents."
+      content="The terms for using psh.now, a service that holds an approval request open while an AI agent waits for a decision."
     />
-    <title>psh.now | Terms of Service</title>
+    <title>psh.now: terms of service</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -36,38 +36,43 @@
 
       <main style="padding-top: 96px">
         <article class="prose">
-          <h1>Terms of Service</h1>
+          <h1>Terms of service</h1>
           <p class="updated">Last updated: October 2026</p>
 
           <h2>1. Acceptance</h2>
           <p>
             psh.now is operated by <a href="https://absolum.nl">Absolum</a>
-            ("we", "us"). By using psh.now you agree to these terms. If you don't
-            agree, don't use the service.
+            ("we", "us"). Using psh.now means you agree to these terms. If you do
+            not agree, do not use the service.
           </p>
 
           <h2>2. What psh.now does</h2>
           <p>
-            psh.now brokers approval requests between AI agents and people. An
-            agent sends a short title and message; you (or someone you have
-            authorized) approve, deny, or reply. psh.now does not run your agents
-            or your workloads, and stores no files.
+            psh.now holds one approval request open between an AI agent and a
+            person. The agent sends an HTTP request describing the step it is
+            about to take and the call stays open. Someone approves, denies or
+            answers it in words from a phone, a browser or the macOS notch app,
+            and the call returns with that decision. psh.now does not run your
+            agents or your workloads, and the files they touch stay on your
+            machine.
           </p>
 
           <h2>3. Accounts and keys</h2>
           <p>
-            You can start without an account. Connecting an agent mints keys on
-            your behalf: a channel key is ask-only and can never approve or
-            manage the account, and an account key can manage it. Keep your keys
-            secret.
+            You can start without an account and without a card. Connecting an
+            agent gives it a key that it sends in the x-psh-key header with each
+            request. A key can be scoped to one channel: it can
+            answer requests in that channel, and anything outside the channel
+            still waits for a person. Keep your keys secret.
           </p>
 
           <h2>4. Your data</h2>
           <p>
-            Requests contain only a short title and message. Request data is
-            deleted automatically once it is answered or times out. You set your
-            own rules for what each agent shares and how through the install /
-            evoke command. See the <a href="./privacy.html">Privacy Policy</a>.
+            A request carries a title, a message and, when the agent includes it,
+            the command line. Requests and their decisions are kept in the
+            workspace history. When you self-host, they stay in your own Postgres
+            database and you decide how long they are kept. See the
+            <a href="./privacy.html">Privacy Policy</a>.
           </p>
 
           <h2>5. Acceptable use</h2>
@@ -75,21 +80,21 @@
           <ul>
             <li>break any applicable law;</li>
             <li>send spam, malware, or abusive or harassing content;</li>
-            <li>attempt to disrupt, overload, or gain unauthorized access to the service.</li>
+            <li>disrupt, overload, or gain unauthorised access to the service.</li>
           </ul>
-          <p>We may suspend access that violates these rules.</p>
+          <p>We may suspend access that breaks these rules.</p>
 
           <h2>6. Availability and liability</h2>
           <p>
             psh.now is provided as-is, without warranties of any kind. We are not
-            liable for data loss, downtime, missed requests, or damages arising
-            from your use of the service.
+            liable for data loss, downtime, requests that expire unanswered, or
+            damages arising from your use of the service.
           </p>
 
           <h2>7. Changes</h2>
           <p>
             We may update these terms. Continued use after a change means you
-            accept it. We'll update the date at the top of this page.
+            accept it. The date at the top of this page changes when we do.
           </p>
 
           <h2>8. Governing law</h2>
@@ -101,7 +106,7 @@
           <h2>9. Contact</h2>
           <p>
             Questions? Email <a href="mailto:push@passy.ai">push@passy.ai</a> or
-            reach us at <a href="https://absolum.nl">absolum.nl</a>.
+            find us at <a href="https://absolum.nl">absolum.nl</a>.
           </p>
         </article>
       </main>
@@ -113,7 +118,7 @@
               <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>

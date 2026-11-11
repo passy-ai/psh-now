@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="OpenCode integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Open source agent, open source approval." />
-    <title>OpenCode + psh.now: ask before it acts, from anywhere</title>
+    <meta name="description" content="OpenCode integration for psh.now: install the skill, and a command the agent is about to run becomes one request that stays open while it waits. A person approves, denies or answers from a phone, a browser or the notch, and the call returns with that decision." />
+    <title>OpenCode + psh.now: install the skill, answer the request</title>
     <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
     <link rel="stylesheet" href="/website/styles.css" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Agents","item":"https://psh.now/agents"},{"@type":"ListItem","position":3,"name":"OpenCode","item":"https://psh.now/agents/opencode"}]}</script>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect OpenCode to psh.now","description":"OpenCode integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Open source agent, open source approval.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect OpenCode to psh.now","description": "OpenCode integration for psh.now: install the skill, and a command the agent is about to run becomes one request that stays open while it waits. A person approves, denies or answers from a phone, a browser or the notch, and the call returns with that decision.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
   </head>
   <body>
     <div class="page">
@@ -42,48 +42,53 @@
           <span class="logo-tile"><img src="/website/agents/logos/opencode.svg" alt="OpenCode logo" width="26" height="26" /></span>
           <div>
             <h1>OpenCode <span class="plus">+</span> psh.now</h1>
-            <p class="agent-tagline">Open source agent, open source approval.</p>
+            <p class="agent-tagline">One skill installs the command that posts a request and waits for the decision.</p>
           </div>
         </section>
 
-        <p class="docs-lede">OpenCode reads skills from ~/.config/opencode/skills. Both halves of this pairing are MIT licensed, so the whole path from question to answer is code you can read.</p>
+        <p class="docs-lede">OpenCode loads the skill from ~/.config/opencode/skills. From there the agent sends one HTTP request per decision and waits on the reply. psh.now is MIT licensed, so the server side is yours to read, run and host.</p>
 
-        <h2>Install it</h2>
-        <p>Two commands, either one. The first is the packaged skill; the second needs no npm and no git.</p>
+        <h2>Install the skill</h2>
+        <p>Either command works. The first pulls the packaged skill through npm; the second is a shell installer that needs neither npm nor git.</p>
         <pre data-copyable>npx skills add passy-ai/psh-now-skill -g -y</pre>
         <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
-          It lands in <code>~/.config/opencode/skills/psh-now</code>, so only OpenCode picks it up from there. The shared directory is written too, which is why the same install works everywhere else.
+          The skill lands in <code>~/.config/opencode/skills/psh-now</code>, where OpenCode reads it. The
+          installer writes the shared skills directory as well, so other agents on the same machine
+          find it too.
         </p>
 
         <h2>Connect a channel</h2>
         <p>
-          Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and give it to
-          OpenCode. The link carries the channel, so nothing new is minted and the key it gets is
-          <strong>ask-only</strong> - it can request approvals, never approve.
+          Open <a href="/app">the dashboard</a>, copy the prompt from a channel card and give it to
+          OpenCode. The link carries the channel. The key it comes back with is
+          <strong>ask-only</strong>: it can post requests there, not approve them. A decision needs a
+          person, or a key scoped to that channel for the purpose.
         </p>
         <pre data-copyable>I'd like you to use psh.now and join this channel: https://psh.now/c/&lt;channel&gt;</pre>
 
-        <h2>What it asks with</h2>
-        <p>Once installed, the agent's side of the contract is one command:</p>
+        <h2>What a request carries</h2>
+        <p>Once the skill is installed, the agent's side of the contract is one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. A timeout
-          or an error means do not act - silence is never consent.
+          The call stays open while the agent waits. It exits <code>0</code> on approval and non-zero
+          otherwise. When the request expires or is cancelled the exit is non-zero, because an expiry
+          is not an approval.
         </p>
 
         <h2>Ask or gate</h2>
         <p>
-          OpenCode runs the skill, and a skill is an <strong>ask</strong>: the model can skip it. If your
-          setup exposes hooks, wire <code>psh hook</code> and the same call becomes a gate instead. Claude
-          Code is the reference: <a href="/agents/claude-code">see its hook</a>.
+          A skill is an <strong>ask</strong>: OpenCode can skip it. Where your setup exposes a
+          permission hook, wire <code>psh hook</code> and the same request becomes a gate the model
+          cannot get past without an answer. Claude Code is the reference:
+          <a href="/agents/claude-code">see its hook</a>.
         </p>
 
         <h2>Check it works</h2>
         <pre data-copyable>psh status</pre>
         <p>
-          Expect the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code> goes
-          further: the skill path, the keys, the workspace and any stale record.
+          Expect the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code>
+          prints the skill path, the keys, the workspace and any stale record.
         </p>
 
         <section class="cta-row">
@@ -104,8 +109,9 @@
         <a class="agent-card" href="/agents/qwen-code"><span class="logo-tile sm"><img src="/website/agents/logos/qwen.svg" alt="" width="20" height="20" /></span><span><span class="name">Qwen Code</span><br /><span class="sub">shared skills dir</span></span></a>
         </div>
         <p class="muted">
-          Anything else that can run a shell command can ask too - the skill installer supports 79 agents,
-          and the CLI is the same everywhere.
+          Any other agent that can run a shell command can post a request as well: psh ask from the
+          CLI, psh hook for JSON piped on stdin, or a bare POST to https://psh.now/api/v1/approvals
+          with the x-psh-key header.
         </p>
         </div>
       </main>
@@ -117,7 +123,7 @@
               <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -147,7 +153,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed</div>
       </footer>
     </div>
     <script>

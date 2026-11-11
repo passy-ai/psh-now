@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0a0a" />
-    <title>Connect this Mac - psh.now</title>
+    <title>Pair the notch app on this Mac - psh.now</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
@@ -182,10 +182,11 @@
         </div>
 
         <div id="ready">
-          <h1 class="connect-title">Connect this Mac</h1>
+          <h1 class="connect-title">Connect this Mac to your workspace</h1>
           <p class="connect-body">
-            The notch on this Mac will show the requests waiting for you here, and let you answer them
-            without opening anything else.
+            Pairing takes one link: this page mints a token and hands it to the notch app. The notch
+            then carries the requests waiting on your account, and each call returns with the decision
+            you make there: approve, deny, or an answer in words.
           </p>
           <button class="btn connect-action" id="connect" type="button">Connect</button>
           <p class="connect-note" id="hint"></p>
@@ -195,22 +196,23 @@
         <div id="signedOut" class="hide">
           <h1 class="connect-title">Sign in first</h1>
           <p class="connect-body">
-            This Mac can only be connected to a workspace you are signed in to on this browser.
+            A Mac pairs with the workspace signed in on this browser. Sign in, then come back to this
+            page and press Connect.
           </p>
           <a class="btn connect-action" href="/app" style="display:block;text-align:center;text-decoration:none">
             Open the dashboard
           </a>
-          <p class="connect-note">Then come back to this page and press Connect.</p>
+          <p class="connect-note">An account keeps the workspace and its request history.</p>
         </div>
 
         <div id="done" class="hide">
-          <h1 class="connect-title">Connected</h1>
-          <p class="connect-body">This Mac is paired. The requests will appear in the notch.</p>
+          <h1 class="connect-title">This Mac is paired</h1>
+          <p class="connect-body">The notch shows the requests waiting on your account. The decision you make there is returned to the agent that is holding the call open.</p>
           <p class="connect-back"><a href="/app">Back to dashboard</a></p>
         </div>
 
         <details class="connect-fallback hide" id="fallback">
-          <summary>Didn't connect?</summary>
+          <summary>If the notch app did not open</summary>
           <code id="manual"></code>
         </details>
       </div>

@@ -91,115 +91,105 @@
 
       <main class="docs-main">
         <h1>Documentation</h1>
-        <p class="docs-lede">Setup, the approve/deny contract, the prompt templates and the HTTP API, everything needed to connect an agent to psh.now.</p>
+        <p class="docs-lede">How to install the skill, connect an agent, answer requests, and call the API directly.</p>
 
         <h2 id="overview">Overview</h2>
         <p>
-          psh.now lets your agents ask you for approval instead of stalling in the
-          terminal. An agent sends a short <strong>title</strong> and
-          <strong>message</strong>; you tap <strong>Approve</strong> or
-          <strong>Deny</strong> from one page; the agent gets a single boolean.
+          An agent sends a request with a <strong>title</strong> and a
+          <strong>message</strong>, and the call stays open. You approve, deny or answer it
+          from the dashboard, your phone or the notch, and the call returns the decision.
         </p>
         <ul>
-          <li>One page you check from your phone.</li>
+          <li>One dashboard for every agent, on any device.</li>
           <li>Many agents can share one <strong>channel</strong>.</li>
           <li>Many people can approve one channel.</li>
         </ul>
         <p>
-          It's harness-agnostic: any agent with shell or HTTP access can use it. One
-          HTTP call is the whole contract, with no SDK to install. If a client speaks
-          MCP instead there is an endpoint at <code>/mcp</code>, and nothing depends on it.
+          Any agent with shell or HTTP access can use it: one <code>POST</code>, no SDK. An MCP
+          client can use <code>/mcp</code> instead, and nothing else depends on that endpoint.
         </p>
 
         <h2 id="templates">Prompt templates</h2>
         <p>
-          Three prompts cover almost everything you paste into an agent. All three are on
-          this page, ready to copy - and an install's report prints the connect and
-          sandbox ones already filled in with your channel and key.
+          Three prompts cover what you normally paste into an agent. All three are on this
+          page, and the install report prints the connect and sandbox ones with your channel
+          and key already filled in.
         </p>
         <ul>
-          <li><a href="#install">Install</a> - the one-line setup prompt.</li>
-          <li><a href="#connect">Connect an agent</a> - the link prompt a channel card copies.</li>
-          <li><a href="#sandbox">Sandbox / no browser</a> - the same job with a channel key instead of a link.</li>
+          <li><a href="#install">Install</a>: the one-line setup prompt.</li>
+          <li><a href="#connect">Connect an agent</a>: the link a channel card copies.</li>
+          <li><a href="#sandbox">Sandbox / no browser</a>: the same job with a channel key instead of a link.</li>
         </ul>
 
         <h2 id="install">Install</h2>
         <button class="btn btn-secondary" data-copy="#p-install">Copy prompt for agent</button>
-        <p>Give your agent this one prompt. It installs psh.now and asks for a test request:</p>
+        <p>Give the agent this prompt. It installs the skill and sends a test request:</p>
         <pre id="p-install">I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 
 If not, do this instead: curl -fsSL https://psh.now/install.sh
 
 After installing, send me a test request.</pre>
-        <p>No npm, no git, or no GitHub access? Run the installer directly - it mints
-          your keys too. It installs the skill in every agent folder it finds, writes a
-          <code>psh</code> command into the first writable directory on your PATH, and
-          records the machine's account in <code>~/.psh/keys.json</code>. A sandbox that
-          refuses those writes leaves the skill in this folder and says so,
+        <p>Without npm, git or GitHub access, run the installer directly; it mints the keys
+          as well. It puts the skill in every agent folder it finds, writes a
+          <code>psh</code> command into the first writable directory on PATH, and records
+          the machine account in <code>~/.psh/keys.json</code>. A sandbox that refuses those
+          writes keeps the skill in the project and prints
           <code>psh_machine_wide=incomplete</code>:</p>
         <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
-          Joining a channel - the connect prompt below - is what gives the folder its own
-          <code>./.psh/bin/psh</code> and <code>./.psh/keys.json</code>: one screen naming
-          the skill, the host, the keys and the next command, and
-          <code>./.psh/bin/psh doctor</code> checks it end to end. Until the machine-wide
-          copy has run the install is project-local, and the agent says so rather than
-          calling it finished. (Also written "psh now" or psh-now.)
+          Joining a channel, with the connect prompt below, gives the folder its own
+          <code>./.psh/bin/psh</code> and <code>./.psh/keys.json</code>. The install prints
+          one screen with the skill, the host, the keys and the next command, and
+          <code>./.psh/bin/psh doctor</code> checks the whole path. Until the machine-wide
+          copy has run, the install is project-local and says so.
         </p>
-        <p>After installing, you can have the agent send one test question through
-          psh.now whenever you want to see it work end to end.</p>
+        <p>The agent can send a test request whenever you want to watch the round trip.</p>
 
         <h2 id="connect">Connect an agent</h2>
         <p>
-          Every channel shows a ready-to-paste prompt. Open
-          <a href="/app">the dashboard</a> → a channel → copy the prompt above the
-          tabs. An agent that is already installed gets:
+          Each <a href="/app">dashboard</a> channel shows a ready-to-paste prompt above its
+          tabs. For an agent that already has the skill:
         </p>
         <pre data-copyable>I'd like you to use psh.now and join this channel: https://psh.now/c/&lt;channel&gt;</pre>
         <p>
-          The link gives the agent an <strong>ask-only</strong> key - it can request
-          approvals, never approve - and it is reusable, so several agents can
-          connect through the same channel.
+          The link carries an <strong>ask-only</strong> key, which can request approvals and
+          cannot approve them. It is reusable, so several agents can join one channel.
         </p>
         <p>
           The key never goes into a file you commit. It lives in
-          <code>~/.psh/keys.json</code> (mode 0600) or in <code>PSH_API_KEY</code> in
-          the agent's environment; the block you paste into <code>agents.md</code> only
-          refers to it.
+          <code>~/.psh/keys.json</code> (mode 0600) or in <code>PSH_API_KEY</code> in the
+          agent's environment, and the block in <code>agents.md</code> only points at it.
         </p>
 
         <h2 id="sandbox">Sandbox / no browser</h2>
         <p>
-          A container, a chat agent and a laptop all join through the channel's link,
-          and none of them is set up yet: this is the prompt for a new sandbox. It
-          installs and joins in the same prompt, so the agent joins the channel instead
-          of minting a second account, and the fallback line stays a plain install.
+          A container, a chat agent or a laptop that has never seen psh.now joins through the
+          channel link. This prompt installs and joins in one go, so the agent joins your
+          channel instead of minting a second account.
         </p>
         <pre data-copyable>I'd like you to set up psh.now: Install as a skill with npx skills add passy-ai/psh-now-skill -g -y
 and join https://psh.now/c/&lt;channel&gt;
 
 If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         <p>
-          The link decides the account <em>and</em> the channel, so nothing new is
-          minted and the agent stays <strong>ask-only</strong>. It is the channel's
-          reusable <code>/c/&lt;channel&gt;</code> URL: the share button on the
-          card shows it, and an already-connected folder has it in
-          <code>.psh/keys.json</code> or can print it with
-          <code>psh status</code>. Joining
-          with it already set is what keeps the work on <em>your</em> account.
+          The link decides the account <em>and</em> the channel, so nothing new is minted and
+          the key stays <strong>ask-only</strong>. It is the channel's reusable
+          <code>/c/&lt;channel&gt;</code> URL: the share button on the card shows it, a
+          connected folder keeps it in <code>.psh/keys.json</code>, and
+          <code>psh status</code> prints it. Joining with it already set keeps the work on
+          <em>your</em> account.
         </p>
         <p class="muted">
-          This is the block an install prints in its report - the only prompt there, under
-          <em>Copy this prompt into any agent - a chat, or a sandbox</em>.
+          This is the block an install prints in its report, under
+          <em>Copy this prompt into any agent</em>.
         </p>
 
         <h2 id="approve">Approving requests</h2>
         <p>
-          Waiting requests appear at the top of the dashboard, one card each: the
-          title, the message, and three buttons - <strong>Deny</strong>,
-          <strong>Answer</strong> and <strong>Approve</strong>. Answer replies in your
-          own words when the question needs more than a yes or no; otherwise Approve or
-          Deny settles it and the card disappears.
+          Pending requests sit at the top of the dashboard, one card each: the title, the
+          message, and three buttons, <strong>Deny</strong>, <strong>Answer</strong> and
+          <strong>Approve</strong>. Answer takes your own words when the question needs
+          more than a yes or a no. Approve or Deny settles the rest, and the card goes.
         </p>
         <p>
           An agent proceeds <strong>only</strong> on <code>{"approved":true}</code>.
@@ -208,13 +198,13 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
 
         <h2 id="channels">Channels</h2>
         <p>
-          A channel is one project's bucket (e.g. <code>my-project</code>), and it is a
-          card on the dashboard. Everything it needs lives on that card:
+          A channel is one project's container and a card on the dashboard. Everything it
+          needs sits on that card:
         </p>
         <ul>
-          <li><strong>Copy prompt for agent</strong> - the ready-to-paste prompt, with the channel's link inside it.</li>
-          <li><strong>Who's in this channel</strong> - the people and agents on it, each agent's key, and a reusable invite link.</li>
-          <li><strong>More actions</strong> - Rename, Export history (CSV), Archive.</li>
+          <li><strong>Copy prompt for agent</strong>: the ready-to-paste prompt, with the channel's link inside it.</li>
+          <li><strong>Who's in this channel</strong>: the people and agents on it, each agent's key, and a reusable invite link.</li>
+          <li><strong>More actions</strong>: Rename, Export history (CSV), Archive.</li>
         </ul>
         <p>Create one with <strong>＋ New channel</strong>. Requests that never named a
           channel land in <code>Default</code>.</p>
@@ -235,8 +225,8 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
 
         <h2 id="account">Account &amp; billing</h2>
         <p>
-          Your <strong>account key</strong> is your login - it signs you in at
-          <code>/app?key=…</code> and <em>is</em> your identity while anonymous.
+          Your <strong>account key</strong> is your login: it signs you in at
+          <code>/app?key=…</code> and it is the identity an anonymous workspace uses.
           <strong>Claim account</strong> with an email to keep it, sign in from any
           device, and lift the allowance from 20 requests to 100.
         </p>
@@ -247,7 +237,7 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
         </p>
 
         <h2 id="api">API</h2>
-        <p>The core call - one boolean back:</p>
+        <p>The core call, which returns the decision:</p>
         <pre data-copyable>curl -s -X POST https://psh.now \
   -H "x-psh-key: psh_agent_…" \
   -H "Content-Type: application/json" \
@@ -278,14 +268,14 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.passy-ai%2Fpsh-now" target="_blank" rel="noopener"><code>io.github.passy-ai/psh-now</code></a>,
           and it answers protocol <code>2025-06-18</code>, <code>2025-03-26</code> and
           <code>2024-11-05</code>. Only
-          <code>approved: true</code> means yes; an <code>answer</code> is the person's own words,
-          not permission. MCP is cooperative like the skill - it cannot stop an agent that ignores
-          it. The gate is the harness hook.</p>
+          <code>approved: true</code> means yes; an <code>answer</code> is the person's own
+          words, which is not permission. MCP is cooperative, like the skill: it cannot stop
+          an agent that ignores it. The harness hook is the gate.</p>
         <h2 id="limits">Limits</h2>
         <ul>
           <li><strong>Anonymous</strong> - 20 requests total, 7-day history.</li>
           <li><strong>Claimed</strong> (email) - 100 requests total, 30-day history.</li>
-          <li><strong>Prepaid</strong> - packs on top of the allowance, 30-day history.</li>
+          <li><strong>Prepaid</strong>: packs on top of the allowance, 90-day history.</li>
         </ul>
         <p>One approval costs 2 requests (inbound + outbound).</p>
       </main>
@@ -298,7 +288,7 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
             <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
             psh.now
           </div>
-          <p class="footer-tag">One hub for every agent that needs you</p>
+          <p class="footer-tag">Approvals for agents, answered anywhere</p>
         </div>
         <div class="footer-col">
           <h4>PRODUCT</h4>
@@ -327,7 +317,7 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <a href="mailto:push@passy.ai">Contact</a>
         </div>
       </div>
-      <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+      <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
     </footer>
 
 <div id="toast" class="toast"></div>

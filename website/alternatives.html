@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="The open source, MIT licensed alternative to YOLO mode, terminal prompts and closed approval services. One HTTP call in, one boolean out, self-hostable, with a comparison table of the four ways to answer an agent." />
+    <meta name="description" content="An MIT licensed alternative to auto-approve, terminal prompts and closed approval services. One HTTP request stays open while the agent waits, a person answers from a phone, a browser or the notch, and the call returns with that decision. Docker, Postgres and your own database if you self-host." />
     <title>Open source alternative to auto-approve and hosted approval hubs | psh.now</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="./fonts/inter-latin.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="./fonts/geist-mono-latin.woff2" crossorigin />
     <link rel="stylesheet" href="./styles.css" />
-    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is the open source alternative to auto-approve (YOLO mode)?", "acceptedAnswer": {"@type": "Answer", "text": "psh.now. Auto-approve deletes the question an agent would have asked; psh.now keeps it and makes answering cost one tap from a phone, tablet or desktop. The agent can then run unattended without running unguarded, and every risky step still waits for a person."}}, {"@type": "Question", "name": "Is there an open source alternative to hosted approval services?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. psh.now is MIT licensed on GitHub and runs self-hosted with Docker Compose, your own Postgres and your own mail, so the questions your agents ask never leave your infrastructure. The hosted instance is a convenience, not the product."}}, {"@type": "Question", "name": "How does an AI agent ask a human for permission?", "acceptedAnswer": {"@type": "Answer", "text": "The agent sends one HTTP POST with a short title and message to psh.now and blocks until the person answers. The reply is a single boolean: true to proceed, false to stop. There is no SDK and no session to keep, and a client that only speaks MCP can send the same request to /mcp."}}, {"@type": "Question", "name": "What happens if nobody answers the request?", "acceptedAnswer": {"@type": "Answer", "text": "The agent must not act. False, a timeout or an error all mean do not proceed: silence is never consent."}}]}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is the open source alternative to auto-approve (YOLO mode)?", "acceptedAnswer": {"@type": "Answer", "text": "psh.now. Auto-approve removes the question an agent would have asked; psh.now keeps it and makes answering one tap or one line from a phone, a browser or the macOS notch. The call stays open while the agent waits, and returns the decision."}}, {"@type": "Question", "name": "Is there an open source alternative to hosted approval services?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. psh.now is MIT licensed and runs on your own machine: one Bun service in front of Postgres, started with docker compose up, so requests, keys and history stay in your database. The hosted instance is a convenience."}}, {"@type": "Question", "name": "How does an AI agent ask a human for permission?", "acceptedAnswer": {"@type": "Answer", "text": "With one HTTP POST to https://psh.now/api/v1/approvals carrying a title, a message and the x-psh-key header. The call stays open until someone decides, then returns that decision. There is no SDK, and a client that only speaks MCP can call /mcp instead."}}, {"@type": "Question", "name": "What happens if nobody answers the request?", "acceptedAnswer": {"@type": "Answer", "text": "The request expires: 90 seconds by default, 15 minutes at most. The call returns status expired, which is not an approval, so the agent does not run the step."}}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Alternatives","item":"https://psh.now/alternatives"}]}</script>
   </head>
   <body>
@@ -40,30 +40,30 @@
       <main class="subpage">
         <section class="subhead">
           <span class="tag"><span class="dot"></span>Open source</span>
-          <h1>The open source alternative to letting your agent decide alone</h1>
-          <p>Auto-approve, a prompt in a terminal nobody is watching, or a hosted service you cannot inspect. psh.now is the fourth option: MIT licensed, self-hostable, and one tap from wherever you are.</p>
+          <h1>Open source approvals you can run yourself</h1>
+          <p>An agent that needs a person has three common options: run without asking, wait on a prompt in the terminal, or post to a hosted service. psh.now is a fourth. The agent posts one HTTP request and the connection stays open while it waits; a person approves, denies or answers it from a phone, a browser or the notch, and the call returns with that decision. The server is MIT licensed, so it is yours to run.</p>
         </section>
 
         <section class="subsection">
-          <h2>A page for each named tool</h2>
-          <p>Categories are useless when you are choosing. Each of these pages names a real product, says what it does well, and then says where psh.now differs and when you should pick the other one.</p>
+          <h2>A page for each comparable product</h2>
+          <p>Each page below covers one product, what it does, and the case where it is the better choice.</p>
           <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
               <h3><a href="/alternatives/pushary">Pushary</a></h3>
-              <p>Hosted, $59 a month, real push notifications to the lock screen, per-tool policy in hooks. They win on reach and enforcement, we win on licence, self-hosting and no per-seat price.</p>
+              <p>Pushary is a hosted approval service for agents. Pick it if you want one vendor running the queue for you. Pick psh.now if you want to read the source and keep the server in your own infrastructure.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
               <h3><a href="/alternatives/agentpeek">AgentPeek</a></h3>
-              <p>A Mac command centre: 26 agents in the notch, permissions by keystroke, token spend on a gauge, $14.99 once. It wins when you sit at that Mac; we win when the approver is on a phone.</p>
+              <p>AgentPeek is a Mac app that puts agent permissions in the notch. Pick it if the person answering is sitting at that Mac. Pick psh.now if that person is on a phone.</p>
             </div>
           </div>
         </section>
 
         <section class="subsection">
           <h2>Four ways to answer an agent</h2>
-          <p>Every harness faces the same question: what happens when the agent needs a human? These are the usual answers, compared on the two things that matter, who decides, and whether you can check.</p>
+          <p>The options differ on two points: who makes the decision, and what you can check afterwards.</p>
         <div class="cmp-wrap">
           <table class="cmp">
             <thead><tr>
@@ -76,137 +76,137 @@
             <tbody>
               <tr>
                 <td>Who makes the decision</td>
-                <td class="ours" data-col="psh.now"><span class="yes">✓ You, on any device</span></td>
-                <td data-col="Auto-approve (YOLO)"><span class="no">✗ The agent</span></td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ A person, on any device</span></td>
+                <td data-col="Auto-approve (YOLO)"><span class="no">✗ The agent alone</span></td>
                 <td data-col="Terminal prompt"><span class="no">✗ Whoever is at the keyboard</span></td>
-                <td data-col="Closed hosted hub"><span class="no">✗ You, in their cloud</span></td>
+                <td data-col="Closed hosted hub"><span class="no">✗ You, signed in to their service</span></td>
               </tr>
               <tr>
-                <td>Runs unattended without risk</td>
-                <td class="ours" data-col="psh.now"><span class="yes">✓ Yes</span></td>
-                <td data-col="Auto-approve (YOLO)"><span class="no">✗ It runs everything</span></td>
-                <td data-col="Terminal prompt"><span class="part">It stalls</span></td>
-                <td data-col="Closed hosted hub"><span class="part">It stalls</span></td>
+                <td>Stops the agent</td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ Until a person answers</span></td>
+                <td data-col="Auto-approve (YOLO)"><span class="no">✗ Never</span></td>
+                <td data-col="Terminal prompt"><span class="part">Until someone reaches that terminal</span></td>
+                <td data-col="Closed hosted hub"><span class="part">Until someone answers there</span></td>
               </tr>
               <tr>
                 <td>What leaves your machine</td>
-                <td class="ours" data-col="psh.now"><span class="part">The question only</span></td>
+                <td class="ours" data-col="psh.now"><span class="part">The title, the message, any command line</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="part">-</span></td>
                 <td data-col="Terminal prompt"><span class="part">Nothing</span></td>
-                <td data-col="Closed hosted hub"><span class="part">The question, their servers</span></td>
+                <td data-col="Closed hosted hub"><span class="part">The request, on their servers</span></td>
               </tr>
               <tr>
                 <td>You can read the source</td>
                 <td class="ours" data-col="psh.now"><span class="yes">✓ MIT, on GitHub</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="part">n/a</span></td>
                 <td data-col="Terminal prompt"><span class="part">n/a</span></td>
-                <td data-col="Closed hosted hub"><span class="no">✗ Closed</span></td>
+                <td data-col="Closed hosted hub"><span class="no">✗ Closed source</span></td>
               </tr>
               <tr>
                 <td>Self-hostable</td>
-                <td class="ours" data-col="psh.now"><span class="yes">✓ Docker, your VPC</span></td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ docker compose up</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="part">n/a</span></td>
                 <td data-col="Terminal prompt"><span class="part">n/a</span></td>
-                <td data-col="Closed hosted hub"><span class="no">✗ No</span></td>
+                <td data-col="Closed hosted hub"><span class="no">✗ Not offered</span></td>
               </tr>
               <tr>
                 <td>Cost</td>
-                <td class="ours" data-col="psh.now"><span class="yes">✓ Free</span></td>
+                <td class="ours" data-col="psh.now"><span class="yes">✓ Free to start, two requests per approval</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="yes">✓ Free</span></td>
                 <td data-col="Terminal prompt"><span class="yes">✓ Free</span></td>
                 <td data-col="Closed hosted hub"><span class="part">Per seat</span></td>
               </tr>
               <tr>
                 <td>Setup</td>
-                <td class="ours" data-col="psh.now"><span class="part">About a minute</span></td>
+                <td class="ours" data-col="psh.now"><span class="part">One POST, or a hook</span></td>
                 <td data-col="Auto-approve (YOLO)"><span class="part">None</span></td>
                 <td data-col="Terminal prompt"><span class="part">None</span></td>
-                <td data-col="Closed hosted hub"><span class="part">Account and integration</span></td>
+                <td data-col="Closed hosted hub"><span class="part">An account and an integration</span></td>
               </tr>
             </tbody>
           </table>
         </div>
-          <p class="cmp-note">Categories, not products: the comparison is about the shape of the decision. See the <a href="/docs">docs</a> for what psh.now actually does.</p>
+          <p class="cmp-note">The columns describe categories rather than named products, so the comparison is about the shape of the decision. See the <a href="/docs">docs</a> for what psh.now does in detail.</p>
         </section>
 
         <section class="subsection">
-          <h2>An open source alternative to auto-approve</h2>
-          <p>Auto-approve turns every guardrail off at once: <code>--yolo</code>, <code>--dangerously-skip-permissions</code>, a loop that never asks. It is fast right up to the first irreversible command. psh.now keeps the agent asking and puts the answer where you already are. The agent still waits, but for a tap, not for you to be at the keyboard.</p>
+          <h2>If you were about to use auto-approve</h2>
+          <p>Auto-approve runs the command without asking: <code>--yolo</code>, <code>--dangerously-skip-permissions</code>, an agent with no permission gate. Nothing checks a recursive delete or a force push before it runs. psh.now keeps the question and sends it to a person, who approves, denies or answers it from a phone, a browser or the notch; the agent's call stays open until that decision comes back.</p>
           <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
               <h3>Risky steps still ask</h3>
-              <p>The commands you would want to see (force-push, sudo, a migration, anything that spends money) stop and wait for a person.</p>
+              <p>A recursive force delete, a force push, sudo, DROP or TRUNCATE, a kubectl delete of a namespace: these stop and wait for a person. The risk label is read from the command text and names the pattern it matched.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="11" rx="2"/><rect x="17" y="9" width="5" height="11" rx="1.6"/></svg></div>
-              <h3>The human is not the bottleneck</h3>
-              <p>A tap on a phone clears the request in seconds, so leaving auto-approve on does not turn into leaving the agent stalled.</p>
+              <h3>The answer does not need a keyboard</h3>
+              <p>One tap on a phone clears the request while the agent waits. The window is 90 seconds by default and 15 minutes at most; when it closes, the request expires and that is not an approval.</p>
             </div>
           </div>
         </section>
 
         <section class="subsection">
-          <h2>An open source alternative to a hosted approval service</h2>
-          <p>Hosted approval products work, and for many teams the convenience is the right trade. The difference is what you cannot see: which regex routes a command to "safe", what the retention policy really is, and what happens to your prompts on their servers. psh.now is a small MIT-licensed server you can read, run and fork.</p>
+          <h2>If you were about to pay for a hosted approval service</h2>
+          <p>A hosted approval service runs the queue, the app and the keys for you, and many teams find that worth paying for. The request and its decision then live on someone else's server, under their retention policy. The psh.now server is MIT licensed, so you can read it, run it and fork it.</p>
 <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg></div>
               <h3>Read every rule</h3>
-              <p>The routing that decides whether a command needs a human is a few hundred lines of TypeScript in a public repository.</p>
+              <p>The rules that decide which commands need a person are in the repository, in code you can read and change.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/></svg></div>
-              <h3>Keep the questions home</h3>
-              <p>Self hosting puts the database and the mail in your own infrastructure. Nothing about your agents leaves your VPC.</p>
+              <h3>Requests stay in your database</h3>
+              <p>Self hosting is a Bun service and Postgres. Requests, keys and decisions stay in your own database, and you decide how long they are kept.</p>
             </div>
 </div>
         </section>
 
         <section class="subsection">
-          <h2>An open source alternative to building it yourself</h2>
-          <p>A webhook, a Slack bot and a database is a weekend of work and a permanent thing to maintain, and it still does not work from a locked phone. psh.now is the same shape (one HTTP call in, one boolean out) already written, with the app, the keys and the install script done.</p>
+          <h2>If you were about to build it yourself</h2>
+          <p>A webhook, a Slack bot and a database covers the delivery. It still leaves the deciding, the keys, the install and the phone to build. psh.now is that shape already built: one request in, one decision out, with the CLI, a Claude Code hook and the MCP endpoint included.</p>
 <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6-6 6-6M15 6l6 6-6 6"/></svg></div>
-              <h3>One call, one boolean</h3>
-              <p>POST a title and a message; get true or false back. Nothing to learn, nothing to poll.</p>
+              <h3>One call, one decision</h3>
+              <p>POST a title and a message to https://psh.now/api/v1/approvals and hold the connection open. The response carries the decision: approved, denied, or a written answer.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/><path d="M6 7.5v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3M12 12.5v4"/></svg></div>
               <h3>Fork it if the rule is wrong</h3>
-              <p>MIT means the answer to a missing feature is a branch, not a feature request.</p>
+              <p>The source is on GitHub under the MIT licence, so a rule you disagree with is yours to change.</p>
             </div>
 </div>
         </section>
 
         <section class="subsection">
-          <h2>Why open source is the point here</h2>
-          <p>An approval layer sits directly on the path to your production systems. Whoever controls it decides what your agents are allowed to do. That is a bad place for a black box, and a worse place for a per-seat meter.</p>
+          <h2>Why the source matters</h2>
+          <p>An approval server sits between an agent and the commands it wants to run. Whoever operates it holds the requests, the keys and the decisions. On the hosted instance they live on this server; self-hosted they stay in your database.</p>
 <div class="cards">
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6-6 6-6M15 6l6 6-6 6"/></svg></div>
               <h3>MIT licensed</h3>
-              <p>Both the server and the skill are MIT licensed at github.com/passy-ai/psh-now, no open-core asterisk, no seat count.</p>
+              <p>The server and the skill are MIT licensed on GitHub, risk rules included.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/></svg></div>
-              <h3>Self-hosted by default if you want it</h3>
-              <p>Docker Compose, your Postgres, your mail. The hosted instance is a convenience, not the product.</p>
+              <h3>Self-hosted if you want it</h3>
+              <p>A Bun service and Postgres. docker compose up starts both, and the data stays in your own database.</p>
             </div>
             <div class="card">
               <div class="card-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/><path d="M6 7.5v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3M12 12.5v4"/></svg></div>
               <h3>No lock-in</h3>
-              <p>The protocol is one HTTP request. If you ever leave, your agents keep working and your history stays in your database.</p>
+              <p>The protocol is one HTTP request to one endpoint. A self-hosted install keeps requests, keys and decisions in your own Postgres database.</p>
             </div>
 </div>
         </section>
 
         <section class="cta">
-          <h2 class="cta-title">Give Your Team One Answer</h2>
-          <p class="cta-sub">Open source and MIT licensed. One channel, every agent, and the person on call answers from wherever they are.</p>
+          <h2 class="cta-title">Send one request</h2>
+          <p class="cta-sub">Free to start, with no account and no card. An approval costs two requests, one in and one out, and a request that expires or is cancelled costs nothing.</p>
           <div class="cta-actions">
-            <a class="btn btn-primary btn-lg" href="/app">Get started free</a>
+            <a class="btn btn-primary btn-lg" href="/app">Start for free</a>
             <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">Star on GitHub</a>
           </div>
         </section>
@@ -219,7 +219,7 @@
               <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -249,7 +249,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed</div>
       </footer>
     </div>
   </body>

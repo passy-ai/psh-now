@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Hermes Agent integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Long-running work that can still stop to ask." />
-    <title>Hermes Agent + psh.now: ask before it acts, from anywhere</title>
+    <meta name="description" content="The psh.now skill for Hermes Agent: two install commands, then a run can post the step it is about to take and wait for your decision from a phone, a browser or the notch. The call returns with the answer." />
+    <title>Hermes Agent and psh.now: a decision in the middle of a run</title>
     <link rel="icon" type="image/svg+xml" href="/website/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
     <link rel="stylesheet" href="/website/styles.css" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"psh.now","item":"https://psh.now/"},{"@type":"ListItem","position":2,"name":"Agents","item":"https://psh.now/agents"},{"@type":"ListItem","position":3,"name":"Hermes Agent","item":"https://psh.now/agents/hermes-agent"}]}</script>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect Hermes Agent to psh.now","description":"Hermes Agent integration for psh.now: install the skill with one command, then any action the agent is about to take can become a question you answer from your phone. Long-running work that can still stop to ask.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"Connect Hermes Agent to psh.now","description": "The psh.now skill for Hermes Agent: two install commands, then a run can post the step it is about to take and wait for your decision from a phone, a browser or the notch. The call returns with the answer.","totalTime":"PT2M","step":[{"@type":"HowToStep","name":"Install the skill","text":"Run npx skills add passy-ai/psh-now-skill -g -y, or pipe the installer: curl -fsSL https://psh.now/install.sh | sh."},{"@type":"HowToStep","name":"Join a channel","text":"Paste the connect prompt from the dashboard. The channel link gives the agent an ask-only key."},{"@type":"HowToStep","name":"Verify","text":"Run psh status. It prints the host, the key, the plan and whether auth succeeded."}]}</script>
   </head>
   <body>
     <div class="page">
@@ -42,52 +42,52 @@
           <span class="logo-tile"><img src="/website/agents/logos/hermes.svg" alt="Hermes Agent logo" width="26" height="26" /></span>
           <div>
             <h1>Hermes Agent <span class="plus">+</span> psh.now</h1>
-            <p class="agent-tagline">Long-running work that can still stop to ask.</p>
+            <p class="agent-tagline">A skill that posts the step a run is about to take, then waits for your answer.</p>
           </div>
         </section>
 
-        <p class="docs-lede">Hermes Agent reads skills from ~/.hermes/skills. A run that would otherwise park on a question keeps going once you answer - from any device, at any hour.</p>
+        <p class="docs-lede">Hermes Agent reads skills from ~/.hermes/skills. The psh.now skill gives a run one way to ask: it posts the step it is about to take, the call stays open, and it returns with the decision.</p>
 
-        <h2>Install it</h2>
-        <p>Two commands, either one. The first is the packaged skill; the second needs no npm and no git.</p>
+        <h2>Install the skill</h2>
+        <p>Either command installs the same skill. The first goes through npx, the second pipes the installer into sh.</p>
         <pre data-copyable>npx skills add passy-ai/psh-now-skill -g -y</pre>
         <pre data-copyable>curl -fsSL https://psh.now/install.sh | sh</pre>
         <p>
-          It lands in <code>~/.hermes/skills/psh-now</code>, so only Hermes Agent picks it up from there. The shared directory is written too, which is why the same install works everywhere else.
+          The skill is written to <code>~/.hermes/skills/psh-now</code> and to the shared skills directory. Hermes Agent reads the first path, and the second is what other agents on the same machine pick up.
         </p>
 
         <h2>Connect a channel</h2>
         <p>
-          Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and give it to
-          Hermes Agent. The link carries the channel, so nothing new is minted and the key it gets is
-          <strong>ask-only</strong> - it can request approvals, never approve.
+          Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and paste it into
+          Hermes Agent. The link names the channel, and the key it carries is
+          <strong>ask-only</strong>: the agent can post requests there, and approve none of them.
         </p>
         <pre data-copyable>I'd like you to use psh.now and join this channel: https://psh.now/c/&lt;channel&gt;</pre>
 
-        <h2>What it asks with</h2>
-        <p>Once installed, the agent's side of the contract is one command:</p>
+        <h2>The ask command</h2>
+        <p>With the skill installed, the agent asks with one command:</p>
         <pre data-copyable>psh ask "Deploy the new build?" "This pushes to production."</pre>
         <p>
-          It blocks until you answer, then exits <code>0</code> on approval and non-zero otherwise. A timeout
-          or an error means do not act - silence is never consent.
+          The call blocks until you answer. It exits <code>0</code> on approval and non-zero otherwise. On a
+          timeout the response carries status expired, which is not an approval, and an error means the step was not approved.
         </p>
 
         <h2>Ask or gate</h2>
         <p>
-          Hermes Agent runs the skill, and a skill is an <strong>ask</strong>: the model can skip it. If your
-          setup exposes hooks, wire <code>psh hook</code> and the same call becomes a gate instead. Claude
-          Code is the reference: <a href="/agents/claude-code">see its hook</a>.
+          A skill is an <strong>ask</strong>: Hermes Agent runs it when the model chooses to, and the model can
+          skip it. If the harness exposes permission hooks, wire <code>psh hook</code> and the same request
+          becomes a gate. Claude Code is the reference: <a href="/agents/claude-code">see its hook</a>.
         </p>
 
         <h2>Check it works</h2>
         <pre data-copyable>psh status</pre>
         <p>
-          Expect the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code> goes
-          further: the skill path, the keys, the workspace and any stale record.
+          You should see the host, <code>auth ✓</code>, the plan and the request count. <code>psh doctor</code>
+          reports more: the skill path, the keys, the workspace and any stale record.
         </p>
 
         <section class="cta-row">
-          <a class="btn btn-primary" href="/app">Get a channel</a>
+          <a class="btn btn-primary" href="/app">Open the dashboard</a>
           <a class="btn btn-secondary" href="/docs">Read the docs</a>
         </section>
 
@@ -104,8 +104,8 @@
         <a class="agent-card" href="/agents/qwen-code"><span class="logo-tile sm"><img src="/website/agents/logos/qwen.svg" alt="" width="20" height="20" /></span><span><span class="name">Qwen Code</span><br /><span class="sub">shared skills dir</span></span></a>
         </div>
         <p class="muted">
-          Anything else that can run a shell command can ask too - the skill installer supports 79 agents,
-          and the CLI is the same everywhere.
+          Anything else that can run a shell command can ask too. The installer writes the skill, and
+          psh ask is the same call on every harness.
         </p>
         </div>
       </main>
@@ -117,7 +117,7 @@
               <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
               psh.now
             </div>
-            <p class="footer-tag">One hub for every agent that needs you</p>
+            <p class="footer-tag">Approvals for agents, answered anywhere</p>
           </div>
           <div class="footer-col">
             <h4>PRODUCT</h4>
@@ -147,7 +147,7 @@
             <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
-        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+        <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
       </footer>
     </div>
     <script>
