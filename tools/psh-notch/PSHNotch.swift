@@ -2414,7 +2414,7 @@ final class NotchPanelView: NSView {
                 line.append(NSAttributedString(string: " to connect", attributes: body))
                 label.attributedStringValue = line
             } else {
-                label.attributedStringValue = NSAttributedString(string: "no requests left", attributes: body)
+                label.attributedStringValue = NSAttributedString(string: "nothing waiting", attributes: body)
             }
             label.alignment = .center
             label.translatesAutoresizingMaskIntoConstraints = false
