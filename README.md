@@ -30,10 +30,10 @@ take, or a question to answer.
 | I want to | Read |
 |---|---|
 | install it and answer my first request | [Quick start](#quick-start) |
-| run it on my own server | [docs/self-hosting.md](docs/self-hosting.md) or `/self-hosting` on any instance |
-| understand the flow end to end | [docs/how-it-works.md](docs/how-it-works.md) |
+| run it on my own server | [self-hosting](https://psh.now/self-hosting) |
+| understand the flow end to end | [the docs](https://psh.now/docs#overview) |
 | call the API directly | [HTTP API](#http-api) |
-| paste a prompt into an agent | [docs/prompt-templates.md](docs/prompt-templates.md) |
+| paste a prompt into an agent | [prompt templates](https://psh.now/docs#templates) |
 | report a vulnerability | [SECURITY.md](SECURITY.md) |
 | contribute | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
@@ -243,7 +243,7 @@ Proceed only if the response is {"approved":true}. Otherwise do not act.
 ```
 
 Harnesses that support **skills** can load
-[`skills/psh-now/SKILL.md`](skills/psh-now/SKILL.md) instead (or as well). It teaches
+[the skill](https://psh.now/skill.md) instead (or as well). It teaches
 any LLM the same contract in the Anthropic Agent Skills / Hermes format, with a
 `metadata.hermes` block, and adds guidance on *when* to ask and *when not* to.
 
@@ -362,7 +362,7 @@ claude mcp add --transport http psh https://psh.now/mcp --header "x-psh-key: psh
 Only `approved: true` means yes; `denied`, `expired` and errors all mean do not act. MCP is
 cooperative like the skill: it cannot stop an agent that never calls it. The gate is the hook.
 
-Protocol details, error codes and the reasoning behind the smaller surface: [docs/mcp.md](docs/mcp.md).
+Protocol details, error codes and the reasoning behind the smaller surface: [the MCP section of the docs](https://psh.now/docs#mcp).
 
 ### WebSocket frames
 
