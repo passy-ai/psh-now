@@ -99,6 +99,16 @@ from System Settings > Privacy & Security instead of the right-click menu.
 
 Open the dmg, drag **PSHNotch** to Applications, and launch it.
 
+Launch at login points at the copy that registered it. An app first opened from a build
+folder keeps that folder as its login item after it is moved, and then comes back at the
+next reboot from a path that no longer exists. The installed copy fixes that in one line:
+
+```sh
+/Applications/PSHNotch.app/Contents/MacOS/PSHNotch --login-item on
+```
+
+`off` and `status` do the other two things, and the menu item does the same by hand.
+
 The **first** launch of that copy shows a warning and refuses to open. Right-click the
 app, choose **Open**, and confirm **Open** in the dialog. Or open System Settings >
 Privacy & Security and press **Open Anyway** beside the app's name. After that it

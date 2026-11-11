@@ -3909,6 +3909,31 @@ func selftest(approved: Bool, wanted: String?, answer: String?) -> Never {
 
 // MARK: - entry
 
+/// `--login-item on|off|status`: the same registration the menu toggles, from a shell.
+///
+/// It exists because the recorded path is the bundle that registered. An app first run out of a
+/// build directory keeps that path at login: moving the bundle to /Applications does not move the
+/// entry, so the login item goes on launching something that is no longer there.
+func loginItem(_ mode: String) {
+    guard #available(macOS 13.0, *) else { die("launch at login needs macOS 13 or newer") }
+    let service = SMAppService.mainApp
+    do {
+        switch mode {
+        case "on":
+            if service.status != .enabled { try service.register() }
+        case "off":
+            if service.status == .enabled { try service.unregister() }
+        case "status":
+            break
+        default:
+            die("usage: PSHNotch --login-item on|off|status")
+        }
+    } catch {
+        die("launch at login: \(error.localizedDescription)")
+    }
+    print("\(service.status == .enabled ? "enabled" : "disabled")  \(Bundle.main.bundlePath)")
+}
+
 @main
 struct PSHNotch {
     static func main() {
@@ -3959,6 +3984,8 @@ struct PSHNotch {
                 answering: args.contains("--answer"),
                 background: args.contains("--background")
             )
+        case "--login-item":
+            loginItem(args.count > 1 ? args[1] : "status")
         case "--render":
             if let corner = value(of: "--corner", in: args), let pt = Double(corner) {
                 panelCornerRadius = CGFloat(pt)
@@ -3990,6 +4017,7 @@ struct PSHNotch {
               --modeprobe                           print where each mode's rows land on screen
               --preview [--seconds N] [--answer]     show the real panel for a moment
                         [--background]               ...with nothing else focused, as a test
+              --login-item on|off|status             launch at login, from a shell
               --selftest [--deny|--answer <text>]     decide the first pending request
             """)
         default:
