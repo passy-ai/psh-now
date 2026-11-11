@@ -60,8 +60,9 @@
         <h2>Connect a channel</h2>
         <p>
           Open <a href="/app">the dashboard</a>, copy the prompt from a channel card, and give it to
-          Qwen Code. The link carries the channel, so nothing new is minted: the agent gets a
-          <strong>channel-scoped</strong> key, and every request it posts lands in that channel.
+          Qwen Code. The link carries the channel, so nothing new is minted: the agent gets an
+          <strong>ask-only</strong> key bound to that channel, and every request it posts lands
+          there and waits for a person.
         </p>
         <pre data-copyable>I'd like you to use psh.now and join this channel: https://psh.now/c/&lt;channel&gt;</pre>
 
