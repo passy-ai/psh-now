@@ -34,9 +34,11 @@
   --radius: 16px;
   --radius-sm: 11px;
   /* The page column: `.wrap` and the nav content both use these, so the logo
-     and the nav actions sit on exactly the same edges as the page content. */
-  --shell-max: 640px;
-  --shell-pad: 20px;
+     and the nav actions sit on exactly the same edges as the page content. It is
+     the marketing site's column (`--page-max` / `--page-pad` in website/styles.css)
+     so the two navbars are the same bar over the same edges, not two designs. */
+  --shell-max: 960px;
+  --shell-pad: 24px;
   /* Notices sit narrower than the page column and centred, so the slack is
      split evenly instead of leaving one long empty run to the right. */
   --notice-max: 680px;
@@ -2384,26 +2386,34 @@ position: sticky;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 28px;
-  /* Full-bleed bar, content aligned to the page column (`--shell-*`). */
-  padding: 14px
-    max(var(--shell-pad), calc((100% - var(--shell-max)) / 2 + var(--shell-pad)));
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line-soft);
+  gap: 16px;
+  min-height: 64px;
+  /* Full-bleed bar, content aligned to the page column (`--shell-*`). The same
+     figures the site's `.header-inner` uses, so both bars are one barrel. */
+  padding: 16px
+    max(var(--shell-pad), calc((100% - var(--shell-max)) / 2 + var(--shell-pad)))
+    12px;
+  /* Glass, not a slab: mostly the page showing through, blurred and saturated, the
+     way the marketing site does it. No hairline - the blur is the edge. */
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
 }
 .nav-brand {
 display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 9px;
-  font-weight: 700;
-  font-size: 16px;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 .nav-brand .mark {
-width: 22px;
-  height: 22px;
+width: 32px;
+  height: 32px;
   display: block;
+  margin-left: -5px;
   /* The mark is a black outline; invert it for the dark surface. */
   filter: invert(1);
 }
@@ -2503,11 +2513,12 @@ color: var(--dim);
 .nav-actions {
 display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 .nav-link {
 color: var(--dim);
   font-size: 14px;
+  font-weight: 500;
 }
 .nav-link:hover {
 color: var(--text);
@@ -3008,17 +3019,10 @@ justify-content: flex-start;
 @media (max-width: 480px) {
 .nav {
 gap: 12px;
-    /* Only the vertical padding shrinks: the horizontal side keeps the column
-       alignment so the logo still lines up with the content on phones. */
-    padding-top: 12px;
-    padding-bottom: 12px;
 }
-.nav-brand {
-font-size: 15px;
-    gap: 7px;
-}
-/* The mark stays; the wordmark and the top Docs link live in the menu. */
-  .nav-brand-text,
+/* The wordmark and the mark keep their size and their place: the marketing site
+   keeps both at this width, and the two bars should read as the same bar. Only
+   the Docs link goes, since the account menu carries it. */
   .nav-docs {
 display: none;
 }
