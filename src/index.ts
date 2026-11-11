@@ -98,6 +98,9 @@ function requiredScope(method: string, path: string): Scope {
     if (path.includes("/invite-link")) return "approve";
     // Read-only: returns the channel's public URL (`/c/<channel>`).
     if (path.includes("/join-link")) return "ask";
+    // Exporting the history mints a signed download URL. It reads and hands back
+    // a file; it never changes the account, so the approving key may do it.
+    if (path.includes("/export")) return "approve";
     // The owner's account key may create a channel and mint agent keys for it,
     // and edit a channel (name, colour, URL). Deleting still needs the secret.
     if (method === "PATCH") return "approve";

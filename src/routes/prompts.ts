@@ -31,8 +31,10 @@ import {
   updateSession,
 } from "../services/sessions";
 import { sendPushToTenant } from "../services/push";
+import { signExportToken, verifyExportToken } from "../lib/export-token";
+import { buildChannelExport, countChannelExport } from "../services/export";
 import { consumeTokens } from "../services/tenants";
-import { findKeyAuth, findTenantByEmail, getTenant } from "../services/tenants";
+import { approverOf, findKeyAuth, findTenantByEmail, getTenant } from "../services/tenants";
 import {
   activeChannelInvite,
   countChannelInvites,
@@ -59,11 +61,6 @@ import {
   REQUESTS_PER_APPROVAL,
 } from "../lib/plans";
 import { env } from "../env";
-
-/** Who approved a request: the account email when claimed, else the account key. */
-function approverOf(tenant: { email: string | null; apiKeyPrefix: string }) {
-  return tenant.email || `${tenant.apiKeyPrefix}…`;
-}
 
 /** Public shape of a session. */
 function serializeSession(s: {
@@ -643,6 +640,58 @@ export const promptRoutes = new Elysia({ prefix: "/api/v1" })
       params: t.Object({ id: t.String({ minLength: 4, maxLength: 32 }) }),
       body: t.Optional(t.Object({ archived: t.Optional(t.Boolean()) })),
     },
+  )
+
+  /**
+   * Trade the account key for a download URL.
+   *
+   * The browser cannot carry a header on a download, so the CSV arrives by
+   * navigating to a signed URL instead; this is the press that mints it.
+   */
+  .post(
+    "/channels/:id/export",
+    async ({ request, params }) => {
+      const { tenant } = await requireTenantOrDevice(request.headers);
+      const connection = await getSessionById(params.id);
+      if (!connection || !(await canAccessChannel(tenant.id, connection.id))) {
+        throw notFound("Channel not found");
+      }
+      const scope = await askScope(request.headers);
+      if (scope && connection.id !== scope.sessionId) throw notFound("Channel not found");
+
+      // Counted now so an empty channel says so, rather than downloading a
+      // header row and leaving the person to open it to find out.
+      const count = await countChannelExport(connection, tenant.id);
+      return { url: `/api/v1/export/${signExportToken(connection.id, tenant.id)}`, count };
+    },
+    { params: t.Object({ id: t.String({ minLength: 4, maxLength: 32 }) }) },
+  )
+
+  /**
+   * The CSV itself. Unauthenticated by design: the signed token is the
+   * credential, and access is checked again here, so a share revoked a second
+   * after the press stops working immediately rather than at token expiry.
+   */
+  .get(
+    "/export/:token",
+    async ({ params }) => {
+      const { channelId, tenantId } = verifyExportToken(params.token);
+      const connection = await getSessionById(channelId);
+      const viewer = await getTenant(tenantId);
+      if (!connection || !viewer || !(await canAccessChannel(tenantId, connection.id))) {
+        throw notFound("Channel not found");
+      }
+      const { filename, csv } = await buildChannelExport(connection, tenantId);
+      return new Response(csv, {
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition": `attachment; filename="${filename}"`,
+          // History changes with every decision; a cached copy would go stale silently.
+          "cache-control": "no-store",
+        },
+      });
+    },
+    { params: t.Object({ token: t.String({ minLength: 16, maxLength: 4096 }) }) },
   )
 
   /** Agent keys bound to this channel. */

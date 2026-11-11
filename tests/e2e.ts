@@ -395,6 +395,33 @@ async function main() {
       "key list shows the new key",
       keyListRes.ok && (keyList.keys || []).some((k: any) => k.id === newKey.id),
     );
+    // 12. CSV export: a signed link that downloads, and nothing it should not
+    const exportRes = await fetch(`${BASE}/api/v1/channels/${approve.connectionId}/export`, {
+      method: "POST",
+      headers: { "x-psh-device": claim.deviceToken },
+    });
+    const exported = (await exportRes.json()) as any;
+    check("export link minted", exportRes.ok && typeof exported.url === "string", JSON.stringify(exported));
+    check("export counts decided rows", exported.count >= 1, `count=${exported.count}`);
+
+    const csvRes = await fetch(`${BASE}${exported.url}`);
+    const csv = await csvRes.text();
+    check(
+      "export arrives as a download",
+      (csvRes.headers.get("content-disposition") || "").startsWith("attachment"),
+      csvRes.headers.get("content-disposition") || "no header",
+    );
+    check("export is UTF-8 with a BOM", csv.startsWith("\ufeff"));
+    check(
+      "export has the header row",
+      csv.includes("Requested,Request,Details,Status,Answer,Decision,Agent,Decided by,Decided at"),
+    );
+    check("export holds the decided request", csv.includes("Reinstall dependencies"));
+
+    const token = exported.url.split("/").pop() as string;
+    const forgedRes = await fetch(`${BASE}/api/v1/export/${token.slice(0, -2)}xx`);
+    check("edited export link rejected", forgedRes.status === 403, `got ${forgedRes.status}`);
+
   } finally {
     server.kill();
     await server.exited.catch(() => {});

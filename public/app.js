@@ -1534,9 +1534,13 @@ async function loadHistory(channelId) {
 }
 
 /**
- * The channel's decided requests, as a file. Deliberately not the shape of the
- * table on screen: a spreadsheet wants one row per request and the whole message,
- * where the table crops to two lines and keeps the answer in a tooltip.
+ * The channel's decided requests, as a file.
+ *
+ * The file is built on the server and fetched through a signed URL the browser
+ * navigates to, which is the only shape that downloads everywhere: a blob built
+ * after an awaited fetch has already spent the click's user gesture, and Safari
+ * refuses those, while a standalone web app on iOS has no download UI for one at
+ * all. The URL carries no key, so nothing secret ends up in the address bar.
  */
 async function exportHistory(channelId, btn) {
   const label = btn?.innerHTML;
@@ -1545,54 +1549,16 @@ async function exportHistory(channelId, btn) {
     btn.innerHTML = `${icon("download", 15)}Preparing…`;
   }
   try {
-    const { prompts } = await api(`/api/v1/channels/${channelId}`);
-    const rows = (prompts || []).filter((p) => p.status !== "pending");
-    if (!rows.length) {
+    const { url, count } = await api(`/api/v1/channels/${channelId}/export`, {
+      method: "POST",
+      body: {},
+    });
+    if (!count) {
       toast("Nothing decided in this channel yet");
       return;
     }
-    const columns = [
-      ["createdAt", "Requested"],
-      ["title", "Request"],
-      ["message", "Details"],
-      ["status", "Status"],
-      ["answer", "Answer"],
-      ["decision", "Decision"],
-      ["agentId", "Agent"],
-      ["decidedBy", "Decided by"],
-      ["decidedAt", "Decided at"],
-    ];
-    // RFC 4180: quote when the value holds a comma, a quote or a newline, and
-    // double the quotes inside. A message containing a comma is the normal case
-    // here, not the exception, so this is not optional politeness.
-    const cell = (value) => {
-      const text = value == null ? "" : String(value);
-      return /["\r\n]|,/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-    };
-    const value = (p, key) => (key.endsWith("At") && p[key] ? new Date(p[key]).toISOString() : p[key]);
-    const lines = [
-      columns.map(([, head]) => cell(head)).join(","),
-      ...rows.map((p) => columns.map(([key]) => cell(value(p, key))).join(",")),
-    ];
-    // A BOM first: Excel reads bare UTF-8 as latin-1 and mangles any accent.
-    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-    const c = channelById(channelId) || {};
-    const slug =
-      (c.name || "channel")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") || "channel";
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `psh-${slug}-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.append(a);
-    a.click();
-    a.remove();
-    // Revoked a moment later: releasing the blob in the same frame as the click
-    // cancels the download in Safari.
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast(`Exported ${rows.length} ${rows.length === 1 ? "request" : "requests"}`);
+    window.location.assign(url);
+    toast(`Exported ${count} ${count === 1 ? "request" : "requests"}`);
   } catch (err) {
     toast(err.message);
   } finally {

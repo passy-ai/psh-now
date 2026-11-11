@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   auditLog,
@@ -114,6 +114,52 @@ export async function listPrompts(
     .where(and(...conditions))
     .orderBy(desc(prompts.createdAt))
     .limit(limit);
+}
+
+/**
+ * Every request in one channel inside the plan's history window, for the CSV
+ * export.
+ *
+ * `listPrompts` pages at 200 rows because it feeds a scrolling list; an export
+ * that stopped where the list does would be missing rows the person can still
+ * scroll to. Paged here by (createdAt, id) instead of createdAt alone: a burst of
+ * requests can share a millisecond, and a plain `createdAt <` cursor would drop
+ * the rest of that millisecond from the file without a word.
+ */
+export async function listChannelHistory(
+  tenantId: string,
+  sessionId: string,
+  options: { since?: Date | null; max?: number } = {},
+): Promise<Prompt[]> {
+  const max = Math.min(options.max ?? 5000, 5000);
+  const page = 200;
+  const out: Prompt[] = [];
+  let before: { at: Date; id: string } | null = null;
+
+  while (out.length < max) {
+    const conditions = [eq(prompts.tenantId, tenantId), eq(prompts.sessionId, sessionId)];
+    if (options.since) conditions.push(gte(prompts.createdAt, options.since));
+    if (before) {
+      conditions.push(
+        or(
+          lt(prompts.createdAt, before.at),
+          and(eq(prompts.createdAt, before.at), lt(prompts.id, before.id)),
+        )!,
+      );
+    }
+    const rows = await db
+      .select()
+      .from(prompts)
+      .where(and(...conditions))
+      .orderBy(desc(prompts.createdAt), desc(prompts.id))
+      .limit(Math.min(page, max - out.length));
+    out.push(...rows);
+    // A short page is the end of the history.
+    if (rows.length < page) break;
+    const last = rows[rows.length - 1]!;
+    before = { at: last.createdAt, id: last.id };
+  }
+  return out;
 }
 
 /** Pending prompts across a set of channels (used for shared channels). */

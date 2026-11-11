@@ -396,6 +396,15 @@ export async function revealAccountKey(tenant: Tenant): Promise<string | null> {
   return decryptSecret(tenant.apiKeyEnc);
 }
 
+/**
+ * The human name for a decision: the account email once claimed, else its key.
+ * One definition, because the history list and the CSV export must not disagree
+ * about who approved the same request.
+ */
+export function approverOf(tenant: { email: string | null; apiKeyPrefix: string }): string {
+  return tenant.email || `${tenant.apiKeyPrefix}…`;
+}
+
 export async function getTenant(id: string): Promise<Tenant | null> {
   const [tenant] = await db
     .select()
