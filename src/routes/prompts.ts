@@ -86,6 +86,7 @@ function serializeSession(s: {
     color: s.color ?? null,
     description: s.description ?? null,
     archived: !!s.archivedAt,
+    archivedAt: s.archivedAt ?? null,
     agent: s.agent,
     createdAt: s.createdAt,
     lastSeenAt: s.lastSeenAt,
@@ -379,13 +380,23 @@ export const promptRoutes = new Elysia({ prefix: "/api/v1" })
     },
   )
 
-  /** List connections under the account, with key + member counts. */
+  /**
+   * List connections under the account, with key + member counts.
+   *
+   * `?archived=1` lists the channels put away instead. The archive page shows a
+   * name, a date and two buttons, so it skips the per-channel counting: three
+   * queries each to render a number nobody asked for there.
+   */
   .get("/channels", async ({ request }) => {
     const { tenant } = await requireTenantOrDevice(request.headers);
     const scope = await askScope(request.headers);
-    const rows = (await listSessions(tenant.id)).filter(
+    const archived = new URL(request.url).searchParams.get("archived") === "1";
+    const rows = (await listSessions(tenant.id, 50, { archived })).filter(
       (s) => !scope || s.id === scope.sessionId,
     );
+    if (archived) {
+      return { connections: rows.map((s) => serializeSession(s)), archived: true };
+    }
     const connections = await Promise.all(
       rows.map(async (s) => {
         const [keysCount, inviteCount, shares] = await Promise.all([

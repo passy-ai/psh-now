@@ -52,6 +52,7 @@
             </div>
             <div id="menuPacks" class="menu-packs"></div>
 <a href="/devices" class="menu-item"><span data-icon="smartphone"></span>Devices</a>
+            <a href="/app#archived" class="menu-item"><span data-icon="archive"></span>Archived channels</a>
                         <a href="/docs" class="menu-item"><span data-icon="book"></span>Docs</a>
             <button id="menuTheme" class="menu-item"><span data-icon="moon"></span>Dark mode</button>
             <button id="menuSignout" class="menu-item danger"><span data-icon="logout"></span>Log out</button>
@@ -175,6 +176,16 @@
               <span class="guide-ext" data-icon="arrow-up-right" aria-hidden="true"></span>
             </a>
           </section>
+      </section>
+
+      <!-- The archive: a holding area, not a second dashboard. The requests and the
+           guides below them belong to the working page, so this one leaves them out
+           and keeps the one job it has - put a channel back, or lose it. -->
+      <section id="archivedView" class="archive">
+        <a class="arch-back" href="/app"><span aria-hidden="true">←</span> Channels</a>
+        <h1 class="arch-title">Archived channels</h1>
+        <p class="arch-sub">Their requests are still saved. Restore one to bring it back, or delete it for good.</p>
+        <div id="archivedList" class="arch-list"></div>
       </section>
     </main>
 

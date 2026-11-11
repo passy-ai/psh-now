@@ -324,7 +324,23 @@ for (const el of document.querySelectorAll("[data-icon]")) {
 // errand the human started.
 function afterSignIn() {
   const next = new URLSearchParams(location.search).get("next");
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/app";
+  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  // Signing in should not throw away the page someone was on: /app#archived is a
+  // place, and a bookmark of it is meant to survive the sign-in form.
+  return "/app" + (location.hash === "#archived" ? location.hash : "");
+}
+
+/**
+ * Leave the sign-in form for the app.
+ *
+ * Assigning a URL that differs from this one only by its hash is a hash change,
+ * not a load, so the page would sit there still showing the form it just closed.
+ * When the address is already right, the boot has to be redone in place.
+ */
+function leaveSignIn() {
+  const next = afterSignIn();
+  if (next === location.pathname + location.search + location.hash) location.reload();
+  else location.href = next;
 }
 
 /* ------------------------------- theme --------------------------------- */
@@ -850,6 +866,8 @@ function connect() {
   clearBootLoader();
   // Signed in: the channel + pairing actions belong to the app, not to the gate.
   setSessionChrome(true);
+  // Signing in can land straight on the archive page (a bookmark, a reload there).
+  renderView();
   // Fade in once, on the first load. Reconnects keep the page steady instead
   // of flashing it out and back in (which looks like a reload).
   if (state.everReady) {
@@ -1073,7 +1091,6 @@ function channelSection(c) {
             <button class="menu-item" data-rename="${esc(c.id)}">${icon("pencil", 15)}Rename</button>
             <button class="menu-item" data-csv="${esc(c.id)}">${icon("download", 15)}Export history (CSV)</button>
             <button class="menu-item" data-archive="${esc(c.id)}">${icon("archive", 15)}Archive channel</button>
-            <button class="menu-item danger" data-delete="${esc(c.id)}">${icon("trash", 15)}Delete channel</button>
           </div>
         </span>
         <button class="icon-btn ch-fold" data-hist="${esc(c.id)}" aria-label="${histOpen ? "Hide" : "Show"} request history" aria-expanded="${histOpen}">${icon("chevron-down", 16)}</button>
@@ -1451,21 +1468,6 @@ function wireChannels() {
     btn.onclick = () => {
       btn.closest(".ch-more-menu")?.classList.add("hide");
       void exportHistory(btn.dataset.csv, btn);
-    };
-  }
-  for (const btn of root.querySelectorAll("[data-delete]")) {
-    btn.onclick = async () => {
-      const id = btn.dataset.delete;
-      const c = channelById(id) || {};
-      btn.closest(".ch-more-menu")?.classList.add("hide");
-      if (!window.confirm(`Delete “${c.name || "this channel"}”? Its requests stay in history.`)) return;
-      try {
-        await api(`/api/v1/channels/${id}`, { method: "DELETE" });
-        toast("Channel deleted");
-        loadConnectionsList();
-      } catch (err) {
-        toast(err.message || "Couldn't delete");
-      }
     };
   }
   for (const btn of root.querySelectorAll("[data-cqr]")) {
@@ -2836,6 +2838,10 @@ document.addEventListener("click", (e) => {
   if (e.target.closest?.("[data-topup]")) openTopUp();
 });
 
+// A reload, a bookmark or a paste lands on #archived directly; nothing above has
+// run yet, so the page is chosen once here too.
+renderView();
+
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
   if (!state.ws || state.ws.readyState > 1) {
@@ -3025,7 +3031,7 @@ $("authForm")?.addEventListener("submit", async (e) => {
     });
     store.apiKey = linked.userKey;
     // The app has one canonical URL now; `/login` is only the way in.
-    location.href = afterSignIn();
+    leaveSignIn();
   } catch (err) {
     toast(err.message || "Something went wrong");
   } finally {
@@ -3076,7 +3082,7 @@ $("keyLoginBtn")?.addEventListener("click", () => {
   const key = $("keyInput").value.trim();
   if (!key) return;
   store.apiKey = key; // kept in localStorage only - never in the URL
-  location.href = afterSignIn();
+  leaveSignIn();
 });
 $("keyInput")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") $("keyLoginBtn")?.click();
@@ -3121,6 +3127,104 @@ function toggleChannelOpen(id) {
   }
   if (open) void loadHistory(id);
 }
+
+/* ------------------------------- archive ------------------------------- */
+
+/**
+ * `#archived` is the archive page: the app with the requests and the guides taken
+ * out. A hash rather than a second document, so it costs no bundle, keeps the
+ * signed-in state and the live socket, and Back returns to the list as it was.
+ */
+function archiveView() {
+  return location.hash === "#archived";
+}
+
+/** Show the page the address asks for. */
+function renderView() {
+  const signedIn = !!(store.apiKey || store.token);
+  const archived = signedIn && archiveView();
+  document.body.classList.toggle("view-archive", archived);
+  if (archived) void loadArchived();
+}
+
+async function loadArchived() {
+  const list = document.getElementById("archivedList");
+  if (!list) return;
+  list.innerHTML = `<div class="muted">Loading…</div>`;
+  try {
+    const { connections } = await api("/api/v1/channels?archived=1");
+    list.innerHTML = connections.length
+      ? connections.map(archivedRow).join("")
+      : `<div class="arch-empty">Nothing archived. A channel you archive from its menu shows up here.</div>`;
+    wireArchived();
+  } catch (err) {
+    list.innerHTML = `<div class="muted">${esc(err.message)}</div>`;
+  }
+}
+
+function archivedRow(c) {
+  return `
+    <div class="arch-row">
+      <span class="arch-dot" style="background:${esc(c.color || "#6c8cff")}" aria-hidden="true"></span>
+      <span class="arch-name">${esc(c.name)}</span>
+      <span class="arch-when">${c.archivedAt ? esc(relTime(c.archivedAt)) : ""}</span>
+      <button class="btn pill sm" data-restore="${esc(c.id)}">Restore</button>
+      <button class="btn pill sm danger-ghost" data-purge="${esc(c.id)}">Delete</button>
+    </div>`;
+}
+
+function wireArchived() {
+  const list = document.getElementById("archivedList");
+  if (!list) return;
+  for (const btn of list.querySelectorAll("[data-restore]")) {
+    btn.onclick = () => restoreChannel(btn.dataset.restore, btn);
+  }
+  for (const btn of list.querySelectorAll("[data-purge]")) {
+    btn.onclick = () => purgeChannel(btn.dataset.purge, btn);
+  }
+}
+
+/** Put a channel back on the home page, with its requests and its keys intact. */
+async function restoreChannel(channelId, btn) {
+  btn.disabled = true;
+  try {
+    await api(`/api/v1/channels/${channelId}/archive`, {
+      method: "POST",
+      body: { archived: false },
+    });
+    toast("Channel restored");
+    await Promise.all([loadArchived(), loadConnectionsList()]);
+  } catch (err) {
+    btn.disabled = false;
+    toast(err.message || "Couldn't restore");
+  }
+}
+
+/**
+ * The one destructive press in the app, and it says what it costs: the channel
+ * and the requests in it. Archived first, so it is always a second thought.
+ */
+async function purgeChannel(channelId, btn) {
+  const name = btn.closest(".arch-row")?.querySelector(".arch-name")?.textContent?.trim();
+  if (
+    !window.confirm(
+      `Delete “${name || "this channel"}” for good? Its requests are deleted with it, and this cannot be undone.`,
+    )
+  )
+    return;
+  btn.disabled = true;
+  try {
+    await api(`/api/v1/channels/${channelId}`, { method: "DELETE" });
+    toast("Channel deleted");
+    void loadArchived();
+    void loadConnectionsList();
+  } catch (err) {
+    btn.disabled = false;
+    toast(err.message || "Couldn't delete");
+  }
+}
+
+window.addEventListener("hashchange", renderView);
 
 $("channelSearch")?.addEventListener("input", () => {
   const input = $("channelSearch");

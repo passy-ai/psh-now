@@ -101,6 +101,11 @@ function requiredScope(method: string, path: string): Scope {
     // Exporting the history mints a signed download URL. It reads and hands back
     // a file; it never changes the account, so the approving key may do it.
     if (path.includes("/export")) return "approve";
+    // Archiving is reversible and is now the only way a channel leaves the list,
+    // so it is an everyday owner action, not a destructive one. Binning a channel
+    // for good (`DELETE /channels/:id`, from the archive page) still needs the
+    // secret.
+    if (path.endsWith("/archive")) return "approve";
     // The owner's account key may create a channel and mint agent keys for it,
     // and edit a channel (name, colour, URL). Deleting still needs the secret.
     if (method === "PATCH") return "approve";

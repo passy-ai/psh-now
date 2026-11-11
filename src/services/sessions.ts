@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "../db";
 import { channelShares, prompts, sessions, type Session } from "../db/schema";
 import { gone } from "../lib/http";
@@ -255,6 +255,12 @@ const SUMMARY_COLUMNS = {
 export async function listSessions(
   tenantId: string,
   limit = 50,
+  /**
+   * `archived` reads the other side of the same line: the channels the account put
+   * away, newest first. Shares are never archived by the account that received one,
+   * so there is nothing to add to them.
+   */
+  { archived = false }: { archived?: boolean } = {},
 ): Promise<SessionSummary[]> {
   const capped = Math.min(Math.max(limit, 1), 200);
 
@@ -262,10 +268,17 @@ export async function listSessions(
     .select(SUMMARY_COLUMNS)
     .from(sessions)
     .leftJoin(prompts, eq(prompts.sessionId, sessions.id))
-    .where(and(eq(sessions.tenantId, tenantId), isNull(sessions.archivedAt)))
+    .where(
+      and(
+        eq(sessions.tenantId, tenantId),
+        archived ? isNotNull(sessions.archivedAt) : isNull(sessions.archivedAt),
+      ),
+    )
     .groupBy(sessions.id)
-    .orderBy(desc(sessions.lastSeenAt))
+    .orderBy(archived ? desc(sessions.archivedAt) : desc(sessions.lastSeenAt))
     .limit(capped);
+
+  if (archived) return owned.map((s) => ({ ...s, shared: false }));
 
   const shared = await db
     .select(SUMMARY_COLUMNS)
@@ -363,10 +376,23 @@ export async function listChannelShares(tenantId: string, channelId: string) {
     .where(and(eq(channelShares.channelId, channelId), eq(channelShares.ownerId, tenantId)));
 }
 
+/**
+ * Delete a channel for good, and the requests in it.
+ *
+ * Archiving is the reversible one and keeps everything. This is the other press:
+ * the channel and its history go, so nothing is left counting against the
+ * workspace's allowance and nothing is left that no page can reach.
+ */
 export async function deleteSession(
   tenantId: string,
   id: string,
 ): Promise<boolean> {
+  // The requests first: deleting the channel nulls their session_id (deliberately,
+  // so a history read never loses rows to a cascade), and after that nothing can
+  // find them by channel again.
+  await db
+    .delete(prompts)
+    .where(and(eq(prompts.sessionId, id), eq(prompts.tenantId, tenantId)));
   const rows = await db
     .delete(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.tenantId, tenantId)))
