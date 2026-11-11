@@ -72,68 +72,79 @@
 
         <section class="subsection">
           <h2>Where the two differ</h2>
-          <p>The rows that actually change a decision, not a checkbox grid. Where Pushary is the better answer, this table says so.</p>
-        <div class="cmp-wrap">
-          <table class="cmp stackable">
-            <thead><tr>
-              <th scope="col"></th>
-              <th scope="col" class="ours">psh.now</th>
-              <th scope="col">Pushary</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td>Where the answer lands</td>
-                <td data-col="psh.now">The dashboard, on any browser, installable to the home screen as a PWA</td>
-                <td data-col="Pushary">Real push on iOS and Android, the Mac notch, Slack, n8n</td>
-              </tr>
-              <tr>
-                <td>Reaching you when the app is closed</td>
-                <td data-col="psh.now">No. Nothing wakes the phone: the page has to be open</td>
-                <td data-col="Pushary">Yes, including a lock-screen answer to a confirm question</td>
-              </tr>
-              <tr>
-                <td>Who runs the server</td>
-                <td data-col="psh.now">You can. Docker Compose, your Postgres, your mail</td>
-                <td data-col="Pushary">They do: an account and a plan. The SDKs are MIT; the decision store is theirs</td>
-              </tr>
-              <tr>
-                <td>Enforcement</td>
-                <td data-col="psh.now">The agent must honour the boolean. Ask-only keys cannot grant anything</td>
-                <td data-col="Pushary">Per-tool rules applied in agent hooks and application code</td>
-              </tr>
-              <tr>
-                <td>Question shapes</td>
-                <td data-col="psh.now">Approve or deny, and one free-text answer to a question</td>
-                <td data-col="Pushary">Approve or deny, multiple choice, free text</td>
-              </tr>
-              <tr>
-                <td>Team answering</td>
-                <td data-col="psh.now">One shared channel per project; whoever is awake answers, and the record names them</td>
-                <td data-col="Pushary">Per-person routing, roles, lead escalation, and an append-only trail</td>
-              </tr>
-              <tr>
-                <td>Price</td>
-                <td data-col="psh.now">Free to self-host under MIT. The hosted instance is free while payments are off</td>
-                <td data-col="Pushary">$59 a month for five people, $12 per additional person</td>
-              </tr>
-              <tr>
-                <td>What the agent needs</td>
-                <td data-col="psh.now">One HTTP POST. No SDK, no MCP server, no session</td>
-                <td data-col="Pushary"><code>npx pushary@latest setup</code>, which wires their MCP server and hooks</td>
-              </tr>
-              <tr>
-                <td>Harness coverage</td>
-                <td data-col="psh.now">Anything that can POST. Ten harnesses have a written guide</td>
-                <td data-col="Pushary">26 harnesses, plus SDK adapters and a published host matrix</td>
-              </tr>
-              <tr>
-                <td>Licence</td>
-                <td data-col="psh.now">MIT, server and skill</td>
-                <td data-col="Pushary">The service is proprietary, the client libraries are MIT</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <p>Ten lines that actually change a decision, not a checkbox grid. Where Pushary is the better answer, it says so.</p>
+        <div class="versus">
+  <div class="vs-row">
+    <div class="vs-key">Where the answer lands</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>The dashboard, on any browser, installable to the home screen as a PWA</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>Real push on iOS and Android, the Mac notch, Slack, n8n</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Reaching you when the app is closed</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>No. Nothing wakes the phone: the page has to be open</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>Yes, including a lock-screen answer to a confirm question</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Who runs the server</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>You can. Docker Compose, your Postgres, your mail</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>They do: an account and a plan. The SDKs are MIT; the decision store is theirs</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Enforcement</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>The agent must honour the boolean. Ask-only keys cannot grant anything</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>Per-tool rules applied in agent hooks and application code</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Question shapes</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Approve or deny, and one free-text answer to a question</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>Approve or deny, multiple choice, free text</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Team answering</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>One shared channel per project; whoever is awake answers, and the record names them</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>Per-person routing, roles, lead escalation, and an append-only trail</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Price</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Free to self-host under MIT. The hosted instance is free while payments are off</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>$59 a month for five people, $12 per additional person</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">What the agent needs</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>One HTTP POST. No SDK, no MCP server, no session</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span><code>npx pushary@latest setup</code>, which wires their MCP server and hooks</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Harness coverage</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Anything that can POST. Ten harnesses have a written guide</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>26 harnesses, plus SDK adapters and a published host matrix</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Licence</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>MIT, server and skill</span></p>
+      <p class="vs-them"><span class="vs-who">Pushary</span><span>The service is proprietary, the client libraries are MIT</span></p>
+    </div>
+  </div>
+</div>
         </section>
 
         <section class="subsection">

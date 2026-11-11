@@ -3170,63 +3170,67 @@ pre:hover .pre-copy,
 .cmp thead .ours {
   background: rgba(47, 107, 255, 0.08);
 }
-/* On a phone a three-column comparison is unreadable and the swipe is worse than
-   scrolling, so the per-tool tables stack: row label first, then one line per
-   column with the column name in front. Only `.stackable` does this; the
-   five-column table on /alternatives keeps its grid. */
-@media (max-width: 640px) {
-  .cmp.stackable {
-    min-width: 0;
-    display: block;
-    border-radius: 14px;
+/* /alternatives/<tool>: a comparison that is a specification sheet, not a table.
+   Prose in table cells never lines up (a two-line cell next to a one-line cell
+   reads as ragged), so each dimension is a row with the label in a fixed column
+   and two value lines whose text shares one left edge. */
+.versus {
+  margin-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.vs-row {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 660px);
+  gap: 0 40px;
+  padding: 21px 0;
+  border-bottom: 1px solid var(--border-2);
+}
+.vs-key {
+  margin: 0;
+  padding-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.vs-vals {
+  display: grid;
+  gap: 9px;
+}
+.vs-vals p {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 14px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.vs-who {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.75;
+  color: var(--muted-3);
+}
+.vs-us .vs-who {
+  color: var(--accent);
+}
+.vs-us span:last-child {
+  color: var(--fg);
+}
+@media (max-width: 760px) {
+  .vs-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 18px 0;
   }
-  .cmp.stackable thead {
-    display: none;
+  .vs-vals p {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
   }
-  .cmp.stackable tbody,
-  .cmp.stackable tr,
-  .cmp.stackable td {
-    display: block;
-    width: auto;
-  }
-  .cmp.stackable tr {
-    padding: 15px 16px;
-    border-bottom: 1px solid var(--border-2);
-  }
-  .cmp.stackable tr:last-child {
-    border-bottom: 0;
-  }
-  .cmp.stackable td {
-    padding: 0 0 8px;
-    border: 0;
-    font-size: 14px;
-    line-height: 1.55;
-  }
-  .cmp.stackable td:last-child {
-    padding-bottom: 0;
-  }
-  .cmp.stackable td:first-child {
-    padding-bottom: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted-2);
-  }
-  .cmp.stackable td:not(:first-child)::before {
-    content: attr(data-col);
-    display: block;
-    margin-bottom: 1px;
-    font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--muted-3);
-  }
-  .cmp.stackable td.ours::before {
-    color: var(--accent);
-  }
-  .cmp.stackable tr:has(td.ours) {
-    background: rgba(47, 107, 255, 0.03);
+  .vs-who {
+    line-height: 1.4;
   }
 }
 

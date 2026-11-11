@@ -72,68 +72,79 @@
 
         <section class="subsection">
           <h2>Where the two differ</h2>
-          <p>They overlap on one thing, answering an agent's permission prompt, and split on everything around it.</p>
-        <div class="cmp-wrap">
-          <table class="cmp stackable">
-            <thead><tr>
-              <th scope="col"></th>
-              <th scope="col" class="ours">psh.now</th>
-              <th scope="col">AgentPeek</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td>What runs it</td>
-                <td data-col="psh.now">A server you host, and any browser, including an installed PWA</td>
-                <td data-col="AgentPeek">A Mac app: macOS 14+, Apple silicon</td>
-              </tr>
-              <tr>
-                <td>Where you answer</td>
-                <td data-col="psh.now">Any device: phone, tablet, another laptop, or the terminal</td>
-                <td data-col="AgentPeek">The notch, the menu bar or the panel on that Mac</td>
-              </tr>
-              <tr>
-                <td>Who can answer</td>
-                <td data-col="psh.now">A shared channel, so whoever is awake answers, and the record names them</td>
-                <td data-col="AgentPeek">You, at the machine the agents run on</td>
-              </tr>
-              <tr>
-                <td>Agents on other machines</td>
-                <td data-col="psh.now">Yes. A cron job in a container and a laptop share one channel</td>
-                <td data-col="AgentPeek">One Mac at a time; a seat is a physical machine</td>
-              </tr>
-              <tr>
-                <td>Scope</td>
-                <td data-col="psh.now">Questions and answers, nothing else</td>
-                <td data-col="AgentPeek">Sessions, permissions, prompts, token spend, servers, routes, actions, widgets</td>
-              </tr>
-              <tr>
-                <td>Token and budget tracking</td>
-                <td data-col="psh.now">None</td>
-                <td data-col="AgentPeek">Rate-limit windows, totals, gauges, budget alerts</td>
-              </tr>
-              <tr>
-                <td>Self-hosting</td>
-                <td data-col="psh.now">Docker Compose, your Postgres, your mail</td>
-                <td data-col="AgentPeek">Not applicable: the app is local by design</td>
-              </tr>
-              <tr>
-                <td>Licence</td>
-                <td data-col="psh.now">MIT, server and skill</td>
-                <td data-col="AgentPeek">Proprietary, one-time licence, updates included while supported</td>
-              </tr>
-              <tr>
-                <td>Price</td>
-                <td data-col="psh.now">Free to self-host. The hosted instance is free while payments are off</td>
-                <td data-col="AgentPeek">$14.99 once for one Mac, up to $34.99 for three</td>
-              </tr>
-              <tr>
-                <td>How an agent asks</td>
-                <td data-col="psh.now">One HTTP POST with a title and a message</td>
-                <td data-col="AgentPeek">The agent runs under a supported host, and AgentPeek reads its session</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <p>They overlap on one thing, answering an agent's permission prompt, and split on everything around it. Where AgentPeek is the better answer, it says so.</p>
+        <div class="versus">
+  <div class="vs-row">
+    <div class="vs-key">What runs it</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>A server you host, and any browser, including an installed PWA</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>A Mac app: macOS 14+, Apple silicon</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Where you answer</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Any device: phone, tablet, another laptop, or the terminal</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>The notch, the menu bar or the panel on that Mac</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Who can answer</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>A shared channel, so whoever is awake answers, and the record names them</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>You, at the machine the agents run on</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Agents on other machines</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Yes. A cron job in a container and a laptop share one channel</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>One Mac at a time; a seat is a physical machine</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Scope</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Questions and answers, nothing else</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Sessions, permissions, prompts, token spend, servers, routes, actions, widgets</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Token and budget tracking</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>None</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Rate-limit windows, totals, gauges, budget alerts</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Self-hosting</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Docker Compose, your Postgres, your mail</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Not applicable: the app is local by design</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Licence</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>MIT, server and skill</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>Proprietary, one-time licence, updates included while supported</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">Price</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>Free to self-host. The hosted instance is free while payments are off</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>$14.99 once for one Mac, up to $34.99 for three</span></p>
+    </div>
+  </div>
+  <div class="vs-row">
+    <div class="vs-key">How an agent asks</div>
+    <div class="vs-vals">
+      <p class="vs-us"><span class="vs-who">psh.now</span><span>One HTTP POST with a title and a message</span></p>
+      <p class="vs-them"><span class="vs-who">AgentPeek</span><span>The agent runs under a supported host, and AgentPeek reads its session</span></p>
+    </div>
+  </div>
+</div>
         </section>
 
         <section class="subsection">
