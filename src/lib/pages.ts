@@ -22,10 +22,14 @@ const VERSIONED_ASSETS = [
   // `.js` cache keeps serving the old wording - the fix exists and nobody sees it.
   "website/styles.css",
   "website/app.js",
+  // The notch, drawn: shared by the homepage section and /notch, so an edit to either
+  // file has to move the stamp too or the CDN keeps serving the old panel.
+  "website/notch-demo.css",
+  "website/notch-demo.js",
 ];
 // Matches a root-absolute URL (`/styles.css`, `/website/app.js`) *and* the marketing
 // pages' own relative form (`./styles.css`), which is what they carry on disk.
-const VERSIONABLE = /(href|src)="((?:\.\/|\/)(?:website\/)?(?:styles\.css|app\.js|pair\.js))"/g;
+const VERSIONABLE = /(href|src)="((?:\.\/|\/)(?:website\/)?(?:styles\.css|app\.js|pair\.js|notch-demo\.css|notch-demo\.js))"/g;
 
 /** Newest mtime of the versioned assets - the cache-busting stamp. */
 export async function assetStamp(): Promise<string> {

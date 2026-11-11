@@ -35,6 +35,7 @@ const OG_IMAGE = `${base}/website/og.png`;
 const PAGES = [
   { rel: "index.html", path: "/", file: "website/index.html", priority: "1.0", changefreq: "weekly" },
   { rel: "docs.html", path: "/docs", file: "public/docs.html", priority: "0.9", changefreq: "weekly" },
+  { rel: "notch.html", path: "/notch", file: "website/notch.html", priority: "0.8", changefreq: "monthly" },
   { rel: "teams.html", path: "/teams", file: "website/teams.html", priority: "0.8", changefreq: "monthly" },
   { rel: "alternatives.html", path: "/alternatives", file: "website/alternatives.html", priority: "0.8", changefreq: "monthly" },
   // One page per named tool: "<tool> alternative" is what people actually search.

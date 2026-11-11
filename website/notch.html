@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="psh notch is a small Mac app that puts your agents' approvals in the notch: a request opens there, Command-L approves it, and the work continues. macOS 13 or later, one Swift file, MIT licensed."
+    />
+    <title>psh notch: approve from the notch of your Mac | psh.now</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preload" as="font" type="font/woff2" href="./fonts/inter-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./fonts/geist-mono-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./notch-demo.css" />
+    <style>
+      /* The hero is one sentence and a picture, so the picture starts high. */
+      .notch-page .subhead { padding-top: 68px; }
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 26px;
+      }
+      /* Two buttons of the same width read as one choice; two different widths read as
+         a mistake, which is what a wrap onto its own line made of them. */
+      @media (max-width: 520px) {
+        .hero-actions { flex-direction: column; align-items: center; gap: 10px; }
+        .hero-actions .btn { width: 100%; max-width: 300px; justify-content: center; }
+      }
+      .hero-note {
+        margin: 16px 0 0;
+        font-size: 13px;
+        color: var(--muted-2);
+      }
+
+      /* ---------- the stage: a screen with the notch hanging in it ---------- */
+      .stage-wrap { margin-top: 42px; }
+      .stage {
+        position: relative;
+        height: 470px;
+        border-radius: 20px;
+        overflow: hidden;
+        /* The same wash the rest of the site sits on, so the black notch is the only
+           dark thing in the picture. */
+        background: var(--blue-wash);
+        box-shadow:
+          0 34px 70px -26px rgba(28, 48, 108, 0.46),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+      }
+      .stage-bar {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        height: 34px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        font: 11.5px/1 ui-sans-serif, -apple-system, system-ui;
+        color: rgba(12, 22, 44, 0.66);
+      }
+      .stage-bar .left,
+      .stage-bar .right { display: flex; align-items: center; gap: 16px; }
+      .stage-bar .chip { padding: 3px 9px; border-radius: 99px; background: rgba(12, 22, 44, 0.07); }
+      /* Full size here: this page is the one place the notch is the subject, not a
+         flourish under a headline. */
+      .stage .notch-demo { --scale: 1.15; }
+      .stage-note {
+        margin: 16px 0 0;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted-2);
+      }
+      /* The work it hangs over: a window fragment, cropped by the bottom edge, so the
+         notch reads as something above what you were already doing. */
+      .stage-win {
+        position: absolute;
+        left: 40px;
+        bottom: -46px;
+        width: min(62%, 620px);
+        height: 262px;
+        padding: 14px 18px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow:
+          0 -4px 48px -12px rgba(28, 48, 108, 0.24),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+      }
+      .stage-win .lights { display: flex; gap: 6px; }
+      .stage-win .lights i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(12, 22, 44, 0.16);
+      }
+      .stage-win .line {
+        display: block;
+        height: 8px;
+        margin-top: 16px;
+        border-radius: 4px;
+        background: rgba(12, 22, 44, 0.09);
+      }
+      .stage-win .line:nth-child(3) { width: 72%; }
+      .stage-win .line:nth-child(4) { width: 88%; }
+      .stage-win .line:nth-child(5) { width: 54%; }
+      @media (max-width: 760px) {
+        .stage { height: 400px; }
+        .stage-win { left: 18px; width: 76%; height: 190px; }
+      }
+      /* On a phone the stage is narrower than the notch itself, and there is no room
+         left of it for menu items, so it spans the width like the notch it is named
+         after and the bar keeps only its strip. */
+      @media (max-width: 620px) {
+        .stage-bar .left,
+        .stage-bar .right { display: none; }
+        .stage .notch-demo { width: 100%; --scale: 1; }
+      }
+
+      /* A paragraph across the full column is a wall to read; keep the measure, and
+         let the components below it use the whole width. */
+      .notch-page .subsection > p { max-width: 74ch; }
+
+      /* ---------- the three keys ---------- */
+      .keys { display: grid; gap: 10px; margin-top: 24px; }
+      .key {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 15px 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+      }
+      .key-ic {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+      }
+      .key-ic svg { width: 18px; height: 18px; }
+      .key-ic.ok { background: #ecfdf3; color: #15803d; }
+      .key-ic.deny { background: #fef2f2; color: #b91c1c; }
+      .key-ic.answer { background: #f4f4f5; color: var(--fg); }
+      .key-body { min-width: 0; }
+      .key-body b { display: block; font-size: 15px; font-weight: 600; color: var(--fg); }
+      .key-body span { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+      .key-k {
+        margin-left: auto;
+        flex: none;
+        min-width: 44px;
+        padding: 7px 9px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card-sub);
+        font: 600 12.5px/1 var(--mono);
+        color: var(--fg);
+        text-align: center;
+      }
+
+      /* ---------- install ---------- */
+      .steps {
+        max-width: 800px;
+        display: grid;
+        gap: 26px;
+        margin: 26px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 14px;
+        counter-increment: step;
+      }
+      .step::before {
+        content: counter(step);
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--card-sub);
+        font: 600 13px/1 var(--sans);
+        color: var(--muted);
+      }
+      .step h3 { margin: 4px 0 0; font-size: 16px; font-weight: 600; color: var(--fg); }
+      .step p { margin: 7px 0 0; font-size: 14.5px; line-height: 1.62; color: var(--muted); }
+      .step p code,
+      .note code {
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #f7f8fa;
+        font-family: var(--mono);
+        font-size: 0.86em;
+        color: var(--fg);
+      }
+      .cmd {
+        margin: 12px 0 0;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #f7f8fa;
+        font: 12.5px/1.75 var(--mono);
+        color: var(--fg);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .sub-h3 { margin: 40px 0 0; font-size: 16px; font-weight: 600; color: var(--fg); }
+      .sub-p { max-width: 74ch; margin: 8px 0 0; font-size: 14.5px; line-height: 1.62; color: var(--muted); }
+      .note {
+        margin: 22px 0 0;
+        padding: 14px 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card-sub);
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      /* ---------- the facts ---------- */
+      .facts { width: 100%; margin-top: 18px; border-collapse: collapse; }
+      .facts th,
+      .facts td {
+        padding: 13px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14.5px;
+        line-height: 1.55;
+        text-align: left;
+        vertical-align: top;
+      }
+      .facts th { width: 190px; padding-right: 22px; font-weight: 500; color: var(--muted-2); }
+      .facts td { color: var(--fg); }
+      @media (max-width: 620px) {
+        .facts th { width: 120px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <div class="header-inner">
+          <div class="header-left">
+            <a class="brand" href="/">
+              <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
+              psh.now
+            </a>
+            <nav class="header-nav" aria-label="Main">
+              <a class="nav-link" href="/docs">Docs</a>
+              <a class="nav-link" href="/notch" aria-current="page">Notch</a>
+              <a class="nav-link" href="/agents">Agents</a>
+              <a class="nav-link" href="/teams">Teams</a>
+              <a class="nav-link" href="/alternatives">Alternatives</a>
+              <a class="nav-link" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </nav>
+          </div>
+          <div class="header-right">
+            <a class="nav-link" href="/app">Log in</a>
+            <a class="btn btn-primary" href="/app">Get started</a>
+          </div>
+        </div>
+      </header>
+
+      <main class="subpage notch-page">
+        <section class="subhead">
+          <span class="tag"><span class="dot"></span>macOS 13 or later</span>
+          <h1>The approval is already in the notch.</h1>
+          <p>
+            psh notch is a small Mac app that puts the queue where your eyes already
+            are. A request lands, the notch opens with the question, and Command-L
+            answers it. No window to find, no tab to switch to, no Dock icon.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/passy-ai/psh-now/releases">Download for macOS</a>
+            <a class="btn btn-secondary btn-lg" href="https://github.com/passy-ai/psh-now/blob/main/tools/psh-notch/PSHNotch.swift">Read the source</a>
+          </div>
+          <p class="hero-note">Free, MIT licensed, one Swift file. No dependencies, no Xcode project.</p>
+        </section>
+
+        <section class="stage-wrap">
+          <div class="stage">
+            <div class="stage-bar">
+              <div class="left"><span class="chip">psh notch</span><span>File</span><span>Edit</span></div>
+              <div class="right"><span>Wed 5:23</span></div>
+            </div>
+            <div class="stage-win" aria-hidden="true">
+              <span class="lights"><i></i><i></i><i></i></span>
+              <span class="line"></span>
+              <span class="line"></span>
+              <span class="line"></span>
+            </div>
+            <div class="notch-demo" data-notch aria-hidden="true"></div>
+          </div>
+          <p class="stage-note">
+            The app's own geometry, drawn: 32px closed, 22px bottom radius, centred on
+            the cutout.
+          </p>
+        </section>
+
+        <section class="subsection">
+          <h2 class="twotone">Three keys, no window.<span>Approve where you are already looking.</span></h2>
+          <p>
+            The notch that holds the question also holds the answer. The three plates
+            under it are the whole interface, and each one has a key, because a hand on
+            the keyboard should not have to find the pointer.
+          </p>
+          <div class="keys">
+            <div class="key">
+              <span class="key-ic ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span>
+              <span class="key-body"><b>Approve</b><span>The agent proceeds with the step it asked about.</span></span>
+              <span class="key-k">&#8984;L</span>
+            </div>
+            <div class="key">
+              <span class="key-ic deny" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span>
+              <span class="key-body"><b>Deny</b><span>The agent stops at that step and says what it could not do.</span></span>
+              <span class="key-k">&#8984;N</span>
+            </div>
+            <div class="key">
+              <span class="key-ic answer" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="key-body"><b>Answer</b><span>Opens a line for the questions that are not yes or no. The same key puts it away again.</span></span>
+              <span class="key-k">&#8984;J</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="subsection">
+          <h2>What it does while you are not looking</h2>
+          <p>
+            The point of the notch is that it is where attention already lands, so the
+            app is built around that one surface rather than around a window.
+          </p>
+          <div class="tiles">
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v9a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M9 21h6"/></svg></div>
+              <h3>It opens itself</h3>
+              <p>A request opens the notch with a ping, and it withdraws after five seconds unless the pointer is on it.</p>
+            </div>
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a16 16 0 0 1 20 0M5.5 12.5a11 11 0 0 1 13 0M9 16.5a6 6 0 0 1 6 0"/><circle cx="12" cy="20" r="1"/></svg></div>
+              <h3>Live, not polled</h3>
+              <p>One websocket per Mac. An answer from your phone closes the card here, and a new ask never needs a refresh.</p>
+            </div>
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg></div>
+              <h3>Quiet on command</h3>
+              <p>Hide the notch or mute the ping from the menu. Both keep counting, so nothing is lost and the list is right when it comes back.</p>
+            </div>
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9h8M8 13h5"/></svg></div>
+              <h3>No window, no Dock icon</h3>
+              <p>A menu bar app. The queue, Settings and Quit live behind the item, and the bar never changes size when a request arrives.</p>
+            </div>
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+              <h3>Over any Space</h3>
+              <p>It follows you across Spaces and sits above full-screen apps, so the answer is in reach on the display you are already using.</p>
+            </div>
+            <div class="tile">
+              <div class="tile-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+              <h3>A token, not your account</h3>
+              <p>Pairing mints a device token with approve scope, and revoking it on the Devices page ends that Mac's access.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="subsection">
+          <h2>Install it in a minute</h2>
+          <ol class="steps">
+            <li class="step">
+              <div>
+                <h3>Download it</h3>
+                <p>
+                  Take the dmg from the <a href="https://github.com/passy-ai/psh-now/releases">latest release</a>,
+                  open it, and drag <strong>psh notch</strong> to Applications. It is about
+                  210 KB.
+                </p>
+              </div>
+            </li>
+            <li class="step">
+              <div>
+                <h3>Open it once, on purpose</h3>
+                <p>
+                  macOS refuses the first launch of an app it cannot notarise. Right-click
+                  the app, choose <strong>Open</strong>, and confirm. That is asked once,
+                  and it is the whole of the friction: the app is signed ad hoc, with no
+                  Developer ID behind it.
+                </p>
+              </div>
+            </li>
+            <li class="step">
+              <div>
+                <h3>Connect this Mac</h3>
+                <p>
+                  Click the item in the menu bar, then <strong>Settings</strong>, then
+                  <strong>Connect this Mac</strong>. Your browser opens on the dashboard you
+                  are signed in to; press <strong>Connect psh notch</strong> there and the
+                  notch writes its token and says live.
+                </p>
+              </div>
+            </li>
+            <li class="step">
+              <div>
+                <h3>Keep it around</h3>
+                <p>
+                  <strong>Settings</strong>, then <strong>Open at login</strong>. To take it
+                  off a Mac, use <strong>Disconnect</strong> in the same menu, and revoke the
+                  device on the dashboard's Devices page.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <h3 class="sub-h3">Rather build it?</h3>
+          <p class="sub-p">
+            It is one file and one command, with Xcode Command Line Tools already in place.
+          </p>
+          <pre class="cmd">cd tools/psh-notch
+swiftc -parse-as-library -swift-version 5 -O -o psh-notch PSHNotch.swift
+./psh-notch --pair https://psh.now/pair/&lt;token&gt; --name "MacBook Air"</pre>
+          <p class="note">
+            The pairing link is single use and expires quickly; the Devices page mints a
+            fresh one each time. The account secret never reaches the app: the browser
+            spends it to mint a device token, and the app only ever writes that token, at
+            <code>~/.config/psh-notch/device.json</code>, readable by you alone.
+          </p>
+        </section>
+
+        <section class="subsection">
+          <h2>Small on purpose</h2>
+          <p>
+            Everything the notch needs is in one Swift file and the AppKit that ships with
+            macOS. There is no helper process, no background service, and nothing to keep
+            up to date.
+          </p>
+          <table class="facts">
+            <tbody>
+              <tr><th>Runs on</th><td>macOS 13 or later, Intel or Apple silicon</td></tr>
+              <tr><th>Built from</th><td>One Swift file, AppKit only, no dependencies</td></tr>
+              <tr><th>Credential</th><td>A device token with approve scope, revocable per device</td></tr>
+              <tr><th>Where it keeps it</th><td><code>~/.config/psh-notch/device.json</code>, mode 0600</td></tr>
+              <tr><th>Signing</th><td>Ad hoc, no Developer ID: the first launch is a right-click Open</td></tr>
+              <tr><th>Licence</th><td>MIT, like the rest of psh.now</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="cta">
+          <h2 class="cta-title">Answer From the Notch</h2>
+          <p class="cta-sub">Install it once, and the next question your agent asks opens above the window you are already in.</p>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/passy-ai/psh-now/releases">Download psh notch</a>
+            <a class="btn btn-secondary btn-lg" href="/app">Open the dashboard</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <div>
+            <div class="footer-brand">
+              <img class="invert-on-dark" src="./psh-mark.svg" alt="" />
+              psh.now
+            </div>
+            <p class="footer-tag">One hub for every agent that needs you</p>
+          </div>
+          <div class="footer-col">
+            <h4>PRODUCT</h4>
+            <a href="/docs">Docs</a>
+            <a href="/notch">Notch</a>
+            <a href="/agents">Agents</a>
+            <a href="/teams">Teams</a>
+            <a href="/alternatives">Alternatives</a>
+            <a href="/self-hosting">Self hosting</a>
+            <a href="/listed-on">Listed on</a>
+            <a href="/llms.txt">llms.txt</a>
+          </div>
+          <div class="footer-col">
+            <h4>OPEN SOURCE</h4>
+            <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+            <a href="https://github.com/passy-ai/psh-now/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a>
+          </div>
+          <div class="footer-col">
+            <h4>LEGAL</h4>
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+          </div>
+          <div class="footer-col">
+            <h4>COMPANY</h4>
+            <a href="https://absolum.nl">Absolum</a>
+            <a href="mailto:push@passy.ai">Contact</a>
+          </div>
+        </div>
+        <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>
+      </footer>
+    </div>
+
+    <script>
+      /* The queue this page tells the story with: an agent asking about its own step. */
+      window.PSH_NOTCH_EXAMPLES = [
+        ["Restart the dev server on port 3000?", "Platform", "now"],
+        ["Apply the migration to staging?", "Backend", "2m"],
+        ["Merge the payments branch?", "Platform", "7m"],
+        ["Send the release notes to the list?", "Marketing", "12m"],
+        ["Publish the incident note?", "Support", "1h"]
+      ];
+    </script>
+    <script src="./notch-demo.js"></script>
+  </body>
+</html>

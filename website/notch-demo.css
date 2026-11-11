@@ -1,0 +1,155 @@
+/*
+ * The psh notch, drawn rather than pictured.
+ *
+ * One renderer for both pages that show it (the homepage section and /notch), so the
+ * panel cannot drift: the geometry in here is the app's own - 32 high closed, 22 bottom
+ * radius, three plates of 62 with their shortcuts in the corner.
+ *
+ * The host page owns the framing (`.desk`, the page column, the scale). This file owns
+ * the panel: it expects `[data-notch]` to sit inside a positioned box, top edge flush.
+ */
+    .notch-demo {
+      /* Wider in step with the desktop, but the phone keeps its old width: narrowing it
+         there only wraps the rows further and runs the list past the frame. */
+      position: absolute; top: 0; left: 50%; width: 440px; z-index: 3;
+      transform: translateX(-50%);
+      font: 13px/1.35 ui-sans-serif, -apple-system, system-ui; color: #fff;
+      cursor: pointer;
+    }
+    @media (max-width: 760px) { .notch-demo { width: 356px; } }
+    .notch {
+      position: relative;
+      background: #000; overflow: hidden; height: 32px;
+      transform: scale(var(--scale, 0.9)); transform-origin: top center;
+      border-radius: 0 0 22px 22px;
+      transition: height 340ms cubic-bezier(0.22, 0.72, 0.2, 1);
+      box-shadow: 0 12px 26px rgba(18, 34, 70, 0.3);
+    }
+    .notch-head { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 20px; }
+    .notch-dot { width: 9px; height: 9px; border-radius: 50%; background: #8c8c8c; transition: background 200ms; }
+    .notch-demo.is-busy .notch-dot { background: #4fd1c5; }
+    .notch-count { margin-left: auto; font-size: 13px; font-weight: 600; }
+
+    .notch-body-list, .notch-body-detail { opacity: 0; transition: opacity 200ms ease; }
+    /* Live demo only: its two bodies share one slot under the head so closing a request
+       crossfades in place, rather than sliding its first line up from below as the panel
+       shrinks. The static card under "how it works" is height: auto and takes its size
+       from the detail in flow, so it must not be taken out of flow. */
+    .notch-demo:not(.notch-static) .notch-body-list,
+    .notch-demo:not(.notch-static) .notch-body-detail {
+      position: absolute; top: 32px; left: 0; right: 0;
+      pointer-events: none;
+    }
+    .notch-demo.is-list .notch-body-list,
+    .notch-demo.is-detail .notch-body-detail { opacity: 1; pointer-events: auto; }
+    .notch-demo.is-detail .notch-body-list { display: none; }
+
+    /* The list is a peek at the queue, not the whole table: two rows, then it scrolls.
+       The ceiling itself is measured in JS so wrapped rows still count as one each. */
+    .notch-body-list {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    .notch-row { display: flex; align-items: center; gap: 10px; padding: 11px 20px; cursor: pointer; transition: background 0.15s ease; }
+    .notch-row:hover { background: rgba(255, 255, 255, 0.05); }
+    .notch-row + .notch-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .notch-row .led { width: 8px; height: 8px; border-radius: 50%; background: #4fd1c5; flex: none; }
+    .notch-row .age { margin-left: auto; color: rgba(255, 255, 255, 0.38); font-size: 12px; }
+
+    /* The open request, exactly as the app draws it: the title leads, the sentence explains, the
+       three decisions sit side by side with their shortcuts in the corner, and the comment field
+       ends in a round send button. */
+    .notch-body-detail { padding: 20px 20px 24px; }
+    .notch-title { font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; }
+    .notch-sub { margin-top: 7px; font-size: 13.5px; line-height: 1.4; color: rgba(255, 255, 255, 0.55); }
+    .notch-actions { display: flex; gap: 12px; margin-top: 18px; }
+    .act {
+      position: relative; flex: 1; height: 62px; border-radius: 13px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    /* Centred without a translate, so the hover animations below own the transform outright. */
+    .act svg {
+      position: absolute; left: 0; right: 0; top: 50%; margin: 0 auto;
+      width: 20px; height: 20px; transform: translateY(-50%);
+      transform-origin: 50% 60%;
+    }
+    /* Each decision answers the pointer in its own language: a thumb presses down, an answer
+       bounces, a thumb comes up. */
+    .act.deny:hover svg { animation: deny-press 520ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    .act.answer:hover svg { animation: answer-bounce 560ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    .act.ok:hover svg { animation: thumb-up 540ms cubic-bezier(0.3, 0.8, 0.3, 1); }
+    @keyframes deny-press {
+      0% { transform: translateY(-50%) rotate(0deg); }
+      40% { transform: translateY(calc(-50% + 3px)) rotate(-16deg); }
+      70% { transform: translateY(-50%) rotate(2deg); }
+      100% { transform: translateY(-50%) rotate(0deg); }
+    }
+    @keyframes answer-bounce {
+      0% { transform: translateY(-50%); }
+      35% { transform: translateY(calc(-50% - 6px)); }
+      60% { transform: translateY(calc(-50% + 2px)); }
+      80% { transform: translateY(calc(-50% - 2px)); }
+      100% { transform: translateY(-50%); }
+    }
+    @keyframes thumb-up {
+      0% { transform: translateY(-50%) scale(1); }
+      40% { transform: translateY(calc(-50% - 5px)) scale(1.06); }
+      70% { transform: translateY(-50%) scale(0.98); }
+      100% { transform: translateY(-50%) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .act.deny:hover svg, .act.answer:hover svg, .act.ok:hover svg { animation: none; }
+    }
+    .act .k { position: absolute; right: 12px; bottom: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.38); }
+    .act.deny svg { color: #f87171; }
+    .act.ok { background: rgba(74, 222, 128, 0.07); border-color: rgba(74, 222, 128, 0.5); }
+    .act.ok svg { color: #4ade80; }
+    .notch-comment { display: none; gap: 10px; margin-top: 16px; }
+    .notch-demo.is-field .notch-comment { display: flex; }
+    .notch-field {
+      flex: 1; height: 42px; border-radius: 12px; padding: 0 14px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #fff; font: inherit; font-size: 13.5px; outline: none; width: 100%;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+    .notch-field::placeholder { color: rgba(255, 255, 255, 0.42); }
+    .notch-field:focus { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.07); }
+    .notch-send { width: 44px; height: 44px; border-radius: 12px; background: #fff; color: #0b0b0b; display: grid; place-items: center; }
+    .notch-send svg { width: 17px; height: 17px; }
+    .notch-body-detail { opacity: 0; transform: translateY(-4px); }
+    .notch-demo.is-detail .notch-body-detail {
+      opacity: 1; transform: none;
+      transition: opacity 240ms ease 60ms, transform 240ms cubic-bezier(0.22, 0.72, 0.2, 1) 60ms;
+    }
+    .notch-demo.is-detail .act { animation: act-in 260ms both cubic-bezier(0.22, 0.72, 0.2, 1); }
+    .notch-demo.is-detail .act:nth-child(2) { animation-delay: 40ms; }
+    .notch-demo.is-detail .act:nth-child(3) { animation-delay: 80ms; }
+    @keyframes act-in {
+      from { opacity: 0; transform: translateY(6px) scale(0.97); }
+      to { opacity: 1; transform: none; }
+    }
+    .act { transition: background 160ms ease, border-color 160ms ease, transform 160ms ease; }
+    .act:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-1px); }
+    .act:active, .act.pressed { transform: translateY(0) scale(0.96); }
+    .act.ok:hover { background: rgba(74, 222, 128, 0.13); }
+    .act.deny:hover { background: rgba(248, 113, 113, 0.1); }
+    .notch-send { transition: transform 160ms ease; }
+    .notch-send:hover { transform: scale(1.05); }
+    /* The send lands: the tile takes the press, so the eye follows the comment into the
+       answer instead of watching the field wink out. */
+    .notch-demo.is-sending .notch-send { animation: send-pop 520ms cubic-bezier(0.22, 0.72, 0.2, 1) both; }
+    @keyframes send-pop {
+      0% { transform: scale(1); }
+      30% { transform: scale(0.82); }
+      62% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    .notch-demo.is-sending .notch-field { color: rgba(255, 255, 255, 0.78); }
+    .notch-dot { animation: dot-pulse 2.4s ease-in-out infinite; }
+    @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @media (prefers-reduced-motion: reduce) {
+      .notch-demo.is-detail .act, .notch-dot { animation: none; }
+      .act, .notch-send { transition: none; }
+      .notch-demo.is-sending .notch-send { animation: none; }
+    }

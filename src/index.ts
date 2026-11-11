@@ -554,6 +554,7 @@ const app = new Elysia({ serve: { reusePort: false } })
   .get("/devices", () => pageHtml("public/devices.html", injectNoIndex))
   .get("/connect", () => pageHtml("public/connect.html", injectNoIndex))
   .get("/teams", () => websiteResponse("teams.html"))
+  .get("/notch", () => websiteResponse("notch.html"))
   // One page per agent, so a search for "<harness> approval" has somewhere to land.
   // Slugs are constrained: the marketing folder is not a directory to browse.
   .get("/agents", () => websiteResponse("agents/index.html"))

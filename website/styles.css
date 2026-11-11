@@ -233,12 +233,15 @@ button {
   display: none;
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
   color: var(--muted-2);
 }
 .nav-link:hover {
   color: var(--fg);
 }
-@media (min-width: 640px) {
+/* Six links plus the brand needs the room: below this the middle of the bar folds
+   into "Log in" and "Get started", which is what a phone-width header has anyway. */
+@media (min-width: 780px) {
   .nav-link {
     display: block;
   }
