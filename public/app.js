@@ -952,16 +952,24 @@ function handle(frame) {
       break;
     case "prompt.created":
       state.pending.set(frame.prompt.id, frame.prompt);
+      // On screen at the frame, not two round trips later.
+      renderApprovalCard();
       invalidateHistory(frame.prompt.connectionId);
       refresh();
       toast(frame.prompt.title || "Approval needed");
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
       break;
-    case "prompt.decided":
+    case "prompt.decided": {
       // The decided prompt is what names its channel, so read it before dropping it.
       invalidateHistory(state.pending.get(frame.promptId)?.connectionId);
       state.pending.delete(frame.promptId);
+      // Answered somewhere else - the notch, another tab, another phone - so the
+      // card goes now. It used to wait for two reads, and a failed read left the
+      // answered card on screen as if it were still waiting.
+      renderApprovalCard();
       refresh();
+      break;
+    }
       break;
     case "decision.ack":
       // The socket path updates optimistically on the way out, so a refusal has to be shown and
@@ -2829,9 +2837,24 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && (!state.ws || state.ws.readyState > 1)) {
+  if (document.visibilityState !== "visible") return;
+  if (!state.ws || state.ws.readyState > 1) {
     connect();
+    return;
   }
+  // Back on the page: what is waiting may have been answered in the notch while
+  // this tab was in the background, and a missed frame has to be caught up.
+  refresh();
+});
+
+// Switching back to the window does not change visibility, and the notch sits on
+// top of it, so the same catch-up is owed on focus. Debounced: a burst of window
+// focus events is one read.
+let focusRead = 0;
+window.addEventListener("focus", () => {
+  if (Date.now() - focusRead < 1500) return;
+  focusRead = Date.now();
+  if (state.ws && state.ws.readyState === 1) refresh();
 });
 
 if (!store.apiKey && !store.token) {
