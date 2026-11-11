@@ -9,13 +9,13 @@
     (function () {
       // A page can tell the story in its own words: [[title, channel, age], ...].
       var EXAMPLES = window.PSH_NOTCH_EXAMPLES || [
-        ["Approve the vendor invoice for 12,400 EUR?", "Finance", "2m"],
-        ["Deploy the payments service to production?", "Platform", "9m"],
-        ["Refund the duplicate charge on order 8842?", "Support", "14m"],
-        ["Send the proposal with the 10% discount?", "Sales", "1h"],
-        ["Offer the candidate the senior band?", "People", "3h"],
-        ["Publish the incident note for yesterday?", "Support", "5h"],
-        ["Move the 40k transfer to Friday?", "Finance", "1d"]
+        ["rm -rf node_modules dist && npm ci", "release", "2m"],
+        ["Deploy the payments service to production?", "platform", "9m"],
+        ["Force-push the release branch?", "release", "14m"],
+        ["Run the migration against staging?", "api", "1h"],
+        ["Install the postinstall script from the new dependency?", "web", "3h"],
+        ["Rotate the Stripe key in production?", "ops", "5h"],
+        ["Drop the staging database and reseed it?", "api", "1d"]
       ];
       // The head is a fixed 32px; the rest is measured from whichever body is up, so
       // the panel never carries dead space under the last row and never clips one when
@@ -76,7 +76,7 @@
         var item = EXAMPLES[index % EXAMPLES.length];
         panels.forEach(function (panel) {
           panel.__title.textContent = item[0];
-          panel.__sub.textContent = item[1] + " needs an answer before the run continues.";
+          panel.__sub.textContent = item[1] + ": waiting " + item[2] + " for a decision.";
           // The list is fixed: row i is always EXAMPLES[i], so picking one twice in a
           // row lands on the same request rather than shifting under the pointer.
           panel.__list.innerHTML = EXAMPLES.slice(0, 4).map(function (row, i) {
