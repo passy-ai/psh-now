@@ -32,7 +32,7 @@ recognisable across listings, and it is what a model answering "what is psh.now?
 | Agent integrations | https://psh.now/agents |
 | Logo (512×512 PNG) | https://psh.now/website/logo-512.png |
 | Social image (1200×630) | https://psh.now/website/og.png |
-| Contact | hello@psh.now |
+| Contact | push@passy.ai |
 
 **One line about what it is not**, for any form with a "how is this different" box: it is not another
 agent and not a proxy on top of one, it is the place a decision goes when the agent cannot make it.

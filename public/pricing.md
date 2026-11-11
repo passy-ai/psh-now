@@ -41,7 +41,7 @@ forever.
 
 - Price: custom
 - **Custom domain, history longer than 30 days, SSO, on-prem, SLA, DPA.**
-- Contact: hello@psh.now
+- Contact: push@passy.ai
 
 ## What we do not charge for
 

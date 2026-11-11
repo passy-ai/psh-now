@@ -2,9 +2,9 @@
 
 ## Reporting a vulnerability
 
-Email **security@psh.now** with what you found, the instance or version, and the steps to
-reproduce it. If you prefer GitHub, open a private advisory on
-[passy-ai/psh-now](https://github.com/passy-ai/psh-now/security/advisories/new).
+Email **push@passy.ai** with `security` in the subject, and include what you found, the
+instance or version, and the steps to reproduce it. If you prefer GitHub, open a private
+advisory on [passy-ai/psh-now](https://github.com/passy-ai/psh-now/security/advisories/new).
 
 Please do not open a public issue for anything that could be used against a running instance.
 

@@ -98,7 +98,7 @@ export const env = (() => {
     // Web Push (VAPID). Optional: if unset, keys are generated and persisted.
     vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? "",
     vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? "",
-    vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:hello@psh.now",
+    vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:push@passy.ai",
     /**
      * Mail. A deployed instance cannot sign anyone in without one of these, so both
      * shapes are supported: an SMTP URL (any provider, including a local Postfix) or a

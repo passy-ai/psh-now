@@ -193,7 +193,7 @@ const FOOTER = `      <footer class="site-footer">
           <div class="footer-col">
             <h4>COMPANY</h4>
             <a href="https://absolum.nl">Absolum</a>
-            <a href="mailto:hello@psh.now">Contact</a>
+            <a href="mailto:push@passy.ai">Contact</a>
           </div>
         </div>
         <div class="footer-bottom">© 2026 psh.now · Open source, MIT licensed</div>

@@ -812,7 +812,7 @@ export const discoveryRoutes = new Elysia()
     auth: { type: "user_http", authorization_type: "custom" },
     api: { type: "openapi", url: `${base}/openapi/json` },
     logo_url: `${base}/favicon.svg`,
-    contact_email: "hello@psh.now",
+    contact_email: "push@passy.ai",
     legal_info_url: base,
   }));
 
