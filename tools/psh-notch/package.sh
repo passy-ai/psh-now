@@ -1,5 +1,8 @@
 #!/bin/sh
-# Build PSHNotch.app and psh-notch.dmg for handing to someone else.
+# Build "psh notch.app" and psh-notch.dmg for handing to someone else.
+#
+# The bundle is named the way it should read in Spotlight, Raycast and Login Items. The
+# executable inside it stays PSHNotch, which is what CFBundleExecutable points at.
 #
 # Everything is written under dist/ and previous output is removed first, so this is
 # safe to re-run. The app is signed ad hoc: without a Developer ID it cannot be
@@ -8,7 +11,7 @@
 set -eu
 cd "$(dirname "$0")"
 
-APP="dist/PSHNotch.app"
+APP="dist/psh notch.app"
 DMG="dist/psh-notch.dmg"
 BIN="$APP/Contents/MacOS/PSHNotch"
 VERSION="1.0"
@@ -91,13 +94,17 @@ echo "==> writing $DMG"
 # drag rather than an instruction someone has to read.
 rm -rf dist/dmgroot
 mkdir -p dist/dmgroot
-cp -R "$APP" dist/dmgroot/PSHNotch.app
+cp -R "$APP" "dist/dmgroot/psh notch.app"
 ln -s /Applications dist/dmgroot/Applications
 rm -f "$DMG"
 hdiutil create -quiet -volname "psh notch" -srcfolder dist/dmgroot -ov -format UDZO "$DMG"
 rm -rf dist/dmgroot
 
 
+# An older build sat in the same folder under the old name, and a stale copy next to the new
+# one is how someone installs the version nobody rebuilt.
+rm -rf dist/PSHNotch.app
+
 echo "==> done"
 ls -lh "$DMG" | awk '{print "    "$9" "$5}'
-du -sh "$APP" | awk '{print "    "$2" "$1}'
+du -sh "$APP" | sed 's/^/    /'

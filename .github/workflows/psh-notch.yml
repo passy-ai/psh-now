@@ -24,10 +24,10 @@ jobs:
       - name: Check what was built
         working-directory: tools/psh-notch
         run: |
-          file dist/PSHNotch.app/Contents/MacOS/PSHNotch
-          ARCH=$(file dist/PSHNotch.app/Contents/MacOS/PSHNotch | grep -o 'arm64\|x86_64' | head -1)
+          file "dist/psh notch.app/Contents/MacOS/PSHNotch"
+          ARCH=$(file "dist/psh notch.app/Contents/MacOS/PSHNotch" | grep -o 'arm64\|x86_64' | head -1)
           test "$ARCH" = "arm64" || { echo "built for $ARCH, expected arm64"; exit 1; }
-          codesign --verify --strict dist/PSHNotch.app
+          codesign --verify --strict "dist/psh notch.app"
 
       - name: Attach the dmg to the release
         uses: softprops/action-gh-release@v2
@@ -37,7 +37,7 @@ jobs:
           body: |
             **PSH Notch for macOS**
 
-            Download `psh-notch.dmg`, open it, and drag **PSHNotch** into Applications.
+            Download `psh-notch.dmg`, open it, and drag **psh notch** into Applications.
 
             The app is signed ad hoc rather than with a paid Apple Developer
             certificate, so the first launch needs **right-click, Open** once. After

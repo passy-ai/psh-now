@@ -88,23 +88,22 @@ effect on the next reconnect.
 
 ### The dmg, and the one warning
 
-`./package.sh` builds `dist/PSHNotch.app` and packages it twice: `dist/psh-notch.dmg`
-(about 190 KB) and `dist/psh-notch.pkg` (about 165 KB). The bundle sets `LSUIElement`,
-so it is a menu bar app: no Dock icon and no window when it starts.
+`./package.sh` builds `dist/psh notch.app` and wraps it in `dist/psh-notch.dmg`
+(about 210 KB). The bundle sets `LSUIElement`, so it is a menu bar app: no Dock icon and
+no window when it starts.
 
-**The pkg is the easier one to hand to a tester**: double-click, and it installs
-`/Applications/PSHNotch.app` itself, with no drag. The dmg needs the drag. Both are
-unsigned, so both hit the same first-launch warning described below; the pkg shows it
-from System Settings > Privacy & Security instead of the right-click menu.
+The bundle is named `psh notch.app` on purpose: Finder, Spotlight, Raycast and Login Items
+read the file name, so this is the name those lists show. The executable inside stays
+`PSHNotch`, which is what `CFBundleExecutable` points at.
 
-Open the dmg, drag **PSHNotch** to Applications, and launch it.
+Open the dmg, drag **psh notch** to Applications, and launch it.
 
 Launch at login points at the copy that registered it. An app first opened from a build
 folder keeps that folder as its login item after it is moved, and then comes back at the
 next reboot from a path that no longer exists. The installed copy fixes that in one line:
 
 ```sh
-/Applications/PSHNotch.app/Contents/MacOS/PSHNotch --login-item on
+/Applications/psh\ notch.app/Contents/MacOS/PSHNotch --login-item on
 ```
 
 `off` and `status` do the other two things, and the menu item does the same by hand.

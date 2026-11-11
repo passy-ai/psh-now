@@ -2589,8 +2589,10 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         currentConfig = loadConfig()
         enableLaunchAtLoginOnFirstRun()
 
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "psh notch"
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem.button?.image = statusDot()
+        statusItem.button?.imagePosition = .imageOnly
+        statusItem.button?.setAccessibilityLabel("psh notch")
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
@@ -3006,14 +3008,35 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         listPanel?.orderOut(nil)
     }
 
+    /// The bar carries the same dot the notch shows when nothing is waiting, not the name.
+    /// A word next to the clock is there forever; the notch is the signpost, and the name stays
+    /// in the bundle (Spotlight, Raycast, Login Items) and in the tooltip.
+    private func statusDot() -> NSImage {
+        let side: CGFloat = 18
+        let diameter: CGFloat = 9
+        let image = NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
+            let inset = (side - diameter) / 2
+            let dot = NSRect(x: inset, y: inset, width: diameter, height: diameter)
+            // Template drawing: the system repaints it for the menu bar's own appearance, and
+            // the alpha is what makes it read as the idle grey rather than a hard white blob.
+            NSColor.black.withAlphaComponent(0.62).setFill()
+            NSBezierPath(ovalIn: dot).fill()
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }
+
     private func refreshTitle() {
         let pending = asks.count
-        // Always the name. A count here spelled "psh 2" and read as a version, not a
-        // number of requests; the count lives in the tooltip and in the notch itself.
-        statusItem?.button?.title = "psh notch"
+        // No text in the bar: a count here spelled "psh 2" and read as a version, not a number
+        // of requests, and the name is in the menu and the tooltip. The dot itself never changes
+        // with state, so nothing in the bar moves when a request arrives.
         statusItem?.button?.toolTip = currentConfig == nil
             ? "psh notch: not connected, click Connect this Mac"
-            : (connected ? "psh.now: \(pending) waiting" : "psh.now: reconnecting")
+            : (connected
+                ? "psh.now: \(pending) waiting"
+                : "psh.now: reconnecting")
     }
 
     // MARK: menu
