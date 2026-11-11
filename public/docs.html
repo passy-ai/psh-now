@@ -161,6 +161,12 @@ After installing, send me a test request.</pre>
           approvals, never approve - and it is reusable, so several agents can
           connect through the same channel.
         </p>
+        <p>
+          The key never goes into a file you commit. It lives in
+          <code>~/.psh/keys.json</code> (mode 0600) or in <code>PSH_API_KEY</code> in
+          the agent's environment; the block you paste into <code>agents.md</code> only
+          refers to it.
+        </p>
 
         <h2 id="sandbox">Sandbox / no browser</h2>
         <p>
