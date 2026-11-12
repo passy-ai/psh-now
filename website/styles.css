@@ -570,7 +570,9 @@ main {
      fragment pushed the following line's text in by its own width on a phone. */
   display: inline-block;
   white-space: nowrap;
-  margin: 0 0.14em;
+  /* Left only: whatever follows the tiles is part of the same clause (in the hero it is
+     a comma), and a right margin left a space stranded in front of it. */
+  margin: 0 0 0 0.14em;
   /* middle centres the tile on the x-height band, which is right for the glyphs but
      leaves a 1.16em tile hanging under the baseline; the nudge lifts it onto the cap
      band instead, where the eye reads the sentence as one line. In em, so it tracks
@@ -579,6 +581,11 @@ main {
   transform: translateY(-0.07em);
 }
 .h1-mark + .h1-mark { margin-left: 0.07em; }
+/* The verbs and their three tiles are one phrase: broken between them, a line started
+   with three buttons and no words. */
+.h1-clause {
+  white-space: nowrap;
+}
 /* "One" rides with the tiles: broken apart, the line started with three buttons. */
 .h1-lead { white-space: nowrap; }
 .h1-mark {

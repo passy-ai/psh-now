@@ -383,8 +383,10 @@
             <span class="line">do, from your phone</span>
           </h1>
           <p class="hero-sub">
-            An agent posts the step it is about to take. The request reaches your phone, a browser tab or the notch on your Mac, and you <span class="h1-marks" role="img" aria-label="deny, answer or approve"><span class="h1-mark h1-mark-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span><span class="h1-mark h1-mark-answer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="h1-mark h1-mark-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span></span> it from
-            any of them. The call returns with that decision. One HTTP call, no SDK.
+            An agent stops before it acts. The question arrives on your phone, in a browser tab or
+            in the notch on your Mac. <span class="h1-clause">Deny, answer or approve
+            <span class="h1-marks" aria-hidden="true"><span class="h1-mark h1-mark-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span><span class="h1-mark h1-mark-answer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="h1-mark h1-mark-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span></span></span> it there, and the call returns with your decision. One HTTP
+            call, no SDK.
           </p>
 
           <div class="hero-cta">
@@ -458,10 +460,10 @@
       </section>
 
         <section class="section timeline reveal">
-          <h2>Same pause. A different place to answer it.</h2>
+          <h2>The agent stops either way</h2>
           <p class="tl-lead">
-            An agent that needs permission stops either way. What changes is whether
-            answering it requires being at that terminal.
+            An agent that needs permission waits whichever way you run it. What changes is
+            whether answering it needs you at that keyboard.
           </p>
 
           <div class="tl-grid">
@@ -605,7 +607,7 @@
         <section class="ask reveal">
           <h2 class="ask-h2">Approve, deny, or clarify</h2>
           <p class="ask-lead">
-            What a request can carry, where it can be answered, and who is allowed to answer it.
+            What a request can include, where it can be answered, and who is allowed to answer it.
           </p>
 
           <div class="ask-grid">
@@ -635,9 +637,9 @@
               One endpoint. One decision in the response.
             </p>
             <p>
-              The gateway is a Bun service with a Postgres database; <code>docker compose up</code> in the
-              repository starts both. Self-hosted, nothing passes through this host: requests, keys and
-              history stay in your own database, and you decide how long they are kept.
+              The gateway is a Bun service with a Postgres database, and <code>docker compose up</code>
+              starts both. Nothing passes through this host: requests, keys and history stay in your own
+              database, and you decide how long they are kept.
             </p>
             <p class="why-small">
               Setup is on the <a href="/self-hosting">self-hosting page</a>. The source is
