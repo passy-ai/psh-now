@@ -8,6 +8,8 @@ import { pageHtml, stampAssets } from "./lib/pages";
 import { joinPrompt } from "./lib/prompt-templates";
 import { canonicalPath, injectNoIndex, injectSeo, rewriteRelative } from "./lib/seo";
 import { HttpError } from "./lib/http";
+import { compressResponse } from "./lib/compress";
+import { minified } from "./lib/minify";
 import { allow, clientId } from "./lib/ratelimit";
 import { apiKeyFromHeaders } from "./lib/crypto";
 import { findKeyAuth } from "./services/tenants";
@@ -331,20 +333,36 @@ const ASSET_TYPES: Record<string, string> = {
 };
 
 /**
+ * Extensions whose URL carries a `?v=<mtime>` stamp, so a year of caching is safe.
+ * Everything else (images, the manifest, downloads) gets a day: long enough to be worth
+ * caching, short enough that a replaced file shows up tomorrow.
+ */
+const IMMUTABLE = new Set(["css", "js", "mjs", "woff2", "woff", "svg"]);
+
+/**
  * A file from disk, with the extension's type.
  *
  * Cloudflare caches `.css`/`.js` for days whatever we say, which is why the pages
- * stamp their asset URLs; the long `max-age` here matches what the edge does anyway.
+ * stamp their asset URLs; because of that stamp a year of `immutable` is honest.
  * `pageHtml()` serves the HTML pages and stays uncached.
  */
 async function serveAsset(path: string): Promise<Response> {
   const file = Bun.file(path);
   if (!(await file.exists())) return notFound();
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
-  return new Response(file, {
+
+  // CSS and JS go out minified; images, fonts and the rest go out as bytes from disk.
+  const body = (await minified(path)) ?? file;
+  return new Response(body, {
     headers: {
       "content-type": ASSET_TYPES[ext] ?? "application/octet-stream",
-      "cache-control": "max-age=345600",
+      // Assets are immutable: the pages stamp their URLs with the newest file mtime, so a
+      // changed file is a changed URL. `immutable` lets the browser skip the revalidation
+      // request for a year; the old 4-day window is what Lighthouse charged as
+      // "efficient cache lifetimes" on 22 resources.
+      "cache-control": IMMUTABLE.has(ext)
+        ? "public, max-age=31536000, immutable"
+        : "public, max-age=86400",
     },
   });
 }
@@ -453,7 +471,39 @@ const app = new Elysia({ serve: { reusePort: false } })
     const url = new URL(request.url);
     console.log(`[timing] ${(performance.now() - t0).toFixed(0)}ms ${url.pathname}${url.search}`);
   })
-  .use(cors())
+  // Compression sits before the routes so it wraps everything they return. It has to be
+  // here and not in `serveAsset()`/`pageHtml()`: those cover the marketing pages, but the
+  // API answers JSON too, and a `Response` built in a route never passes back through them.
+  //
+  // Plain objects and strings arrive here unserialised, so they become a `Response` first -
+  // otherwise only bodies a route built itself would ever be compressed, and every JSON
+  // endpoint would stay uncompressed. A `status(...)` response carries its code on the
+  // value rather than in `set`, so it is read from there instead of defaulting to 200.
+  .mapResponse(({ response, request, set }) => {
+    const acceptEncoding = request.headers.get("accept-encoding");
+    if (response instanceof Response) return compressResponse(response, acceptEncoding);
+    if (response === undefined || response === null) return;
+
+    const custom = response as { code?: number; response?: unknown };
+    const isStatus = typeof custom.code === "number" && "response" in custom;
+    const value = isStatus ? custom.response : response;
+    const code = isStatus ? custom.code! : typeof set.status === "number" ? set.status : 200;
+
+    return compressResponse(
+      new Response(typeof value === "string" ? value : JSON.stringify(value), {
+        status: code,
+        headers:
+          typeof value === "string"
+            ? { "content-type": "text/plain;charset=utf-8" }
+            : { "content-type": "application/json;charset=utf-8" },
+      }),
+      acceptEncoding,
+    );
+  })
+  // `origin: true` in the plugin sets `vary: *`, which tells every cache that *no*
+  // request is equivalent to any other and throws away edge caching on the markup.
+  // A predicate origin answers with the caller's own origin and a real `vary: Origin`.
+  .use(cors({ origin: () => true }))
   .use(
     swagger({
       path: "/openapi",

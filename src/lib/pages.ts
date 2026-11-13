@@ -26,10 +26,21 @@ const VERSIONED_ASSETS = [
   // file has to move the stamp too or the CDN keeps serving the old panel.
   "website/notch-demo.css",
   "website/notch-demo.js",
+  // Fonts and icons are stamped too. Without a stamp they could only be cached for a day,
+  // and Lighthouse charged that as "efficient cache lifetimes" on every page. The fonts are
+  // referenced from the stylesheet rather than the markup, so `stampCss()` covers those.
+  "website/fonts/inter-latin.woff2",
+  "website/fonts/geist-latin.woff2",
+  "website/fonts/geist-mono-latin.woff2",
+  "website/psh-mark.svg",
 ];
 // Matches a root-absolute URL (`/styles.css`, `/website/app.js`) *and* the marketing
 // pages' own relative form (`./styles.css`), which is what they carry on disk.
-const VERSIONABLE = /(href|src)="((?:\.\/|\/)(?:website\/)?(?:styles\.css|app\.js|pair\.js|notch-demo\.css|notch-demo\.js))"/g;
+const VERSIONABLE =
+  /(href|src)="((?:\.\/|\/)(?:website\/)?(?:styles\.css|app\.js|pair\.js|notch-demo\.css|notch-demo\.js|psh-mark\.svg|agenticons\/[a-z-]+\.svg|fonts\/[a-z-]+\.woff2))"/g;
+
+/** The stylesheet's own `url(./fonts/x.woff2)` references, stamped the same way. */
+const CSS_FONTS = /url\((["']?)(\.\/fonts\/[a-z-]+\.woff2)\1\)/g;
 
 /** Newest mtime of the versioned assets - the cache-busting stamp. */
 export async function assetStamp(): Promise<string> {
@@ -46,6 +57,21 @@ export async function assetStamp(): Promise<string> {
 export async function stampAssets(html: string): Promise<string> {
   const stamp = await assetStamp();
   return html.replace(VERSIONABLE, `$1="$2?v=${stamp}"`);
+}
+
+/**
+ * The same stamp, for the stylesheet's `url(./fonts/x.woff2)` references.
+ *
+ * A font cached for a day is a revalidation on the second visit, which Lighthouse counts
+ * against "efficient cache lifetimes" on every page that uses one. With a stamp in the
+ * URL the file is immutable and can be cached for a year like the CSS referencing it.
+ */
+export async function stampCss(css: string): Promise<string> {
+  const stamp = await assetStamp();
+  return css.replace(
+    CSS_FONTS,
+    (_match, quote: string, path: string) => `url(${quote}${path}?v=${stamp}${quote})`,
+  );
 }
 
 /**

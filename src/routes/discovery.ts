@@ -740,7 +740,16 @@ export const discoveryRoutes = new Elysia()
   .get("/status.sh", () => baked("skills/psh-now/scripts/status.sh", "text/x-shellscript; charset=utf-8"))
   // The `psh` command itself: what an agent runs when it hears "use psh now".
   .get("/psh.sh", () => baked("skills/psh-now/scripts/psh.sh", "text/x-shellscript; charset=utf-8"))
-  .get("/pricing", () => baked("public/pricing.md", "text/markdown; charset=utf-8"))
+  // People get a page; agents still get the markdown, exactly like /docs. Serving
+  // markdown to a browser meant a person clicking "Pricing" was handed a plain text
+  // file, and Lighthouse could not audit the URL at all (NOT_HTML).
+  .get("/pricing", ({ request }) => {
+    const accept = request.headers.get("accept") || "";
+    if (accept.includes("text/html")) {
+      return pageHtml("public/pricing.html", (html) => injectSeo(html, "/pricing"));
+    }
+    return baked("public/pricing.md", "text/markdown; charset=utf-8");
+  })
   .get("/setup.md", () => text(setupGuide(), "text/markdown; charset=utf-8"))
   .get("/report.txt", () => baked("skills/psh-now/report.txt"))
   .get("/docs/prompt-templates.md", () =>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="psh.now pricing: 20 requests free without an account, 100 after registering, then prepaid packs from €1 for 100 requests. An approval costs two requests, reads are free, and self-hosting is MIT licensed."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Pricing: 20 free requests, then prepaid packs from €1 - psh.now</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+      <div class="nav-actions">
+        <a href="/docs" class="nav-link">Docs</a>
+        <a href="/agents" class="nav-link">Agents</a>
+        <a href="/self-hosting" class="nav-link">Self hosting</a>
+        <a href="/app" class="btn pill">Open dashboard</a>
+      </div>
+    </header>
+
+    <div class="docs">
+      <aside class="docs-side">
+        <div class="docs-group">Pricing</div>
+        <a class="docs-link active" href="#how-counted">How usage is counted</a>
+        <a class="docs-link" href="#anonymous">Anonymous</a>
+        <a class="docs-link" href="#free">Free</a>
+        <a class="docs-link" href="#packs">Prepaid packs</a>
+        <a class="docs-link" href="#enterprise">Enterprise</a>
+        <a class="docs-link" href="#not-charged">What is not charged</a>
+        <a class="docs-link" href="#machine-readable">Machine-readable</a>
+      </aside>
+
+      <main class="docs-main">
+        <h1 id="how-counted">Pricing</h1>
+        <p>
+          psh.now charges for requests, one human decision each. Members are unlimited on
+          every plan, storage is not metered, and the server is MIT licensed, so
+          self-hosting costs nothing.
+        </p>
+
+        <h2>How usage is counted</h2>
+        <p>
+          An approval costs two requests: one inbound for the agent's ask, one outbound
+          for the answer. A request that expires, is cancelled or goes unanswered costs
+          nothing. Reads, polling and delivery to several devices are free.
+        </p>
+        <p>
+          Allowances are totals, not daily caps. Past the free allowance a token is spent
+          when the workspace has one; otherwise the request is refused with
+          <code>402 plan_limit</code>, naming the plan, the usage and the limit. Every
+          response carries a <code>usage</code> block:
+        </p>
+        <pre><code>{
+  "plan": "free",
+  "requestsToday": 12,
+  "limit": 100,
+  "via": "allowance",
+  "tokenBalance": 0
+}</code></pre>
+        <p>
+          <code>via</code> is <code>allowance</code>, <code>token</code> or
+          <code>blocked</code>.
+        </p>
+
+        <h2 id="anonymous">Anonymous</h2>
+        <table class="cmp">
+          <tbody>
+            <tr><th scope="row">Price</th><td>€0</td></tr>
+            <tr><th scope="row">Account required</th><td>No</td></tr>
+            <tr><th scope="row">Requests</th><td>20 total, then register the workspace</td></tr>
+            <tr><th scope="row">History</th><td>7 days</td></tr>
+            <tr><th scope="row">Members</th><td>Unlimited</td></tr>
+            <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Post a request, pair a device, answer it. No email and no card.
+        </p>
+
+        <h2 id="free">Free, registered</h2>
+        <table class="cmp">
+          <tbody>
+            <tr><th scope="row">Price</th><td>€0</td></tr>
+            <tr><th scope="row">Requests</th><td>100 total; claiming takes the allowance from 20 to 100</td></tr>
+            <tr><th scope="row">History</th><td>30 days</td></tr>
+            <tr><th scope="row">Members</th><td>Unlimited</td></tr>
+            <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
+          </tbody>
+        </table>
+        <p>
+          A registered account can also take the €1 entry pack once for nothing, which is
+          another 100 requests. The whole free road is 200 requests.
+        </p>
+
+        <h2 id="packs">Prepaid packs</h2>
+        <p>
+          One-time purchase, no subscription. Packs stack and do not expire. With a token
+          balance the history window is 90 days.
+        </p>
+        <table class="cmp">
+          <thead>
+            <tr><th scope="col">Requests</th><th scope="col">Price, excl. VAT</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">100</th><td>€1</td></tr>
+            <tr><th scope="row">1,000</th><td>€9</td></tr>
+            <tr><th scope="row">10,000</th><td>€50</td></tr>
+            <tr><th scope="row">100,000</th><td>€450</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Buy them from the <a href="/app">dashboard</a>. VAT is added at checkout, and
+          the invoice can carry company details.
+        </p>
+
+        <h2 id="enterprise">Enterprise</h2>
+        <p>
+          Custom price. Includes a custom domain, history up to 10 years, SSO, on-premise
+          deployment, an SLA and a DPA. Write to
+          <a href="mailto:push@passy.ai">push@passy.ai</a>.
+        </p>
+
+        <h2 id="not-charged">What is not charged for</h2>
+        <ul>
+          <li><strong>Members.</strong> Unlimited on every plan.</li>
+          <li><strong>Devices and connections.</strong> As many agents and projects as you like.</li>
+          <li><strong>Reads and polling.</strong> Only a decision costs requests.</li>
+          <li><strong>Self-hosting.</strong> MIT licensed, no paid tier.</li>
+        </ul>
+
+        <h2 id="machine-readable">Machine-readable</h2>
+        <p>
+          The same figures are served as markdown to anything that does not ask for HTML,
+          at this URL and at <a href="/llms.txt">/llms.txt</a>. The human-readable limits
+          are also in the <a href="/docs#limits">docs</a>.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a class="nav-brand" href="/"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
+          <p class="footer-tag">Approvals for agents, answered from any paired device</p>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col-head">PRODUCT</h2>
+          <a href="/docs">Docs</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/agents">Agents</a>
+          <a href="/teams">Teams</a>
+          <a href="/self-hosting">Self hosting</a>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col-head">LEGAL</h2>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col-head">COMPANY</h2>
+          <a href="https://absolum.nl">Absolum</a>
+          <a href="mailto:push@passy.ai">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
+    </footer>
+  </body>
+</html>

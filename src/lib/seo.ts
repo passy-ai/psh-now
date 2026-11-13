@@ -35,6 +35,9 @@ const OG_IMAGE = `${base}/website/og.png`;
 const PAGES = [
   { rel: "index.html", path: "/", file: "website/index.html", priority: "1.0", changefreq: "weekly" },
   { rel: "docs.html", path: "/docs", file: "public/docs.html", priority: "0.9", changefreq: "weekly" },
+  // Pricing is a page a search result can land on, and the query it answers ("how much
+  // does this cost") is one people type before they try anything.
+  { rel: "pricing.html", path: "/pricing", file: "public/pricing.html", priority: "0.9", changefreq: "monthly" },
   { rel: "notch.html", path: "/notch", file: "website/notch.html", priority: "0.8", changefreq: "monthly" },
   { rel: "teams.html", path: "/teams", file: "website/teams.html", priority: "0.8", changefreq: "monthly" },
   { rel: "alternatives.html", path: "/alternatives", file: "website/alternatives.html", priority: "0.8", changefreq: "monthly" },
@@ -174,10 +177,23 @@ export function injectSeo(html: string, path: string, robots?: string): string {
  * `/app`, `/login`, and the pairing pages are signed-in views behind a gate, not
  * content: indexing them puts an empty "Log in" screen in search results and
  * splits ranking signals away from the pages that should have them.
+ *
+ * The description is still written. `noindex` is an instruction about the index, and
+ * a page can carry a description while staying out of it - without one, Lighthouse
+ * reports "Document does not have a meta description" on five pages that are
+ * otherwise clean, and anything that does read the page (a link unfurler, an
+ * assistant summarizing a URL someone pasted) has nothing to quote.
  */
 export function injectNoIndex(html: string): string {
-  if (hasTag(html, /<meta\s+name="robots"/i) || !html.includes("</head>")) return html;
-  return html.replace("</head>", `  <meta name="robots" content="noindex, nofollow" />\n  </head>`);
+  if (!html.includes("</head>")) return html;
+  const { description } = readMeta(html);
+  const tags = [
+    `<meta name="robots" content="noindex, nofollow" />`,
+    hasTag(html, /<meta\s+name="description"/i)
+      ? ""
+      : `<meta name="description" content="${esc(description)}" />`,
+  ].filter(Boolean);
+  return html.replace("</head>", `  ${tags.join("\n  ")}\n  </head>`);
 }
 
 /**
