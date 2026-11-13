@@ -286,9 +286,6 @@ That is the entire integration surface for an arbitrary agent:
 - **gate**: `psh hook` wired into a harness's pre-tool hook, which cannot be
   skipped. Optional, and only where the harness supports it.
 
-> `agents.md` holds the rule, not the key: nothing in it is a secret, so it is
-> safe to commit. The key lives in `~/.psh/keys.json` (0600) or `PSH_API_KEY`.
-
 ---
 
 ## How the block works

@@ -56,6 +56,12 @@
     .notch-row + .notch-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
     .notch-row .led { width: 8px; height: 8px; border-radius: 50%; background: #4fd1c5; flex: none; }
     .notch-row .age { margin-left: auto; color: rgba(255, 255, 255, 0.38); font-size: 12px; }
+    /* What the panel says once the visitor has answered everything in the demo. The real
+       app says the same words when the queue drains. */
+    .notch-empty {
+      padding: 13px 20px 15px; font-size: 13.5px; line-height: 1.4;
+      color: rgba(255, 255, 255, 0.45);
+    }
 
     /* The open request, exactly as the app draws it: the title leads, the sentence explains, the
        three decisions sit side by side with their shortcuts in the corner, and the comment field

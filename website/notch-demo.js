@@ -39,7 +39,7 @@
       panels.forEach(function (panel) {
         panel.innerHTML =
           '<div class="notch">' +
-            '<div class="notch-head"><span class="notch-dot"></span><span class="notch-count">4</span></div>' +
+            '<div class="notch-head"><span class="notch-dot"></span><span class="notch-count"></span></div>' +
             '<div class="notch-body-list"></div>' +
             '<div class="notch-body-detail">' +
               '<div class="notch-title"></div><div class="notch-sub"></div>' +
@@ -58,12 +58,40 @@
             '</div>' +
           '</div>';
         panel.__shape = panel.querySelector(".notch");
+        panel.__count = panel.querySelector(".notch-count");
         panel.__title = panel.querySelector(".notch-title");
         panel.__sub = panel.querySelector(".notch-sub");
         panel.__list = panel.querySelector(".notch-body-list");
         panel.__detail = panel.querySelector(".notch-body-detail");
         panel.__field = panel.querySelector(".notch-field");
       });
+
+      // Answered requests leave the queue, and stay gone until the page is reloaded. A
+      // demo that let the same request be decided twice would be teaching the one thing
+      // the hub never does, so the queue here is the queue the session has left.
+      var decided = {};
+
+      function queue() {
+        var out = [];
+        for (var i = 0; i < EXAMPLES.length; i += 1) {
+          if (!decided[i]) out.push(i);
+        }
+        return out;
+      }
+
+      // The request to show when `from` has just been answered: the next one down, or
+      // the first one left if that was the last, or -1 when the queue is empty.
+      function nextOpen(from) {
+        var q = queue();
+        if (!q.length) return -1;
+        for (var i = 0; i < q.length; i += 1) {
+          if (q[i] === from) return from;
+        }
+        for (var j = 0; j < q.length; j += 1) {
+          if (q[j] > from) return q[j];
+        }
+        return q[0];
+      }
 
       // Exactly two rows tall, whatever the row height works out to at this width.
       // Run again on every show, not just on paint: at first paint the rows are measured
@@ -72,25 +100,39 @@
         var rows = panel.__list.querySelectorAll(".notch-row");
         if (rows.length > 2) {
           panel.__list.style.maxHeight = (rows[0].offsetHeight + rows[1].offsetHeight) + "px";
+        } else {
+          // The ceiling belonged to the previous queue; drop it so the panel can shrink
+          // after a decision instead of keeping the height of rows that are gone.
+          panel.__list.style.maxHeight = "";
         }
       }
 
       function paint(index) {
-        var item = EXAMPLES[index % EXAMPLES.length];
+        // A story step can still name a request a visitor has already answered; take
+        // whatever is open now instead of reopening a settled one.
+        if (decided[index]) index = nextOpen(index);
+        if (index < 0) index = 0;
+        var item = EXAMPLES[index];
+        var left = queue();
         panels.forEach(function (panel) {
           panel.__title.textContent = item[0];
           panel.__sub.textContent = item[1] + ": waiting " + item[2] + " for a decision.";
-          // The list is fixed: row i is always EXAMPLES[i], so picking one twice in a
-          // row lands on the same request rather than shifting under the pointer.
-          panel.__list.innerHTML = EXAMPLES.slice(0, 4).map(function (row, i) {
-            return '<div class="notch-row" data-i="' + i + '"><span class="led"></span><span>' + EXAMPLES[i][0] +
-              '</span><span class="age">' + EXAMPLES[i][2] + '</span></div>';
-          }).join("");
+          panel.__count.textContent = String(left.length);
+          // Rows carry their real queue index, so a request is always the one named and
+          // never shifts under the pointer as others are answered.
+          panel.__list.innerHTML = left.length
+            ? left.slice(0, 4).map(function (i) {
+                return '<div class="notch-row" data-i="' + i + '"><span class="led"></span><span>' +
+                  EXAMPLES[i][0] + '</span><span class="age">' + EXAMPLES[i][2] + '</span></div>';
+              }).join("")
+            : '<div class="notch-empty">Nothing waiting</div>';
           capList(panel);
         });
       }
 
       function show(state, fieldOpen) {
+        // Nothing left to open: the list is the only honest screen, and it says so.
+        if (state !== "idle" && !queue().length) state = "list";
         panels.forEach(function (panel) {
           var open = state === "detail" && fieldOpen === true;
           panel.className = "notch-demo" + (state === "idle" ? "" : " is-" + state) +
@@ -117,6 +159,15 @@
       var at = 0;
       var timer = null;
       var typer = null;
+
+      // One request answered: drop it, and put the list up with the next one in it.
+      function settle(index) {
+        if (index >= 0) decided[index] = true;
+        shown = nextOpen(index);
+        if (shown < 0) shown = 0;
+        paint(shown);
+        show("list");
+      }
 
       function stop() {
         clearTimeout(timer);
@@ -178,8 +229,9 @@
 
       // Capture runs the same story at its own pace instead of racing a screenshot loop.
       window.__pshDemo = {
-        reset: function () { stop(); shown = 0; at = 0; paint(0); show("idle"); },
-        start: function () { stop(); shown = 0; at = 0; paint(0); tick(); },
+        reset: function () { stop(); decided = {}; shown = 0; at = 0; paint(0); show("idle"); },
+        start: function () { stop(); decided = {}; shown = 0; at = 0; paint(0); tick(); },
+        queue: queue,
         pause: stop,
         comment: COMMENT
       };
@@ -208,10 +260,11 @@
               show("detail", !panel.classList.contains("is-field"));
               return;
             }
-            // The other two settle this request, so fall back to the list rather
-            // than leaving the notch parked on it: that is where the next is picked.
+            // Deny and approve settle the request that is open, which then leaves the
+            // queue for the rest of the visit: the list is what you come back to, and
+            // it is one shorter than it was.
             stop();
-            show("list");
+            settle(shown);
             return;
           }
           var row = event.target.closest(".notch-row");
@@ -232,6 +285,23 @@
           panel.__field.addEventListener("focus", function () {
             stop();
             show("detail", true);
+          });
+          // The field is part of the animation, so this only runs once the visitor has
+          // taken over: a written answer is a decision, and the request leaves the queue.
+          panel.__field.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            stop();
+            panel.__field.value = "";
+            settle(shown);
+          });
+        }
+        var send = panel.querySelector(".notch-send");
+        if (send) {
+          send.addEventListener("click", function () {
+            stop();
+            if (panel.__field) panel.__field.value = "";
+            settle(shown);
           });
         }
       });
