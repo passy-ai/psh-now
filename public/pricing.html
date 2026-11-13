@@ -3,24 +3,38 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
       content="psh.now pricing: 20 requests free without an account, 100 after registering, then prepaid packs from €1 for 100 requests. An approval costs two requests, reads are free, and self-hosting is MIT licensed."
     />
-    <meta name="theme-color" content="#0a0a0a" />
     <title>Pricing: 20 free requests, then prepaid packs from €1 - psh.now</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/website/fonts/geist-mono-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="/website/styles.css" />
   </head>
   <body>
-    <header class="nav">
-      <a class="nav-brand" href="/app"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
-      <div class="nav-actions">
-        <a href="/docs" class="nav-link">Docs</a>
-        <a href="/agents" class="nav-link">Agents</a>
-        <a href="/self-hosting" class="nav-link">Self hosting</a>
-        <a href="/app" class="btn pill">Open dashboard</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-left">
+          <a class="brand" href="/">
+            <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+            psh.now
+          </a>
+          <nav class="header-nav" aria-label="Main">
+            <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link" href="/agents">Agents</a>
+            <a class="nav-link" href="/teams">Teams</a>
+            <a class="nav-link" href="/alternatives">Alternatives</a>
+            <a class="nav-link" href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </nav>
+        </div>
+        <div class="header-right">
+          <a class="nav-link" href="/app">Log in</a>
+          <a class="btn btn-primary" href="/app">Get started</a>
+        </div>
       </div>
     </header>
 
@@ -34,6 +48,10 @@
         <a class="docs-link" href="#enterprise">Enterprise</a>
         <a class="docs-link" href="#not-charged">What is not charged</a>
         <a class="docs-link" href="#machine-readable">Machine-readable</a>
+        <div class="docs-group">Elsewhere</div>
+        <a class="docs-link away" href="/docs"><svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Using psh.now</span></a>
+        <a class="docs-link away" href="/self-hosting"><svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 6.5h.01M6 17.5h.01"/></svg><span>Run it yourself</span></a>
+        <a class="docs-link away" href="/agents"><svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/></svg><span>Agent integrations</span></a>
       </aside>
 
       <main class="docs-main">
@@ -145,17 +163,28 @@
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <div class="footer-brand">
-          <a class="nav-brand" href="/"><img class="mark" src="/psh-mark.svg" alt="" /><span class="nav-brand-text">psh.now</span></a>
-          <p class="footer-tag">Approvals for agents, answered from any paired device</p>
+        <div>
+          <div class="footer-brand">
+            <img class="invert-on-dark" src="/website/psh-mark.svg" alt="" />
+            psh.now
+          </div>
+          <p class="footer-tag">Approvals for agents, answered anywhere</p>
         </div>
         <div class="footer-col">
           <h2 class="footer-col-head">PRODUCT</h2>
           <a href="/docs">Docs</a>
-          <a href="/pricing">Pricing</a>
           <a href="/agents">Agents</a>
           <a href="/teams">Teams</a>
+          <a href="/alternatives">Alternatives</a>
           <a href="/self-hosting">Self hosting</a>
+          <a href="/listed-on">Listed on</a>
+          <a href="/llms.txt">llms.txt</a>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col-head">OPEN SOURCE</h2>
+          <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+          <a href="https://github.com/passy-ai/psh-now/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a>
         </div>
         <div class="footer-col">
           <h2 class="footer-col-head">LEGAL</h2>
@@ -170,5 +199,136 @@
       </div>
       <div class="footer-bottom">© 2026 psh.now. Open source, MIT licensed.</div>
     </footer>
+<div id="toast" class="toast"></div>
+    <script>
+      // copy buttons: [data-copyable] on the pre, and [data-copy="#id"] on a button
+      document.querySelectorAll("pre[data-copyable]").forEach((pre) => {
+        pre.classList.add("copyable");
+        const b = document.createElement("button");
+        b.className = "pre-copy";
+        // The button is an icon only, so it needs a name of its own: without this
+        // Lighthouse reports "buttons do not have an accessible name" on /docs.
+        b.setAttribute("aria-label", "Copy to clipboard");
+        b.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+        b.onclick = () => copy(pre.textContent);
+        pre.appendChild(b);
+      });
+      document.querySelectorAll("[data-copy]").forEach((btn) => {
+        btn.onclick = () => copy(document.querySelector(btn.dataset.copy)?.textContent || "");
+      });
+      function copy(text) {
+        navigator.clipboard.writeText(text).then(
+          () => toast("Copied"),
+          () => toast("Copy failed"),
+        );
+      }
+      // The sidebar follows the page: the section being read is the one marked, and the
+      // URL keeps naming it so a copied link lands on the same place.
+      const links = [...document.querySelectorAll(".docs-side .docs-link")];
+      const sections = links
+        // "Self hosting" is another page, not a section: it has no hash to spy on.
+        .filter((link) => link.hash.startsWith("#"))
+        .map((link) => ({ link, el: document.querySelector(link.hash) }))
+        .filter((s) => s.el);
+
+      // The sticky header, plus whatever the sticky chip row adds on a phone, plus a line
+      // of air: derived from CSS so the two cannot drift apart. Resolved once - it is a
+      // style computation, and repeating it on every scroll frame was part of the cost.
+      let offset = 0;
+
+      // Everything about the sidebar's own scroll geometry: whether it scrolls at all, and
+      // where each chip starts. None of it changes while the page scrolls - only on resize -
+      // so reading it per frame was a forced synchronous layout on every animation frame.
+      let side = null;
+      let sideScrolls = false;
+      let chipLeft = [];
+
+      function measure() {
+        offset = sections.length
+          ? (parseFloat(getComputedStyle(sections[0].el).scrollMarginTop) || 96) + 24
+          : 0;
+        side = document.querySelector(".docs-side");
+        if (!side) return;
+        sideScrolls = side.scrollWidth > side.clientWidth + 1;
+        chipLeft = sections.map((s) => s.link.offsetLeft);
+      }
+
+      // One read pass, then one write pass. Reading layout after writing classes is what
+      // makes a browser lay the page out again mid-frame; separating the two is the fix.
+      function markActive() {
+        if (!sections.length) return;
+
+        // reads
+        const tops = sections.map((s) => s.el.getBoundingClientRect().top);
+        const atBottom = innerHeight + scrollY >= document.body.scrollHeight - 4;
+        const sideLeft = side ? side.scrollLeft : 0;
+        const sideWidth = side ? side.clientWidth : 0;
+
+        // decisions
+        let index = 0;
+        for (let i = 0; i < tops.length; i++) if (tops[i] <= offset) index = i;
+        // The last section can be too short to ever reach the offset; at the bottom, it wins.
+        if (atBottom) index = sections.length - 1;
+        const current = sections[index];
+
+        let target = null;
+        if (sideScrolls) {
+          const left = chipLeft[index] - 24;
+          const right = left + current.link.offsetWidth + 48;
+          if (left < sideLeft) target = left;
+          else if (right > sideLeft + sideWidth) target = right - sideWidth;
+        }
+
+        // writes
+        for (let i = 0; i < sections.length; i++) {
+          sections[i].link.classList.toggle("active", sections[i] === current);
+        }
+        // Phone layout turns the sidebar into one scrollable row: the active chip has to be
+        // reachable without hunting for it. Setting scrollLeft, never scrollIntoView, so the
+        // page cannot scroll itself into a loop.
+        if (target !== null) side.scrollLeft = target;
+        if (location.hash !== current.link.hash) {
+          history.replaceState(null, "", current.link.hash);
+        }
+      }
+
+      // Scrolling is coalesced to one call per frame: the handler is passive and only marks
+      // the frame dirty, so fast scroll events cannot queue up work.
+      let queued = false;
+      addEventListener(
+        "scroll",
+        () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(() => {
+            queued = false;
+            markActive();
+          });
+        },
+        { passive: true },
+      );
+      addEventListener("resize", () => {
+        measure();
+        markActive();
+      });
+      // After the first paint, not during script execution: at this point the copy buttons
+      // have just been inserted, so the document is dirty and any layout read here forces a
+      // synchronous layout pass. Waiting a frame lets the browser do its own layout first,
+      // and the read then finds it clean.
+      requestAnimationFrame(() => {
+        measure();
+        markActive();
+      });
+
+      function toast(m) {
+        const el = document.getElementById("toast");
+        el.textContent = m;
+        el.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove("show"), 2000);
+      }
+    </script>
+    <script src="/website/viewer.js" defer></script>
   </body>
 </html>

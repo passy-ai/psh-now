@@ -4,9 +4,10 @@ import { productVersion } from "./lib/version";
 import { Elysia } from "elysia";
 import { env } from "./env";
 import { mailTransport, warnIfUnconfigured } from "./services/mail";
-import { pageHtml, stampAssets } from "./lib/pages";
+import { pageHtml } from "./lib/pages";
+import { marketingPage, prebuildPages } from "./lib/static";
 import { joinPrompt } from "./lib/prompt-templates";
-import { canonicalPath, injectNoIndex, injectSeo, rewriteRelative } from "./lib/seo";
+import { injectNoIndex } from "./lib/seo";
 import { HttpError } from "./lib/http";
 import { compressResponse } from "./lib/compress";
 import { minified } from "./lib/minify";
@@ -22,6 +23,7 @@ import { expireStalePrompts } from "./services/prompts";
 import { sql } from "./db";
 import { authRoutes, agentAuthRoutes } from "./routes/auth";
 import { identityRoutes } from "./routes/identity";
+import { viewerRoutes } from "./routes/viewer";
 import { profileRoutes } from "./routes/profile";
 import { discoveryRoutes, llmsTxt } from "./routes/discovery";
 import { hookRoutes } from "./routes/hook";
@@ -283,21 +285,15 @@ ${carryOn(b)}`;
 /**
  * A marketing page, served from `website/`.
  *
- * Not `pageHtml()`: this site carries its own copies of the assets and its own
- * relative links, so it goes through `rewriteRelative()` (assets move under
- * `/website/`, links between pages point at their canonical address) and then the
- * same stamp, or Cloudflare's 4-day `.js` cache serves yesterday's install prompt.
+ * Not `pageHtml()`: this site carries its own copies of the assets and its own relative
+ * links, so it goes through `rewriteRelative()` (assets move under `/website/`, links
+ * between pages point at their canonical address) and then the same stamp, or
+ * Cloudflare's 4-day `.js` cache serves yesterday's install prompt. `marketingPage()`
+ * does that once per change (see lib/static), and the boot prewarms it.
  */
-async function websiteResponse(
-  rel: string,
-  transform?: (html: string) => string,
-): Promise<Response> {
-  const file = Bun.file(`website/${rel}`);
-  if (!(await file.exists())) return notFound();
-  let html = await stampAssets(await file.text());
-  html = rewriteRelative(html);
-  html = injectSeo(html, canonicalPath(rel) ?? `/${rel.replace(/\.html$/, "")}`);
-  if (transform) html = transform(html);
+async function websiteResponse(rel: string): Promise<Response> {
+  const html = await marketingPage(rel);
+  if (html === null) return notFound();
   return new Response(html, {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" },
   });
@@ -584,6 +580,7 @@ const app = new Elysia({ serve: { reusePort: false } })
   .use(authRoutes)
   .use(agentAuthRoutes)
   .use(identityRoutes)
+  .use(viewerRoutes)
   .use(profileRoutes)
   .use(discoveryRoutes)
   .use(hookRoutes)
@@ -668,6 +665,16 @@ for (const rel of [...new Bun.Glob("**/*").scanSync({ cwd: "public" })].sort()) 
 }
 
 const DECISION_SWEEP_MS = 60_000;
+
+// Generate the marketing pages before the port opens, so the first visitor is not the one
+// who pays for the build. Independent of Postgres, so a database that is still starting
+// does not hold the site up.
+const prebuilt = await prebuildPages();
+if (prebuilt.failed) {
+  console.error(`[static] ${prebuilt.built} pages built, ${prebuilt.failed} failed, ${prebuilt.ms}ms`);
+} else {
+  console.log(`[static] ${prebuilt.built} pages in ${prebuilt.ms}ms`);
+}
 
 await assertPortFree();
 

@@ -243,6 +243,13 @@ button {
 .nav-link:hover {
   color: var(--fg);
 }
+/* The page you are on, marked in the bar itself. Weight rather than colour: the bar
+   already uses colour for hover, and a link that is both hovered and current would
+   otherwise look like two different states of the same thing. */
+.nav-link[aria-current="page"] {
+  color: var(--fg);
+  font-weight: 600;
+}
 /* Six links plus the brand needs the room: below this the middle of the bar folds
    into "Log in" and "Get started", which is what a phone-width header has anyway. */
 @media (min-width: 780px) {
@@ -2801,6 +2808,26 @@ html[data-theme="dark"] .risk-high .risk-tag {
 .docs-link:hover {
   background: #f5f7fa;
   color: var(--fg);
+}
+/* A link that leaves the page it is in. The icon is what says so: an anchor moves you
+   down this document, a page link takes you somewhere else, and both are the same shape
+   of text in the list otherwise. */
+.docs-link .ico {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  color: var(--muted-3);
+  transition: color 0.15s ease;
+}
+.docs-link:hover .ico,
+.docs-link.active .ico {
+  color: var(--muted);
+}
+/* Room for the icon, and the label kept on one line next to it. */
+.docs-link.away {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .docs-link.active {
   background: #eef2f8;

@@ -67,6 +67,18 @@ export function canonicalPath(rel: string): string | null {
   return PAGES.find((p) => p.rel === rel)?.path ?? null;
 }
 
+/**
+ * Every page that has a canonical address, as `{ path, file }`.
+ *
+ * The build reads this rather than a list of its own: a page that is in the sitemap and
+ * not generated, or generated and missing from the sitemap, is a page that either 404s in
+ * a search result or is assembled per request with nobody noticing.
+ */
+export const PAGE_FILES: readonly { path: string; file: string }[] = PAGES.map((p) => ({
+  path: p.path,
+  file: p.file,
+}));
+
 function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")

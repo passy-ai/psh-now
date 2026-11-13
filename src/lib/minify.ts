@@ -34,6 +34,7 @@ import { stampCss } from "./pages";
 const TARGETS = [
   "website/styles.css",
   "website/app.js",
+  "website/viewer.js",
   "website/notch-demo.css",
   "website/notch-demo.js",
   "public/styles.css",
@@ -44,8 +45,15 @@ const TARGETS = [
 /** Stands in for the `+` in `U+0000-00FF` while the minifier is running. */
 const PLUS = "PSHUNICODEPLUS";
 
-/** Built on first request, then reused for the life of the process. */
-const built = new Map<string, string>();
+/**
+ * Built on first request, then reused while the source file is unchanged.
+ *
+ * Keyed by mtime as well as path: without it a long-running dev process kept serving the
+ * first stylesheet it ever minified, so an edit was on disk, in the stamp, in the page,
+ * and still not in the browser. In production the file cannot change under the process,
+ * so the key never moves and the cost is one `stat`.
+ */
+const built = new Map<string, { code: string; key: string }>();
 
 /** Paths that have a minified form available. */
 export function isMinifiable(path: string): boolean {
@@ -64,11 +72,12 @@ export async function minified(path: string): Promise<string | null> {
   // icons - was handed to a JavaScript parser, which logged a parse error for each one.
   if (!isMinifiable(key)) return null;
 
-  const hit = built.get(key);
-  if (hit !== undefined) return hit;
-
   const source = Bun.file(key);
   if (!(await source.exists())) return null;
+
+  const stamp = String(await source.lastModified);
+  const hit = built.get(key);
+  if (hit && hit.key === stamp) return hit.code;
 
   const isCss = key.endsWith(".css");
   const text = await source.text();
@@ -104,7 +113,7 @@ export async function minified(path: string): Promise<string | null> {
       // same year as the CSS pointing at it.
       code = await stampCss(code);
     }
-    built.set(key, code);
+    built.set(key, { code, key: stamp });
     return code;
   } catch (error) {
     console.error(`[minify] ${key}: ${(error as Error).message}`);

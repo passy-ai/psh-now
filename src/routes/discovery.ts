@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 import { Elysia } from "elysia";
 import { env } from "../env";
-import { pageHtml } from "../lib/pages";
-import { injectSeo, robotsTxt, sitemapXml } from "../lib/seo";
+import { htmlResponse } from "../lib/pages";
+import { docsPage } from "../lib/static";
+import { robotsTxt, sitemapXml } from "../lib/seo";
 import { productVersion } from "../lib/version";
 
 /**
@@ -720,21 +721,20 @@ export const discoveryRoutes = new Elysia()
       },
     });
   })
-  .get("/docs", ({ request }) => {
+  .get("/docs", async ({ request }) => {
     // Browsers get the styled docs; agents (curl/fetch) get markdown.
     const accept = request.headers.get("accept") || "";
     if (accept.includes("text/html")) {
       // Stamped like every other page: an unversioned /styles.css goes stale in
-      // the Cloudflare edge cache for days (see src/lib/pages.ts).
-      return pageHtml("public/docs.html", (html) => injectSeo(html, "/docs"));
+      // the Cloudflare edge cache for days (see src/lib/pages.ts). Built once per
+      // change and prewarmed at boot (see lib/static), not assembled per request.
+      return htmlResponse(await docsPage("public/docs.html"));
     }
     return text(llmsFullTxt(), "text/markdown; charset=utf-8");
   })
   // Self hosting, as a page people can read rather than a markdown file they have to
   // find. Linked from /docs and from the site header.
-  .get("/self-hosting", () =>
-    pageHtml("public/self-hosting.html", (html) => injectSeo(html, "/self-hosting")),
-  )
+  .get("/self-hosting", async () => htmlResponse(await docsPage("public/self-hosting.html")))
   .get("/ask.sh", () => baked("skills/psh-now/scripts/ask.sh", "text/x-shellscript; charset=utf-8"))
   .get("/setup.sh", () => baked("skills/psh-now/scripts/setup.sh", "text/x-shellscript; charset=utf-8"))
   .get("/status.sh", () => baked("skills/psh-now/scripts/status.sh", "text/x-shellscript; charset=utf-8"))
@@ -743,10 +743,11 @@ export const discoveryRoutes = new Elysia()
   // People get a page; agents still get the markdown, exactly like /docs. Serving
   // markdown to a browser meant a person clicking "Pricing" was handed a plain text
   // file, and Lighthouse could not audit the URL at all (NOT_HTML).
-  .get("/pricing", ({ request }) => {
+  .get("/pricing", async ({ request }) => {
     const accept = request.headers.get("accept") || "";
     if (accept.includes("text/html")) {
-      return pageHtml("public/pricing.html", (html) => injectSeo(html, "/pricing"));
+      // Built once per change like the rest of the site (see lib/static), not per request.
+      return htmlResponse(await docsPage("public/pricing.html"));
     }
     return baked("public/pricing.md", "text/markdown; charset=utf-8");
   })
