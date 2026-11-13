@@ -2664,6 +2664,12 @@ html[data-theme="dark"] .risk-high .risk-tag {
      edge to edge under it read as a lid on the page rather than a separator. */
   padding: 48px 24px;
 }
+/* The docs pages close on a paragraph, not on a CTA panel, so the footer needs the
+   separator the marketing pages can do without. Without it the last line of the article
+   and the first link of the footer sat in one undifferentiated block. */
+.docs + .site-footer {
+  border-top: 1px solid var(--border);
+}
 .footer-inner {
   margin: 0 auto;
   /* The same column as the header and the page: the footer used to stop at 780px, so its
@@ -2849,7 +2855,10 @@ html[data-theme="dark"] .risk-high .risk-tag {
   align-items: start;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 28px var(--page-pad) 96px;
+  /* No bottom padding: the footer supplies its own 48px, which is the gap every
+     marketing page has. The 96px that used to be here stacked on top of it and left a
+     144px void above the footer, with no divider, so the page appeared to end early. */
+  padding: 28px var(--page-pad) 0;
   /* `minmax(0, 1fr)` fixes the main column; the side column is a fixed 196px and the
      sidebar itself can overflow, so it needs the same guard. */
   min-width: 0;
