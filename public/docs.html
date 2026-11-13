@@ -414,6 +414,21 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
         }
       }
 
+      // Scrolling is coalesced to one call per frame: the handler is passive and only marks
+      // the frame dirty, so fast scroll events cannot queue up work.
+      let queued = false;
+      addEventListener(
+        "scroll",
+        () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(() => {
+            queued = false;
+            markActive();
+          });
+        },
+        { passive: true },
+      );
       addEventListener("resize", () => {
         measure();
         markActive();
