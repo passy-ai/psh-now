@@ -2599,7 +2599,11 @@ html[data-theme="dark"] .risk-high .risk-tag {
 }
 .footer-inner {
   margin: 0 auto;
-  max-width: 780px;
+  /* The same column as the header and the page: the footer used to stop at 780px, so its
+     first column started 90px right of everything above it and the page ended on a block
+     that looked like it belonged to another site. */
+  max-width: var(--page-max);
+  padding: 0 var(--page-pad);
   display: grid;
   grid-template-columns: 1fr;
   gap: 40px;
@@ -2657,7 +2661,8 @@ html[data-theme="dark"] .risk-high .risk-tag {
 }
 .footer-bottom {
   margin: 0 auto;
-  max-width: 780px;
+  max-width: var(--page-max);
+  padding: 0 var(--page-pad);
   margin-top: 40px;
   font-size: 12px;
   color: var(--muted-3);

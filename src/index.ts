@@ -7,7 +7,7 @@ import { mailTransport, warnIfUnconfigured } from "./services/mail";
 import { pageHtml } from "./lib/pages";
 import { marketingPage, prebuildPages } from "./lib/static";
 import { joinPrompt } from "./lib/prompt-templates";
-import { injectNoIndex } from "./lib/seo";
+import { canonicalPath, injectNoIndex } from "./lib/seo";
 import { HttpError } from "./lib/http";
 import { compressResponse } from "./lib/compress";
 import { minified } from "./lib/minify";
@@ -654,6 +654,22 @@ const claimedRoutes = new Set(app.routes.filter((r) => r.method === "GET").map((
 for (const rel of [...new Bun.Glob("**/*").scanSync({ cwd: "website" })].sort()) {
   const path = `/website/${rel}`;
   if (claimedRoutes.has(path)) continue;
+  // The `.html` files are sources, not addresses: each indexed one already has a clean
+  // route (`/notch`, `/docs`). Serving the file as well made a second copy of the whole
+  // site under `/website/`, and that copy's relative links resolve *inside* `/website/`:
+  // from `/website/index.html` the footer's `./llms.txt` asks for `/website/llms.txt`,
+  // which does not exist. Redirecting means nobody lands on the copy, and a crawler that
+  // finds it is pointed at the page it duplicates instead of indexing both.
+  const canonical = canonicalPath(rel);
+  if (rel.endsWith(".html") && canonical) {
+    app.get(path, ({ set }) => {
+      set.status = 301;
+      set.headers.location = canonical;
+      return "";
+    });
+    claimedRoutes.add(path);
+    continue;
+  }
   app.get(path, () => serveAsset(`website/${rel}`));
   claimedRoutes.add(path);
 }
