@@ -353,50 +353,79 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
         .map((link) => ({ link, el: document.querySelector(link.hash) }))
         .filter((s) => s.el);
 
+      // The sticky header, plus whatever the sticky chip row adds on a phone, plus a line
+      // of air: derived from CSS so the two cannot drift apart. Resolved once - it is a
+      // style computation, and repeating it on every scroll frame was part of the cost.
+      let offset = 0;
+
+      // Everything about the sidebar's own scroll geometry: whether it scrolls at all, and
+      // where each chip starts. None of it changes while the page scrolls - only on resize -
+      // so reading it per frame was a forced synchronous layout on every animation frame.
+      let side = null;
+      let sideScrolls = false;
+      let chipLeft = [];
+
+      function measure() {
+        offset = sections.length
+          ? (parseFloat(getComputedStyle(sections[0].el).scrollMarginTop) || 96) + 24
+          : 0;
+        side = document.querySelector(".docs-side");
+        if (!side) return;
+        sideScrolls = side.scrollWidth > side.clientWidth + 1;
+        chipLeft = sections.map((s) => s.link.offsetLeft);
+      }
+
+      // One read pass, then one write pass. Reading layout after writing classes is what
+      // makes a browser lay the page out again mid-frame; separating the two is the fix.
       function markActive() {
         if (!sections.length) return;
-        // The sticky header, plus whatever the sticky chip row adds on a phone, plus a
-        // line of air: derived from CSS so the two cannot drift apart.
-        const offset = (parseFloat(getComputedStyle(sections[0].el).scrollMarginTop) || 96) + 24;
-        let current = sections[0];
-        for (const s of sections) {
-          if (s.el.getBoundingClientRect().top <= offset) current = s;
-        }
+
+        // reads
+        const tops = sections.map((s) => s.el.getBoundingClientRect().top);
+        const atBottom = innerHeight + scrollY >= document.body.scrollHeight - 4;
+        const sideLeft = side ? side.scrollLeft : 0;
+        const sideWidth = side ? side.clientWidth : 0;
+
+        // decisions
+        let index = 0;
+        for (let i = 0; i < tops.length; i++) if (tops[i] <= offset) index = i;
         // The last section can be too short to ever reach the offset; at the bottom, it wins.
-        if (innerHeight + scrollY >= document.body.scrollHeight - 4) {
-          current = sections[sections.length - 1];
-        }
-        for (const s of sections) s.link.classList.toggle("active", s === current);
-        // Phone layout turns the sidebar into one scrollable row: the active chip has to
-        // be reachable without hunting for it. Setting scrollLeft, never scrollIntoView,
-        // so the page cannot scroll itself into a loop.
-        const side = document.querySelector(".docs-side");
-        if (side.scrollWidth > side.clientWidth + 1) {
-          const left = current.link.offsetLeft - 24;
+        if (atBottom) index = sections.length - 1;
+        const current = sections[index];
+
+        let target = null;
+        if (sideScrolls) {
+          const left = chipLeft[index] - 24;
           const right = left + current.link.offsetWidth + 48;
-          if (left < side.scrollLeft) side.scrollLeft = left;
-          else if (right > side.scrollLeft + side.clientWidth) side.scrollLeft = right - side.clientWidth;
+          if (left < sideLeft) target = left;
+          else if (right > sideLeft + sideWidth) target = right - sideWidth;
         }
+
+        // writes
+        for (let i = 0; i < sections.length; i++) {
+          sections[i].link.classList.toggle("active", sections[i] === current);
+        }
+        // Phone layout turns the sidebar into one scrollable row: the active chip has to be
+        // reachable without hunting for it. Setting scrollLeft, never scrollIntoView, so the
+        // page cannot scroll itself into a loop.
+        if (target !== null) side.scrollLeft = target;
         if (location.hash !== current.link.hash) {
           history.replaceState(null, "", current.link.hash);
         }
       }
 
-      let queued = false;
-      addEventListener(
-        "scroll",
-        () => {
-          if (queued) return;
-          queued = true;
-          requestAnimationFrame(() => {
-            queued = false;
-            markActive();
-          });
-        },
-        { passive: true },
-      );
-      addEventListener("resize", markActive);
-      markActive();
+      addEventListener("resize", () => {
+        measure();
+        markActive();
+      });
+      // After the first paint, not during script execution: at this point the copy buttons
+      // have just been inserted, so the document is dirty and any layout read here forces a
+      // synchronous layout pass. Waiting a frame lets the browser do its own layout first,
+      // and the read then finds it clean.
+      requestAnimationFrame(() => {
+        measure();
+        markActive();
+      });
 
       function toast(m) {
         const el = document.getElementById("toast");
