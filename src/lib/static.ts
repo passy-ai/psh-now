@@ -18,7 +18,7 @@
  * the machine holding the files. Both are settled at boot, on the host that serves them.
  */
 import { builtHtml } from "./pages";
-import { canonicalPath, injectSeo, PAGE_FILES, rewriteRelative } from "./seo";
+import { canonicalPath, injectSeo, markCurrentPage, PAGE_FILES, rewriteRelative } from "./seo";
 
 /**
  * A page from the table, built the way its route builds it.
@@ -31,9 +31,12 @@ function build(file: string): Promise<string> {
   return builtHtml(file, (html) => {
     const rel = file.replace(/^(website|public)\//, "");
     const canonical = canonicalPath(rel) ?? `/${rel.replace(/\.html$/, "")}`;
+    // The nav marker is derived from the page's own address, so it cannot drift out of
+    // step with the bar the way a hand-written attribute did.
+    const marked = markCurrentPage(html, canonical);
     return file.startsWith("website/")
-      ? injectSeo(rewriteRelative(html), canonical)
-      : injectSeo(html, canonical);
+      ? injectSeo(rewriteRelative(marked), canonical)
+      : injectSeo(marked, canonical);
   });
 }
 

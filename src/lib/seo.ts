@@ -177,6 +177,58 @@ function softwareLd(html: string): Record<string, unknown> {
   };
 }
 
+/**
+ * Mark the navbar link for the page being built.
+ *
+ * The attribute was written by hand into each page and drifted the way hand-written
+ * lists do: five pages had none, so their navbar had nothing to embolden, and a new
+ * page got a bold link only if its author remembered. `/pricing` and `/self-hosting`
+ * were both in that state even though Pricing is a page the bar links past.
+ *
+ * The rule is mechanical, so it is applied mechanically. The longest nav prefix the
+ * page sits under wins, which makes `/agents/cursor` mark "Agents" and `/pricing`
+ * mark "Pricing". Only the nav is touched: the same `.nav-link` class is used by the
+ * "Log in" control in the header's right-hand group, which is not a page marker.
+ *
+ * `aria-current` rather than a bare class, because that is the accessible answer too -
+ * a screen reader announces "current page" - and the CSS hangs the weight off the one
+ * attribute, so the bold state and the announced state cannot disagree.
+ */
+export function markCurrentPage(html: string, path: string): string {
+  const found = /<nav\s+class="header-nav"[^>]*>([\s\S]*?)<\/nav>/.exec(html);
+  const whole = found?.[0];
+  const inner = found?.[1];
+  if (whole === undefined || inner === undefined) return html;
+
+  // Whole segments only, so "/agents" cannot match "/agentsomething". A page with no
+  // nav item of its own can name the one it belongs under: self-hosting is part of the
+  // documentation and is reached from it, so it marks Docs rather than nothing.
+  const marks: Record<string, string> = { "/self-hosting": "/docs" };
+  const under = (href: string): boolean =>
+    href.startsWith("/") &&
+    (path === href || path.startsWith(href.endsWith("/") ? href : `${href}/`));
+  const owner = marks[path] ?? "";
+
+  let best = "";
+  for (const [, href] of inner.matchAll(/<a\s+class="nav-link"\s+href="([^"]+)"/g)) {
+    if (href === undefined) continue;
+    const hit = owner ? href === owner : under(href);
+    if (hit && href.length > best.length) best = href;
+  }
+
+  const marked = inner.replace(
+    /<a\s+class="nav-link"\s+href="([^"]+)"([^>]*)>/g,
+    (_tag: string, href: string, rest: string) => {
+      const clean = rest.replace(/\s*aria-current="[^"]*"/, "");
+      // One current link per page: a stale attribute on another link is removed.
+      if (href !== best) return `<a class="nav-link" href="${href}"${clean}>`;
+      return `<a class="nav-link" href="${href}" aria-current="page"${clean}>`;
+    },
+  );
+
+  return html.replace(whole, whole.replace(inner, marked));
+}
+
 /** Insert the generated tags into a page's head. */
 export function injectSeo(html: string, path: string, robots?: string): string {
   if (!html.includes("</head>")) return html;

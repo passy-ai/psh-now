@@ -32,14 +32,14 @@
 /**
  * The menu button, for a bar that has room for none of the links.
  *
- * `@media (min-width: 780px)` is where six links and a brand fit, so below that the CSS
+ * `@media (min-width: 820px)` is where seven links and a brand fit, so below that the CSS
  * hides every `.nav-link` and the header keeps only the brand and the call to action.
  * On a phone that left no way to reach Docs, Agents or Teams from the bar at all, which
  * is what makes a header look broken. This adds the button and the panel.
  *
  * Built here rather than written into 21 pages: there is one header, and a menu that is
  * markup cannot be opened by CSS alone (`:focus-within` closes the moment you press a
- * key, and `:target` needs a link in the page). The button is hidden by CSS above 780px,
+ * key, and `:target` needs a link in the page). The button is hidden by CSS above 820px,
  * so a page whose script never runs simply has the header it has today.
  */
 (function () {

@@ -254,11 +254,13 @@ button {
   color: var(--fg);
   font-weight: 600;
 }
-/* Six links plus the brand needs the room: below this the middle of the bar folds into
-   a menu button and "Log in" and "Get started", which is what a phone-width header has
-   anyway. viewer.js builds the button and the panel; the button is hidden here so a
-   page whose script did not run keeps exactly the header it has today. */
-@media (min-width: 780px) {
+/* Seven links plus the brand needs the room: below this the middle of the bar folds
+   into a menu button and "Log in" and "Get started", which is what a phone-width header
+   has anyway. viewer.js builds the button and the panel; the button is hidden here so a
+   page whose script did not run keeps exactly the header it has today.
+   820 rather than 780 because Pricing made the row longer: at 780 the seven links ended
+   flush against "Log in" with no gap at all, measured, not guessed. */
+@media (min-width: 820px) {
   .nav-link {
     display: block;
   }
@@ -319,7 +321,7 @@ button {
   font-weight: 600;
 }
 /* Only a phone needs any of it. */
-@media (max-width: 779px) {
+@media (max-width: 819px) {
   .nav-toggle {
     display: inline-flex;
   }
