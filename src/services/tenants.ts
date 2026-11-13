@@ -108,6 +108,10 @@ export async function claimTenant(
     })
     .where(eq(tenants.id, tenantId))
     .returning();
+  // Registering changes the plan, the allowance and the top-up ceiling. Without
+  // this the dashboard re-reads a cached tenant and keeps showing "Anonymous" with
+  // the anonymous numbers for up to the memo TTL, right after the success toast.
+  if (tenant) forget("keyauth:");
   return tenant ?? null;
 }
 

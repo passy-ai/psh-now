@@ -57,6 +57,7 @@
           </a>
           <nav class="header-nav" aria-label="Main">
             <a class="nav-link" href="/docs" aria-current="page">Docs</a>
+            <a class="nav-link" href="/notch">Notch</a>
             <a class="nav-link" href="/agents">Agents</a>
             <a class="nav-link" href="/teams">Teams</a>
             <a class="nav-link" href="/alternatives">Alternatives</a>
@@ -230,7 +231,8 @@ If not, do this instead: curl -fsSL https://psh.now/install.sh</pre>
           Your <strong>account key</strong> is your login: it signs you in at
           <code>/app?key=…</code> and it is the identity an anonymous workspace uses.
           <strong>Claim account</strong> with an email to keep it, sign in from any
-          device, and extend history from 7 days to 30.
+          device, raise the allowance from 20 requests to 100, and extend history from
+          7 days to 30.
         </p>
         <p>
           Out of requests? <strong>Top up</strong> from the dashboard: 100 for €1, then
@@ -275,8 +277,8 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           an agent that ignores it. The harness hook is the gate.</p>
         <h2 id="limits">Limits</h2>
         <ul>
-          <li><strong>Anonymous</strong> - 100 requests total, 7-day history.</li>
-          <li><strong>Claimed</strong> (email) - the same 100 requests, 30-day history.</li>
+          <li><strong>Anonymous</strong> - 20 requests total, 7-day history.</li>
+          <li><strong>Claimed</strong> (email) - 100 requests total, 30-day history.</li>
           <li><strong>Prepaid</strong>: packs on top of the allowance, 90-day history.</li>
         </ul>
         <p>One approval costs 2 requests (inbound + outbound).</p>

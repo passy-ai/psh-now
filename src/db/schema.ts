@@ -114,9 +114,9 @@ export const tenants = pgTable(
     freePackAt: timestamp("free_pack_at", { withTimezone: true }),
     /**
      * How many times this workspace has taken a free +20 top-up. One counter, not
-     * two, so claiming does not reset it: an anonymous workspace gets one grant,
-     * a claimed one gets twenty, and the grant already taken in anon mode counts
-     * against that twenty rather than being forgotten.
+     * two, so registering does not reset it: an anonymous workspace gets one grant,
+     * a registered one gets ten in total, and the grant already taken in anon mode
+     * counts against those ten rather than being forgotten.
      */
     freeTopUps: integer("free_top_ups").notNull().default(0),
     /** When the most recent free +20 top-up was taken; null = never. */

@@ -62,12 +62,12 @@ export const env = (() => {
     /** How long a claim code stays valid. */
     claimTtlMs: int("CLAIM_TTL_MS", 15 * 60 * 1000),
     /**
-     * The free ladder, in requests (one approval = two requests). One allowance for
-     * everyone: registering opens the dashboard, it does not buy capacity. Lower it
-     * to reach the wall quickly while testing: the dashboard meter, the limit
-     * message and the top-up path all follow whatever is set here.
+     * The free ladder, in requests (one approval = two requests). An anonymous
+     * workspace gets 20 before it has to register; registering raises it to 100.
+     * Lower either to reach the wall quickly while testing: the dashboard meter,
+     * the limit message and the top-up path all follow whatever is set here.
      */
-    freeRequests: int("PSH_FREE_REQUESTS", 100),
+    freeRequests: int("PSH_FREE_REQUESTS", 20),
     claimedRequests: int("PSH_CLAIMED_REQUESTS", 100),
     /**
      * Requests one workspace may add for nothing while no payment provider is

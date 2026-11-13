@@ -566,8 +566,8 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
    *
    * Denominations are deliberately odd (twenty, not the hundred of a pack) so the
    * balance itself records how it got there. A workspace may take it once while
-   * anonymous and twenty times in total once claimed; the counter is shared, so
-   * claiming does not hand out a second allowance.
+   * anonymous and ten times in total once registered; the counter is shared, so
+   * registering does not hand out a second allowance.
    *
    * Refusals are 409 with the real numbers rather than a silent no-op: this is the
    * one free path in the product, and "it stopped working" with no reason is how a

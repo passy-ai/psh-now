@@ -27,13 +27,13 @@ group by t.id, t.email, t.free_top_ups, t.claimed_at, t.token_balance
 order by taken desc, last_topup desc;
 
 -- The number worth watching: how many workspaces stopped at 1 (tried it and left),
--- how many went all the way to the claimed ceiling of 20 (used the product enough to
+-- how many went all the way to the registered ceiling of 10 (used the product enough to
 -- exhaust every free grant), and everything between.
 select
   case
     when free_top_ups = 1 then '1 (anonymous only)'
-    when free_top_ups >= 20 then '20 (exhausted)'
-    else '2-19 (partial)'
+    when free_top_ups >= 10 then '10 (exhausted)'
+    else '2-9 (partial)'
   end                       as band,
   count(*)                  as workspaces,
   sum(free_top_ups * 20)    as requests_granted

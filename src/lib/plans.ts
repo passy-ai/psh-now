@@ -4,12 +4,12 @@
  * (100 for €1, 1,000 for €9, 10,000 for €50, 100,000 for €450, excl. VAT), not a
  * subscription.
  *
- * The free ladder: one allowance of 100 requests, **no daily cap**, the same
- * whether the workspace is anonymous or claimed - registering is what buys the
- * dashboard, shares and purchase powers, not a bigger allowance.
+ * The free ladder: 20 requests while anonymous and 100 once registered, **no daily
+ * cap**. Registering is what buys the bigger allowance, along with the dashboard,
+ * shares and purchase.
  *
  * On top of that sits a free top-up: +20 requests, taken silently, once while
- * anonymous and twenty times in total once claimed. See `TOPUP_LIMIT_ANON`.
+ * anonymous and ten times in total once registered. See `TOPUP_LIMIT_ANON`.
  */
 
 import { env } from "../env";
@@ -50,13 +50,13 @@ export const CLAIMED_REQUESTS = env.claimedRequests;
 /**
  * The free top-up: 20 requests, handed out silently.
  *
- * One counter per workspace, shared between the two states, so the ladder reads:
- * an anonymous workspace takes it once, and claiming raises the ceiling to twenty
- * *total* - the grant already taken while anonymous is part of that twenty, not a
- * separate allowance. The mechanic exists to keep someone from hitting a wall
- * before they have decided the product is worth paying for; it is deliberately
- * not advertised, because a visible button that says "free" is a button that gets
- * pressed until it stops working.
+ * One counter per workspace, shared between the two states, so the ladder reads: an
+ * anonymous workspace takes it once, and registering raises the ceiling to ten *in
+ * total* - the grant already taken while anonymous is part of those ten, not an extra
+ * one on top. The mechanic exists to keep someone from hitting a wall before they have
+ * decided the product is worth paying for; it is deliberately not advertised, because a
+ * visible "free" button with a remaining count is a button that gets pressed until it
+ * stops working.
  */
 export const TOPUP_REQUESTS = 20;
 
@@ -64,12 +64,12 @@ export const TOPUP_REQUESTS = 20;
 export const TOPUP_LIMIT_ANON = 1;
 
 /**
- * How many free top-ups a claimed workspace may take in total, counting any
- * already taken while anonymous. Claiming therefore adds nineteen, not twenty.
+ * How many free top-ups a registered workspace may take in total, counting any already
+ * taken while anonymous. Registering therefore adds nine, not ten.
  */
-export const TOPUP_LIMIT_CLAIMED = 20;
+export const TOPUP_LIMIT_CLAIMED = 10;
 
-/** The ceiling for a workspace, which moves the moment it is claimed. */
+/** The ceiling for a workspace, which moves the moment it is registered. */
 export function topUpLimit(claimed: boolean): number {
   return claimed ? TOPUP_LIMIT_CLAIMED : TOPUP_LIMIT_ANON;
 }
@@ -235,13 +235,17 @@ export function checkLimit(
       return { allowed: true, limit: plan.requestsTotal, used, via: "token", plan };
     }
     /**
-     * One message for both states now that the allowance is the same either way.
-     * It names no free top-up on purpose: the mechanic is silent, and a limit
-     * message that advertises "you can still get more for free" is the one place
-     * it would leak to every agent's terminal.
+     * The anonymous wall is the only one with a genuine next step that costs nothing,
+     * so it says so: registering raises the allowance to CLAIMED_REQUESTS. The
+     * registered wall names packs only, and neither message mentions the silent
+     * top-up - a limit message that advertises "you can still get more for free" is
+     * the one place the mechanic would leak into every agent's terminal.
      */
     const next = withLink(
-      `Free allowance reached (${plan.requestsTotal} requests). ${PACKS_LINE}`,
+      plan.id === "anonymous"
+        ? `Free allowance reached (${plan.requestsTotal} requests). ` +
+            `Register this workspace for ${CLAIMED_REQUESTS}. ${PACKS_LINE}`
+        : `Free allowance reached (${plan.requestsTotal} requests). ${PACKS_LINE}`,
     );
     return {
       allowed: false,

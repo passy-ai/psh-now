@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="psh.now pricing: 100 requests free, no account and no card, then prepaid packs from €1 for 100 requests. An approval costs two requests, reads are free, and self-hosting is MIT licensed."
+      content="psh.now pricing: 20 requests free with no account, 100 once registered, then prepaid packs from €1 for 100 requests. An approval costs two requests, reads are free, and self-hosting is MIT licensed."
     />
-    <title>Pricing: 100 free requests, then prepaid packs from €1 - psh.now</title>
+    <title>Pricing: 20 free requests, 100 registered, then packs from €1 - psh.now</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/website/fonts/inter-latin.woff2" crossorigin />
@@ -25,6 +25,7 @@
           </a>
           <nav class="header-nav" aria-label="Main">
             <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link" href="/notch">Notch</a>
             <a class="nav-link" href="/agents">Agents</a>
             <a class="nav-link" href="/teams">Teams</a>
             <a class="nav-link" href="/alternatives">Alternatives</a>
@@ -87,33 +88,38 @@
         </p>
 
         <h2 id="anonymous">Anonymous</h2>
-        <table class="cmp">
-          <tbody>
-            <tr><th scope="row">Price</th><td>€0</td></tr>
-            <tr><th scope="row">Account required</th><td>No</td></tr>
-            <tr><th scope="row">Requests</th><td>100 total, then register the workspace</td></tr>
-            <tr><th scope="row">History</th><td>7 days</td></tr>
-            <tr><th scope="row">Members</th><td>Unlimited</td></tr>
-            <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
-          </tbody>
-        </table>
+        <div class="cmp-wrap">
+          <table class="cmp">
+            <tbody>
+              <tr><th scope="row">Price</th><td>€0</td></tr>
+              <tr><th scope="row">Account required</th><td>No</td></tr>
+              <tr><th scope="row">Requests</th><td>20 total, then register the workspace</td></tr>
+              <tr><th scope="row">History</th><td>7 days</td></tr>
+              <tr><th scope="row">Members</th><td>Unlimited</td></tr>
+              <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p>
           Post a request, pair a device, answer it. No email and no card.
         </p>
 
         <h2 id="free">Free, registered</h2>
-        <table class="cmp">
-          <tbody>
-            <tr><th scope="row">Price</th><td>€0</td></tr>
-            <tr><th scope="row">Requests</th><td>100 total, the same allowance as anonymous</td></tr>
-            <tr><th scope="row">History</th><td>30 days</td></tr>
-            <tr><th scope="row">Members</th><td>Unlimited</td></tr>
-            <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
-          </tbody>
-        </table>
+        <div class="cmp-wrap">
+          <table class="cmp">
+            <tbody>
+              <tr><th scope="row">Price</th><td>€0</td></tr>
+              <tr><th scope="row">Requests</th><td>100 total, five times the anonymous allowance</td></tr>
+              <tr><th scope="row">History</th><td>30 days</td></tr>
+              <tr><th scope="row">Members</th><td>Unlimited</td></tr>
+              <tr><th scope="row">Devices and connections</th><td>Unlimited</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p>
-          Registering does not buy capacity. It keeps the workspace, extends history to 30
-          days and opens the dashboard, shares and purchase.
+          Registering multiplies the allowance five times over: 20 requests becomes 100,
+          and history goes from 7 days to 30. It also keeps the workspace and opens the
+          dashboard, shares and purchase.
         </p>
         <p>
           Past the allowance, a registered account buys a prepaid pack. The free road ends
@@ -125,17 +131,19 @@
           One-time purchase, no subscription. Packs stack and do not expire. With a token
           balance the history window is 90 days.
         </p>
-        <table class="cmp">
-          <thead>
-            <tr><th scope="col">Requests</th><th scope="col">Price, excl. VAT</th></tr>
-          </thead>
-          <tbody>
-            <tr><th scope="row">100</th><td>€1</td></tr>
-            <tr><th scope="row">1,000</th><td>€9</td></tr>
-            <tr><th scope="row">10,000</th><td>€50</td></tr>
-            <tr><th scope="row">100,000</th><td>€450</td></tr>
-          </tbody>
-        </table>
+        <div class="cmp-wrap">
+          <table class="cmp">
+            <thead>
+              <tr><th scope="col">Requests</th><th scope="col">Price, excl. VAT</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">100</th><td>€1</td></tr>
+              <tr><th scope="row">1,000</th><td>€9</td></tr>
+              <tr><th scope="row">10,000</th><td>€50</td></tr>
+              <tr><th scope="row">100,000</th><td>€450</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p>
           Buy them from the <a href="/app">dashboard</a>. VAT is added at checkout, and
           the invoice can carry company details.

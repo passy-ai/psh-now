@@ -37,8 +37,8 @@ costs nothing.
 - History: **30 days**
 - Members: unlimited
 - Devices and connections: unlimited
-- Notes: a registered account can also take the €1 entry pack once for nothing,
-  which is another 100 requests. The whole free road is 200 requests.
+- Notes: registering takes the allowance from 20 requests to 100. Past that, a
+  prepaid pack.
 
 ## Prepaid packs
 
