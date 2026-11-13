@@ -40,7 +40,13 @@ EXPOSE 3000
 
 # Apply migrations on boot, then run the gateway. Postgres may still be starting,
 # so retry before giving up rather than exiting on the first refusal.
-CMD ["sh", "-c", "for i in 1 2 3 4 5 6 7 8 9 10; do bun src/db/migrate.ts && break; echo \"migrate retry $i…\"; sleep 2; done; exec bun src/index.ts"]
+#
+# `|| exit 1` after the loop is load-bearing: this used to fall through to `exec` after
+# ten failed attempts, so a host came up serving a schema the code had already moved past
+# - every route touching the missing column answered 500 while the deploy reported
+# success. Refusing to start is the loud failure, and it leaves the previous container
+# serving instead of replacing it with a broken one.
+CMD ["sh", "-c", "for i in 1 2 3 4 5 6 7 8 9 10; do bun src/db/migrate.ts && exec bun src/index.ts; echo \"migrate retry $i…\"; sleep 2; done; echo 'migrations did not apply after 10 attempts; refusing to start'; exit 1"]
 
 # Probe loopback by address, not by name. Inside the alpine runtime the `bun -e`
 # probe did not resolve `localhost`, so the healthcheck failed while the server

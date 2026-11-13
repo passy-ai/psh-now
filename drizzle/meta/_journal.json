@@ -15,6 +15,13 @@
       "when": 1794578485051,
       "tag": "0001_free_topups",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794582621475,
+      "tag": "0002_free_topups_reapply",
+      "breakpoints": true
     }
   ]
 }
