@@ -75,7 +75,11 @@
   --btn-soft-bg: #e4e4e7;
   --btn-soft-hover: #d4d4d8;
 
-  --header-bg: rgba(255, 255, 255, 0.7);
+  /* 0.86 rather than 0.7: at 0.7 the body text behind the sticky bar stayed legible
+     through it, so scrolling the docs left a ghost of the paragraph floating above the
+     wordmark. The blur is what carries the sense of depth; the opacity is what has to
+     stop the text reading as part of the header. */
+  --header-bg: rgba(255, 255, 255, 0.86);
 
   --chat-bg: #27272a;
   --chat-bubble: #3f3f46;
@@ -110,7 +114,7 @@ html[data-theme="dark"] {
     --btn-soft-bg: #27272a;
     --btn-soft-hover: #3f3f46;
 
-    --header-bg: rgba(19, 19, 22, 0.7);
+    --header-bg: rgba(19, 19, 22, 0.86);
     color-scheme: dark;
 }
 html[data-theme="dark"] .invert-on-dark {
@@ -250,11 +254,74 @@ button {
   color: var(--fg);
   font-weight: 600;
 }
-/* Six links plus the brand needs the room: below this the middle of the bar folds
-   into "Log in" and "Get started", which is what a phone-width header has anyway. */
+/* Six links plus the brand needs the room: below this the middle of the bar folds into
+   a menu button and "Log in" and "Get started", which is what a phone-width header has
+   anyway. viewer.js builds the button and the panel; the button is hidden here so a
+   page whose script did not run keeps exactly the header it has today. */
 @media (min-width: 780px) {
   .nav-link {
     display: block;
+  }
+}
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-right: 4px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+.nav-toggle:hover {
+  background: #f5f7fa;
+}
+.nav-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+.nav-toggle[aria-expanded="true"] {
+  background: #eef2f8;
+}
+.nav-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 41;
+  padding: 6px var(--page-pad) 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  box-shadow: 0 10px 24px rgb(9 9 11 / 6%);
+}
+.nav-panel[hidden] {
+  display: none;
+}
+.nav-panel a {
+  display: block;
+  padding: 11px 2px;
+  font-size: 15px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border-2);
+}
+.nav-panel a:last-child {
+  border-bottom: 0;
+}
+.nav-panel a:hover {
+  color: var(--fg);
+}
+.nav-panel a[aria-current="page"] {
+  color: var(--fg);
+  font-weight: 600;
+}
+/* Only a phone needs any of it. */
+@media (max-width: 779px) {
+  .nav-toggle {
+    display: inline-flex;
   }
 }
 
@@ -2783,6 +2850,9 @@ html[data-theme="dark"] .risk-high .risk-tag {
   max-width: var(--page-max);
   margin: 0 auto;
   padding: 28px var(--page-pad) 96px;
+  /* `minmax(0, 1fr)` fixes the main column; the side column is a fixed 196px and the
+     sidebar itself can overflow, so it needs the same guard. */
+  min-width: 0;
 }
 .docs-side {
   position: sticky;
@@ -2916,6 +2986,12 @@ html[data-theme="dark"] .risk-high .risk-tag {
   font-family: var(--mono);
   font-size: 0.88em;
   color: var(--fg);
+  /* A response shape like {"approved":bool,"status":"approved"} is one unbreakable
+     token 683px wide, and inline code does not wrap at all by default. On a phone that
+     made the whole document scroll sideways, which is what "the navbar is broken" looks
+     like when the header slides off with the page. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .docs-main pre {
   position: relative;
@@ -2981,6 +3057,11 @@ pre:hover .pre-copy,
     background: #fff;
     border-bottom: 1px solid var(--border-2);
     scrollbar-width: none;
+    /* A grid column does not shrink below its content unless told to. The chip row is
+       1508px of links, so without these two lines it stretched the page instead of
+       scrolling inside its own box. */
+    min-width: 0;
+    max-width: 100%;
   }
   .docs-side::-webkit-scrollbar {
     display: none;
