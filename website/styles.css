@@ -2871,6 +2871,14 @@ html[data-theme="dark"] .risk-high .risk-tag {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  /* A column taller than the window cannot be reached: sticky pins its top, so the
+     links at the bottom stay below the fold however far the page scrolls. On a 600px
+     window the last three sat at y=584-644 and only appeared at the very bottom of the
+     page. Capping it to the visible area and scrolling inside it keeps every entry
+     reachable at any height, without changing the layout on a tall window. */
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .docs-group {
   margin: 22px 0 8px;
@@ -3073,6 +3081,9 @@ pre:hover .pre-copy,
        scrolling inside its own box. */
     min-width: 0;
     max-width: 100%;
+    /* The cap above is for the desktop column; a one-line chip row never needs it,
+       and it must not grow a second scrollbar. */
+    max-height: none;
   }
   .docs-side::-webkit-scrollbar {
     display: none;
