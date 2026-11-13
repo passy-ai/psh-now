@@ -49,7 +49,10 @@
                 '<div class="act ok">' + svg(ICONS.ok) + '<span class="k">&#8984;L</span></div>' +
               '</div>' +
               '<div class="notch-comment">' +
-                '<input class="notch-field" type="text" placeholder="Add a comment…" aria-label="Add a comment" />' +
+                // tabindex="-1": the whole panel is aria-hidden, and a focusable control inside an
+                  // aria-hidden subtree is a trap - a keyboard lands on something a screen reader
+                  // will not announce. The field is part of the animation, not a real input.
+                  '<input class="notch-field" type="text" tabindex="-1" placeholder="Add a comment…" aria-label="Add a comment" />' +
                 '<div class="notch-send" aria-hidden="true">' + svg(ICONS.send) + '</div>' +
               '</div>' +
             '</div>' +
