@@ -33,9 +33,13 @@
 
   --bg: #ffffff;
   --fg: #09090b;
-  --muted: #52525b;
-  --muted-2: #71717a;
-  --muted-3: #a1a1aa;
+  /* Three tiers of secondary text, all at or above WCAG AA on white: the
+     lightest (#71717a, 4.83:1) is the floor, so no small text on this
+     site falls under it. The previous lightest tier was #a1a1aa at
+     2.56:1, which failed the contrast audit on every page. */
+  --muted: #3f3f46;
+  --muted-2: #52525b;
+  --muted-3: #71717a;
   --border: #e4e4e7;
   --border-2: #f4f4f5;
   --card: #ffffff;
@@ -65,8 +69,8 @@
   --btn-outline-border: #d4d4d8;
   /* One accent, spent only on the primary action: the page is otherwise ink on paper,
      so a single blue does the pointing. */
-  --accent: #2f6bff;
-  --accent-hover: #2259e6;
+  --accent: #2a63ef;
+  --accent-hover: #1f4fd0;
   /* A soft grey pill for the hero's copy button, see .copy-prompt. */
   --btn-soft-bg: #e4e4e7;
   --btn-soft-hover: #d4d4d8;
@@ -1219,14 +1223,14 @@ main {
   border-bottom: 1px solid #27272a;
   font-family: var(--mono);
   font-size: 11px;
-  color: #a1a1aa;
+  color: var(--muted-3);
 }
 .hb-body {
   padding: 16px;
   font-family: var(--mono);
   font-size: 12px;
   line-height: 1.65;
-  color: #a1a1aa;
+  color: var(--muted-3);
 }
 .hb-task {
   color: #f4f4f5;
@@ -2621,17 +2625,24 @@ html[data-theme="dark"] .risk-high .risk-tag {
   font-size: 13px;
   color: var(--muted-2);
 }
-.footer-col h4 {
+.footer-col h2,
+.footer-col-head {
   margin: 0 0 12px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: var(--muted-3);
+  color: var(--muted-2);
 }
 .footer-col a {
   display: block;
-  margin-bottom: 8px;
+  /* 24px of vertical pitch, not 8px of margin: a 13px link plus 8px of gap is 23.5px tall
+     on a phone, and Lighthouse's target-size audit fails a tap target under 24px. The
+     padding is what makes the tap area the size of the row instead of the size of the
+     glyphs. */
+  padding: 4px 0;
+  margin-bottom: 1px;
   font-size: 13px;
+  line-height: 16px;
   color: var(--muted);
 }
 .footer-col a:hover {
@@ -2853,13 +2864,16 @@ html[data-theme="dark"] .risk-high .risk-tag {
   color: var(--fg);
   font-weight: 600;
 }
-.docs-main a {
+/* Prose links are ink with a hairline; a button inside prose is still a button, so the
+   button modifiers are excluded - otherwise `.docs-main a` (0,2,0) beats `.btn-primary`
+   (0,1,0) and the primary button renders near-black text on the accent instead of white. */
+.docs-main a:not(.btn) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--border);
   text-underline-offset: 2px;
 }
-.docs-main a:hover {
+.docs-main a:not(.btn):hover {
   text-decoration-color: var(--accent);
 }
 .docs-main code {
@@ -3161,7 +3175,7 @@ pre:hover .pre-copy,
   border-bottom: 1px solid var(--border-2);
 }
 .cmp thead th:first-child,
-.cmp tbody td:first-child {
+.cmp tbody th:first-child {
   width: 22%;
 }
 .cmp thead th {
@@ -3183,10 +3197,11 @@ pre:hover .pre-copy,
 .cmp thead th:last-child {
   border-top-right-radius: 16px;
 }
-.cmp tbody tr:last-child td {
+.cmp tbody tr:last-child td,
+.cmp tbody tr:last-child th {
   border-bottom: 0;
 }
-.cmp td:first-child {
+.cmp tbody th:first-child {
   font-weight: 500;
   color: var(--fg);
 }
@@ -3477,7 +3492,7 @@ pre:hover .pre-copy,
   color: var(--fg);
   font-weight: 600;
 }
-.prose a {
+.prose a:not(.btn) {
   color: var(--fg);
   text-decoration: underline;
   text-underline-offset: 2px;

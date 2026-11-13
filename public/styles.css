@@ -105,6 +105,13 @@ display: block;
 .muted {
 color: var(--dim);
 }
+/* A link inside muted text is only distinguished by colour, which the contrast audit
+   rejects (link-in-text-block) and a reader with low colour vision may miss. The
+   underline is the non-colour cue, and it costs nothing. */
+.muted a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 /* ---------- shell ---------- */
 
 .wrap {

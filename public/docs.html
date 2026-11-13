@@ -291,7 +291,7 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <p class="footer-tag">Approvals for agents, answered anywhere</p>
         </div>
         <div class="footer-col">
-          <h4>PRODUCT</h4>
+          <h2 class="footer-col-head">PRODUCT</h2>
           <a href="/docs">Docs</a>
           <a href="/agents">Agents</a>
           <a href="/teams">Teams</a>
@@ -301,18 +301,18 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
           <a href="/llms.txt">llms.txt</a>
         </div>
         <div class="footer-col">
-          <h4>OPEN SOURCE</h4>
+          <h2 class="footer-col-head">OPEN SOURCE</h2>
           <a href="https://github.com/passy-ai/psh-now" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://github.com/passy-ai/psh-now/releases" target="_blank" rel="noopener noreferrer">Releases</a>
           <a href="https://github.com/passy-ai/psh-now/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a>
         </div>
         <div class="footer-col">
-          <h4>LEGAL</h4>
+          <h2 class="footer-col-head">LEGAL</h2>
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>
         </div>
         <div class="footer-col">
-          <h4>COMPANY</h4>
+          <h2 class="footer-col-head">COMPANY</h2>
           <a href="https://absolum.nl">Absolum</a>
           <a href="mailto:push@passy.ai">Contact</a>
         </div>
@@ -327,6 +327,9 @@ curl -s "$POLL_URL?wait=30" -H "x-psh-key: psh_agent_…"</pre>
         pre.classList.add("copyable");
         const b = document.createElement("button");
         b.className = "pre-copy";
+        // The button is an icon only, so it needs a name of its own: without this
+        // Lighthouse reports "buttons do not have an accessible name" on /docs.
+        b.setAttribute("aria-label", "Copy to clipboard");
         b.innerHTML =
           '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
         b.onclick = () => copy(pre.textContent);

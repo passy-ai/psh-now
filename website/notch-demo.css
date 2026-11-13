@@ -101,7 +101,9 @@
     @media (prefers-reduced-motion: reduce) {
       .act.deny:hover svg, .act.answer:hover svg, .act.ok:hover svg { animation: none; }
     }
-    .act .k { position: absolute; right: 12px; bottom: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.38); }
+    /* 0.55 rather than 0.38: at 0.38 the shortcut hint renders around #727274 on the dark
+   panel, 3.5:1, which fails AA for 11px text. 0.55 is 5.97:1 and still reads as a hint. */
+.act .k { position: absolute; right: 12px; bottom: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.55); }
     .act.deny svg { color: #f87171; }
     .act.ok { background: rgba(74, 222, 128, 0.07); border-color: rgba(74, 222, 128, 0.5); }
     .act.ok svg { color: #4ade80; }
