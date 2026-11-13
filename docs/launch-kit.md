@@ -25,7 +25,7 @@ recognisable across listings, and it is what a model answering "what is psh.now?
 | Categories | Developer Tools · AI · Productivity · Open Source |
 | Tags | ai-agents, human-in-the-loop, approvals, agent-permissions, claude-code, codex, cursor, mcp, self-hosted, open-source, mit, bun |
 | Licence | MIT |
-| Pricing | Free to start (20 requests), 100 after claiming an account, prepaid packs from €1 |
+| Pricing | Free to start (100 requests), prepaid packs from €1 |
 | Website | https://psh.now |
 | Repository | https://github.com/passy-ai/psh-now |
 | Docs | https://psh.now/docs |

@@ -4,7 +4,7 @@ import { db } from "../db";
 import { auditLog, tenants } from "../db/schema";
 import { HttpError, badRequest, forbidden, notFound } from "../lib/http";
 import { requireTenantOrDevice } from "../lib/tenant-auth";
-import { TEST_PACK_ID, TOKEN_PACKAGES, pickTokenPackage } from "../lib/plans";
+import { TOKEN_PACKAGES, pickTokenPackage } from "../lib/plans";
 import { addTokens } from "../services/tenants";
 import {
   billingConfigured,
@@ -33,7 +33,7 @@ export const billingRoutes = new Elysia({ prefix: "/api/v1" })
       mode: billingMode(),
       free: !live,
       packs: TOKEN_PACKAGES.filter((p) =>
-        live ? p.priceEur > 0 && productFor(p.requests) : p.id !== TEST_PACK_ID,
+        live ? p.priceEur > 0 && productFor(p.requests) : true,
       ).map((p) => ({
         requests: p.requests,
         priceEur: p.priceEur,

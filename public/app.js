@@ -558,19 +558,24 @@ async function addRequests(count, btn) {
   }
 }
 /**
- * The pack menu. Prices come from the server so the surface cannot drift from what is
- * charged, and the entry pack reads as free while an account has not taken it yet.
+ * The top-up menu. Prices come from the server so the surface cannot drift from what is
+ * charged.
+ *
+ * The +20 sits in this list as a plain entry while any remain: no "free" wording, no
+ * counter, no explanation of the mechanic. It is meant to be found by running out, and a
+ * visible "free" button with a remaining-count next to it is a button that gets pressed
+ * until it stops working.
  */
 function renderPacks(me, ws) {
   const host = $("menuPacks");
   if (!host) return;
-  const freeAvailable = !!ws.claimed && !ws.freePackClaimed;
   const packs = me.packs || [];
+  const topUpsLeft = ws.freeTopUpsLeft || 0;
   /**
    * No packs and nothing left to give: say so. An empty menu is what made the button
    * look broken in the first place.
    */
-  if (!packs.length) {
+  if (!packs.length && !topUpsLeft) {
     const spent = me.directRemaining === 0;
     host.innerHTML = `<span class="menu-item muted" style="cursor:default">${icon("cart", 16)}${
       spent
@@ -579,36 +584,39 @@ function renderPacks(me, ws) {
     }</span>`;
     return;
   }
-  host.innerHTML = packs
-    .map((p) => {
-      const free = p.freeOnce && freeAvailable;
-      // `free` on a pack means no provider is live yet: the pack settles on the spot,
-      // so the label must not promise a checkout that does not exist.
-      const label = free
-        ? `Get ${p.requests.toLocaleString()} requests free`
-        : p.free
+  // The free top-up, listed first and described as nothing more than what it does.
+  const topUp = topUpsLeft
+    ? `<button class="menu-item" data-topup-free="1">${icon("cart", 16)}Add 20 requests</button>`
+    : "";
+  host.innerHTML =
+    topUp +
+    packs
+      .map((p) => {
+        // `free` on a pack means no provider is live yet: the pack settles on the spot,
+        // so the label must not promise a checkout that does not exist.
+        const label = p.free
           ? `Add ${p.requests.toLocaleString()} requests (free for now)`
           : p.priceEur > 0
             ? `Buy ${p.requests.toLocaleString()} requests (€${p.priceEur})`
             : `Get ${p.requests.toLocaleString()} requests (free)`;
-      return `<button class="menu-item" data-pack="${p.requests}" data-free="${free ? "1" : "0"}">${icon("cart", 16)}${label}</button>`;
-    })
-    .join("");
+        return `<button class="menu-item" data-pack="${p.requests}">${icon("cart", 16)}${label}</button>`;
+      })
+      .join("");
 }
 
-/** The one-per-account free entry pack. The server owns "once", so a refusal is final. */
-async function takeFreePack(btn) {
+/** The free +20. The server owns the ceiling, so a refusal is final and says why. */
+async function takeFreeTopUp(btn) {
   const original = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span>Adding requests…`;
   try {
     const data = await api("/api/v1/me/tokens/free", { method: "POST" });
-    toast(`${data.added.toLocaleString()} free requests added`);
+    toast(`${data.added.toLocaleString()} requests added`);
     await loadMenu();
     await loadApprovals();
     await loadAccount();
   } catch (err) {
-    toast(err.message || "Couldn't take the free pack");
+    toast(err.message || "Couldn't add requests");
   } finally {
     btn.disabled = false;
     btn.innerHTML = original;
@@ -616,10 +624,10 @@ async function takeFreePack(btn) {
 }
 
 $("menuPacks")?.addEventListener("click", (e) => {
-  const btn = e.target.closest?.("[data-pack]");
+  const btn = e.target.closest?.("[data-pack], [data-topup-free]");
   if (!btn) return;
   e.stopPropagation(); // keep the menu open so the new balance is visible
-  if (btn.dataset.free === "1") void takeFreePack(btn);
+  if (btn.dataset.topupFree === "1") void takeFreeTopUp(btn);
   else void addRequests(Number(btn.dataset.pack), btn);
 });
 $("menuRequests")?.addEventListener("click", () => {

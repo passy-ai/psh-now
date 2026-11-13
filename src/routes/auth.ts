@@ -8,7 +8,8 @@ import {
 import {
   addTokens,
   directGrantsUsed,
-  claimFreePack,
+  claimFreeTopUp,
+  recordFreeTopUp,
   adoptWorkspace,
   claimTenant,
   createSecretKey,
@@ -34,9 +35,10 @@ import {
   usageSince,
   REQUESTS_PER_APPROVAL,
   TOKEN_PACKAGES,
-  TEST_PACK_ID,
-  FREE_PACK,
-  FREE_PACK_ID,
+  TOPUP_REQUESTS,
+  TOPUP_LIMIT_ANON,
+  TOPUP_LIMIT_CLAIMED,
+  topUpLimit,
   pickTokenPackage,
 } from "../lib/plans";
 import { env } from "../env";
@@ -487,25 +489,17 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
       : Math.max(0, env.directTokensMax - (await directGrantsUsed(tenant.id)));
     return {
       /**
-       * What can be bought, so no surface has to hardcode a price. `freeOnce` marks
-       * the pack a claimed account may take once for nothing.
-       */
-      // The deployed host offers one thing only: the 20-request test pack. Everything else
-      // keeps the real packs, so the paid flow can be exercised without them being on offer
-      // publicly. This keys on the environment, not the caller's address: reached through a
-      // tunnel, a dev server looked remote and quietly offered the test pack alone.
-      /**
-       * With a live provider these are the packs that have a product id. Without one
-       * the same packs are given away - which is why they carry `free`: a surface must
-       * label them honestly instead of showing a price it cannot charge.
+       * What can be bought, so no surface has to hardcode a price. With a live
+       * provider these are the packs that have a product id; without one the same
+       * packs are given away, which is why they carry `free`: a surface must label
+       * them honestly instead of showing a price it cannot charge.
        */
       packs: TOKEN_PACKAGES.filter((p) =>
-        livePayments ? p.priceEur > 0 : p.id !== TEST_PACK_ID && p.requests <= freeLeft,
+        livePayments ? p.priceEur > 0 : p.requests <= freeLeft,
       ).map((p) => ({
         id: p.id,
         requests: p.requests,
         priceEur: p.priceEur,
-        freeOnce: p.id === FREE_PACK_ID,
         free: !livePayments,
       })),
       /** Free requests still available on this workspace; null once money is live. */
@@ -528,8 +522,13 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
         expiresAt: tenant.expiresAt,
         plan: tenant.plan,
         tokenBalance: tenant.tokenBalance,
-        /** False while the one-per-account free entry pack is still available. */
-        freePackClaimed: !!tenant.freePackAt,
+        /**
+         * How many free +20 top-ups are left. The dashboard uses it to decide
+         * whether the top-up button does anything; it is never rendered as a
+         * countdown, because the mechanic is meant to be found by running out,
+         * not advertised.
+         */
+        freeTopUpsLeft: Math.max(0, topUpLimit(!!tenant.claimedAt) - tenant.freeTopUps),
       },
       /** The channel this key routes to - null for the account key. */
       channelName: channel?.name ?? null,
@@ -563,25 +562,44 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
   })
 
   /**
- * The one-per-account free entry pack: 100 requests, no card. It exists so a claimed
- * workspace can watch the paid flow work before paying anything, so it is deliberately
- * an account power, an anonymous workspace claims first, and claiming is free too.
- */
-.post("/me/tokens/free", async ({ request }) => {
-  const { tenant } = await requireTenantOrDevice(request.headers);
-  if (!tenant.claimedAt) {
-    throw forbidden("Register this workspace to take the free pack");
-  }
-  const { claimed, balance } = await claimFreePack(tenant.id, FREE_PACK.requests);
-  if (!claimed) {
-    throw conflict("The free pack has already been taken on this account");
-  }
-  return {
-    added: FREE_PACK.requests,
-    tokenBalance: balance,
-    freePackClaimed: true,
-  };
-})
+   * The free top-up: 20 requests, no card, no checkout, no visible price.
+   *
+   * Denominations are deliberately odd (twenty, not the hundred of a pack) so the
+   * balance itself records how it got there. A workspace may take it once while
+   * anonymous and twenty times in total once claimed; the counter is shared, so
+   * claiming does not hand out a second allowance.
+   *
+   * Refusals are 409 with the real numbers rather than a silent no-op: this is the
+   * one free path in the product, and "it stopped working" with no reason is how a
+   * legitimately out-of-requests human concludes the product is broken.
+   */
+  .post("/me/tokens/free", async ({ request }) => {
+    const { tenant } = await requireTenantOrDevice(request.headers);
+    const claimed = !!tenant.claimedAt;
+    const limit = topUpLimit(claimed);
+    const { granted, balance, taken } = await claimFreeTopUp(
+      tenant.id,
+      TOPUP_REQUESTS,
+      TOPUP_LIMIT_ANON,
+      TOPUP_LIMIT_CLAIMED,
+    );
+    if (!granted) {
+      throw conflict(
+        claimed
+          ? `All ${limit} free top-ups have been taken on this account`
+          : `The free top-up has already been taken once. Register this workspace for ${TOPUP_LIMIT_CLAIMED} in total.`,
+      );
+    }
+    await recordFreeTopUp(tenant.id, TOPUP_REQUESTS, taken, limit, balance, claimed);
+    return {
+      added: TOPUP_REQUESTS,
+      tokenBalance: balance,
+      /** How many of the ceiling are now used, so the dashboard can stop offering it. */
+      freeTopUps: taken,
+      freeTopUpLimit: limit,
+      freeTopUpsLeft: Math.max(0, limit - taken),
+    };
+  })
 
 /** Public health probe. */
   .get("/health", () => ({ ok: true, ts: new Date().toISOString() }))

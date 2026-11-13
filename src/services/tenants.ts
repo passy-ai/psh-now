@@ -163,29 +163,102 @@ export async function addTokens(
 }
 
 /**
- * Grant the one-per-account free entry pack. The stamp and the grant are a single
- * statement conditional on the stamp still being null, so a double click cannot take
- * it twice and there is no read-then-write window to lose a race in.
+ * Grant one free +20 top-up, up to the workspace's ceiling.
+ *
+ * The counter increment and the balance increase are **one** statement, conditional
+ * on the counter still being below the ceiling. That is what makes ten clicks and ten
+ * concurrent requests the same thing: the row is only updated by the request that
+ * finds the counter under the limit, so there is no read-then-write window in which
+ * two requests both see the same number. The ceiling is read from the tenant in the
+ * same statement through a CASE, so a workspace claimed a millisecond ago gets the
+ * claimed ceiling and not the anonymous one.
+ *
+ * Returns `taken` (how many were already used) either way, so a refusal can say
+ * something true about where the limit is.
  */
-export async function claimFreePack(
+export async function claimFreeTopUp(
   tenantId: string,
   count: number,
-): Promise<{ claimed: boolean; balance: number }> {
+  anonLimit: number,
+  claimedLimit: number,
+): Promise<{ granted: boolean; balance: number; taken: number; limit: number }> {
   const [row] = await db
     .update(tenants)
     .set({
       tokenBalance: sql`${tenants.tokenBalance} + ${count}`,
-      freePackAt: new Date(),
+      freeTopUps: sql`${tenants.freeTopUps} + 1`,
+      freeTopUpAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(and(eq(tenants.id, tenantId), isNull(tenants.freePackAt)))
-    .returning({ balance: tenants.tokenBalance });
-  if (row) return { claimed: true, balance: row.balance };
+    .where(
+      and(
+        eq(tenants.id, tenantId),
+        // The `::int` casts are load-bearing: bound parameters arrive untyped, and
+        // Postgres cannot infer a type for a bare `$n` inside a CASE branch, so the
+        // whole statement fails with "could not determine data type" without them.
+        sql`${tenants.freeTopUps} < case when ${tenants.claimedAt} is not null then ${claimedLimit}::int else ${anonLimit}::int end`,
+      ),
+    )
+    .returning({
+      balance: tenants.tokenBalance,
+      taken: tenants.freeTopUps,
+      claimed: tenants.claimedAt,
+    });
+
+  if (row) {
+    /**
+     * The dashboard calls `/me` the instant this returns, and a cached key lookup
+     * would hand it the counter from before the grant - the menu would still offer
+     * the top-up the human just took. Same reason `addTokens` does it.
+     */
+    forget("keyauth:");
+    return {
+      granted: true,
+      balance: row.balance,
+      taken: row.taken,
+      limit: row.claimed ? claimedLimit : anonLimit,
+    };
+  }
+
+  // Refused: read back where the workspace actually is, so the caller can report a
+  // truthful number instead of guessing.
   const [current] = await db
-    .select({ balance: tenants.tokenBalance })
+    .select({
+      balance: tenants.tokenBalance,
+      taken: tenants.freeTopUps,
+      claimed: tenants.claimedAt,
+    })
     .from(tenants)
     .where(eq(tenants.id, tenantId));
-  return { claimed: false, balance: current?.balance ?? 0 };
+  return {
+    granted: false,
+    balance: current?.balance ?? 0,
+    taken: current?.taken ?? 0,
+    limit: current?.claimed ? claimedLimit : anonLimit,
+  };
+}
+
+/**
+ * Record a free top-up. Deliberately separate from the grant: the audit row is
+ * written after the money-equivalent moved, and a failure to write it must not
+ * silently undo a balance the human can already see.
+ *
+ * `taken` is the counter *after* the grant, so the rows for one workspace read
+ * 1..20 and a gap means something was deleted.
+ */
+export async function recordFreeTopUp(
+  tenantId: string,
+  count: number,
+  taken: number,
+  limit: number,
+  balance: number,
+  claimed: boolean,
+): Promise<void> {
+  await db.insert(auditLog).values({
+    tenantId,
+    action: "tokens.topup",
+    detail: { requests: count, taken, limit, balance, claimed },
+  });
 }
 
 /** Spend tokens. Returns the remaining balance (or unchanged if none left). */

@@ -1,15 +1,15 @@
 /**
  * Plans and limits. psh.now charges for **requests** (one human decision).
  * Members are unlimited on every plan. Paid usage is a prepaid **token package**
- * (1,000 for €9, 10,000 for €50, 100,000 for €450, excl. VAT), not a
+ * (100 for €1, 1,000 for €9, 10,000 for €50, 100,000 for €450, excl. VAT), not a
  * subscription.
  *
- * The free ladder: one allowance, **no daily cap**. An anonymous workspace gets
- * 20 requests from the first ask. Claiming takes the allowance to 100 (that is
- * +80) and buys the account its dashboard/shares/purchase powers. A claimed
- * account may also take the €1 entry pack once for nothing (another 100) so the
- * whole free road is 200 requests before anyone pays. Past that, packs are bought
- * from the dashboard, which (never email) surfaces the wall early.
+ * The free ladder: one allowance of 100 requests, **no daily cap**, the same
+ * whether the workspace is anonymous or claimed - registering is what buys the
+ * dashboard, shares and purchase powers, not a bigger allowance.
+ *
+ * On top of that sits a free top-up: +20 requests, taken silently, once while
+ * anonymous and twenty times in total once claimed. See `TOPUP_LIMIT_ANON`.
  */
 
 import { env } from "../env";
@@ -47,24 +47,44 @@ export const FREE_REQUESTS = env.freeRequests;
  */
 export const CLAIMED_REQUESTS = env.claimedRequests;
 
+/**
+ * The free top-up: 20 requests, handed out silently.
+ *
+ * One counter per workspace, shared between the two states, so the ladder reads:
+ * an anonymous workspace takes it once, and claiming raises the ceiling to twenty
+ * *total* - the grant already taken while anonymous is part of that twenty, not a
+ * separate allowance. The mechanic exists to keep someone from hitting a wall
+ * before they have decided the product is worth paying for; it is deliberately
+ * not advertised, because a visible button that says "free" is a button that gets
+ * pressed until it stops working.
+ */
+export const TOPUP_REQUESTS = 20;
+
+/** How many free top-ups an anonymous workspace may take. */
+export const TOPUP_LIMIT_ANON = 1;
+
+/**
+ * How many free top-ups a claimed workspace may take in total, counting any
+ * already taken while anonymous. Claiming therefore adds nineteen, not twenty.
+ */
+export const TOPUP_LIMIT_CLAIMED = 20;
+
+/** The ceiling for a workspace, which moves the moment it is claimed. */
+export function topUpLimit(claimed: boolean): number {
+  return claimed ? TOPUP_LIMIT_CLAIMED : TOPUP_LIMIT_ANON;
+}
+
 /** Trial workspaces keep living as long as they were used in the last 120d. */
 export const TRIAL_KEEP_ALIVE_MS = 120 * DAY;
 
-/** The three prepaid packs, the only things that cost money. */
+/** The prepaid packs, the only things that cost money. */
 export const TOKEN_PACKAGES = [
   {
-    // The entry pack. Cheap on purpose: the first one is free (see FREE_PACK),
-    // and after that €1 is small enough to be an easy yes.
+    // The entry pack. Cheap on purpose: €1 is small enough to be an easy yes, and
+    // it is the first thing anyone buys after the free allowance runs out.
     id: "entry",
     requests: 100,
     priceEur: 1,
-  },
-  {
-    // The test pack: 20 requests, no money. It is the only pack the deployed host offers, so the
-    // press is the signal, how many times people ask for more is the number worth watching.
-    id: "test20",
-    requests: 20,
-    priceEur: 0,
   },
   {
     id: "starter",
@@ -91,14 +111,6 @@ export type TokenPackage = (typeof TOKEN_PACKAGES)[number];
  */
 export const TOKEN_PACKAGE: TokenPackage =
   TOKEN_PACKAGES.find((p) => p.id === "starter") ?? TOKEN_PACKAGES[0];
-
-/**
- * The pack a claimed account may take once for nothing. Same 100 requests, no card:
- * it lets someone watch the whole paid flow work before paying anything.
- */
-export const TEST_PACK_ID = "test20" as const;
-export const FREE_PACK_ID = "entry" as const;
-export const FREE_PACK = TOKEN_PACKAGES[0];
 
 export function pickTokenPackage(requests?: number | null): TokenPackage | null {
   if (requests == null) return TOKEN_PACKAGES[0];
@@ -222,10 +234,14 @@ export function checkLimit(
     if (tokenBalance >= cost) {
       return { allowed: true, limit: plan.requestsTotal, used, via: "token", plan };
     }
+    /**
+     * One message for both states now that the allowance is the same either way.
+     * It names no free top-up on purpose: the mechanic is silent, and a limit
+     * message that advertises "you can still get more for free" is the one place
+     * it would leak to every agent's terminal.
+     */
     const next = withLink(
-      plan.id === "anonymous" && CLAIMED_REQUESTS > plan.requestsTotal
-        ? `Free allowance reached (${plan.requestsTotal} requests). Register this workspace to top up to ${CLAIMED_REQUESTS}, no card, no daily cap.`
-        : `Free allowance reached (${plan.requestsTotal} requests). ${PACKS_LINE}`,
+      `Free allowance reached (${plan.requestsTotal} requests). ${PACKS_LINE}`,
     );
     return {
       allowed: false,

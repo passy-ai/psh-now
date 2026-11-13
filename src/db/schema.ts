@@ -106,10 +106,21 @@ export const tenants = pgTable(
     /** Remaining prepaid request tokens (bought in packages). */
     tokenBalance: integer("token_balance").notNull().default(0),
     /**
-     * When the one-per-account free entry pack was taken. Null means it is still
-     * there. The grant and this stamp are one statement, so it cannot be taken twice.
+     * Legacy: when the old one-per-account 100-request entry pack was taken. That
+     * pack is gone (the free top-up below replaced it), but the column is kept so
+     * the migration is additive and the history of who took it is not destroyed.
+     * Nothing reads it.
      */
     freePackAt: timestamp("free_pack_at", { withTimezone: true }),
+    /**
+     * How many times this workspace has taken a free +20 top-up. One counter, not
+     * two, so claiming does not reset it: an anonymous workspace gets one grant,
+     * a claimed one gets twenty, and the grant already taken in anon mode counts
+     * against that twenty rather than being forgotten.
+     */
+    freeTopUps: integer("free_top_ups").notNull().default(0),
+    /** When the most recent free +20 top-up was taken; null = never. */
+    freeTopUpAt: timestamp("free_top_up_at", { withTimezone: true }),
     /** Set when a human claims the workspace with an email. */
     email: text("email"),
     /** Password hash for email + password sign-in (set from the dashboard). */

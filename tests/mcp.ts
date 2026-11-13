@@ -303,27 +303,51 @@ try {
   );
 
   console.log("\nthe allowance");
-  // A decision costs two requests, and the mint spent one, so nine unanswered asks
-  // exhaust the anonymous allowance exactly. They block for one second each and
-  // expire; the tenth ask has nobody to ask and must say so instead of blocking.
+  /**
+   * This section exhausts the free allowance for real, at one blocking ask per two
+   * requests. That was fine while the allowance was 20; at 100 it would be fifty
+   * one-second asks. So the count comes from the server instead of a constant, and
+   * the section is skipped when exhausting it would take too long. The refusal path
+   * is still covered whenever the suite runs with a small allowance:
+   *
+   *   PSH_FREE_REQUESTS=20 PSH_CLAIMED_REQUESTS=20 bun tests/mcp.ts
+   */
   const limitKey = await mintKey();
-  const burn = Array.from({ length: 9 }, (_, i) =>
-    callTool(limitKey, { title: `mcp burn ${i} ${Date.now()}`, message: `Burn ${i}`, timeoutSec: 1 }, 300 + i),
-  );
-  const burned = await Promise.all(burn);
-  check(
-    "unanswered asks expire and approve nothing",
-    burned.every((r) => toolPayload(r.body).approved === false),
-    JSON.stringify(burned.map((r) => toolPayload(r.body))),
-  );
+  const meRes = await fetch(`${BASE}/api/v1/me`, { headers: { "x-psh-key": limitKey } });
+  const meJson = (await meRes.json()) as {
+    usage?: { limit?: number | null; requestsToday?: number };
+  };
+  const allowance = meJson.usage?.limit ?? null;
+  const alreadyUsed = meJson.usage?.requestsToday ?? 0;
+  /** Each ask costs two requests (inbound + outbound). */
+  const asks = allowance == null ? 0 : Math.floor((allowance - alreadyUsed) / 2);
 
-  const overStart = Date.now();
-  const over = await callTool(limitKey, { title: "mcp over limit", message: "Should be refused" }, 400);
-  const overPayload = toolPayload(over.body);
-  check("an over-limit ask does not block", Date.now() - overStart < 4000, `${Date.now() - overStart}ms`);
-  check("an over-limit ask returns approved false", overPayload.approved === false);
-  check("an over-limit ask says so", overPayload.limitReached === true, JSON.stringify(overPayload));
-  check("an over-limit ask is an error, not a silent denial", over.body.result?.isError === true);
+  if (asks < 1 || asks > 15) {
+    console.log(
+      `  \x1b[33m•\x1b[0m skipped: exhausting a ${allowance}-request allowance needs ` +
+        `${asks} blocking asks (run with PSH_FREE_REQUESTS=20 to cover it)`,
+    );
+  } else {
+    // They block for one second each and expire; the next ask has nobody to ask and
+    // must say so instead of blocking.
+    const burn = Array.from({ length: asks }, (_, i) =>
+      callTool(limitKey, { title: `mcp burn ${i} ${Date.now()}`, message: `Burn ${i}`, timeoutSec: 1 }, 300 + i),
+    );
+    const burned = await Promise.all(burn);
+    check(
+      "unanswered asks expire and approve nothing",
+      burned.every((r) => toolPayload(r.body).approved === false),
+      JSON.stringify(burned.map((r) => toolPayload(r.body))),
+    );
+
+    const overStart = Date.now();
+    const over = await callTool(limitKey, { title: "mcp over limit", message: "Should be refused" }, 400);
+    const overPayload = toolPayload(over.body);
+    check("an over-limit ask does not block", Date.now() - overStart < 4000, `${Date.now() - overStart}ms`);
+    check("an over-limit ask returns approved false", overPayload.approved === false);
+    check("an over-limit ask says so", overPayload.limitReached === true, JSON.stringify(overPayload));
+    check("an over-limit ask is an error, not a silent denial", over.body.result?.isError === true);
+  }
 
   console.log("\ndiscovery");
   const descriptor = (await (await fetch(`${BASE}/.well-known/mcp.json`)).json()) as {
