@@ -14,7 +14,10 @@ cd "$(dirname "$0")"
 APP="dist/psh notch.app"
 DMG="dist/psh-notch.dmg"
 BIN="$APP/Contents/MacOS/PSHNotch"
-VERSION="1.0"
+# The version the app reports (and what the update check compares). The workflow sets it
+# from the tag; a laptop build falls back to the newest notch tag, then 1.0.
+VERSION="${PSH_NOTCH_VERSION:-$(git describe --tags --match 'v*-notch' --abbrev=0 2>/dev/null | sed 's/^v//;s/-notch$//')}"
+VERSION="${VERSION:-1.0}"
 
 echo "==> building PSHNotch.swift"
 swiftc -parse-as-library -swift-version 5 -O -o dist-build-PSHNotch PSHNotch.swift

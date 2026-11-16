@@ -19,6 +19,8 @@ jobs:
 
       - name: Build the app and the dmg
         working-directory: tools/psh-notch
+        env:
+          PSH_NOTCH_VERSION: ${{ github.ref_name }}
         run: ./package.sh
 
       - name: Check what was built

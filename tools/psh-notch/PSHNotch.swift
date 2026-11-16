@@ -124,6 +124,50 @@ struct Config: Codable {
     var workspaceId: String?
 }
 
+// --- Update checking -----------------------------------------------------
+// The notch ships on its own cadence (tags `v*-notch`, dmg on the Releases tab), so it
+// cannot piggyback on the server's release. The check is one small JSON the site serves
+// (`/notch-latest.json`): the version that is out, and where to get it. The app compares
+// its own bundle version against it; a bare binary run from a terminal has no bundle and
+// no version, and silently skips the check.
+let appVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+/// The manifest the update check reads. `PSH_NOTCH_LATEST_URL` overrides it so a test or
+/// a lab can point the check somewhere local without touching the code.
+let notchLatestURL = ProcessInfo.processInfo.environment["PSH_NOTCH_LATEST_URL"]
+    ?? "https://psh.now/notch-latest.json"
+var updateAvailable: (version: String, url: URL)?
+
+/// Semver-ish: numeric on ".", so 1.10 > 1.9 and 1.0.1 > 1.0.
+func isVersion(_ a: String, newerThan b: String) -> Bool {
+    let a = a.split(separator: "-").first.map(String.init) ?? a
+    let b = b.split(separator: "-").first.map(String.init) ?? b
+    let na = a.split(separator: ".").map { Int($0) ?? 0 }
+    let nb = b.split(separator: ".").map { Int($0) ?? 0 }
+    for i in 0..<max(na.count, nb.count) {
+        let x = i < na.count ? na[i] : 0
+        let y = i < nb.count ? nb[i] : 0
+        if x != y { return x > y }
+    }
+    return false
+}
+
+func checkForUpdate() {
+    guard let appVersion, let url = URL(string: notchLatestURL) else { return }
+    var req = URLRequest(url: url)
+    req.timeoutInterval = 10
+    URLSession.shared.dataTask(with: req) { data, _, _ in
+        guard let data,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let latest = json["latest"] as? String,
+              isVersion(latest, newerThan: appVersion) else { return }
+        let link = (json["url"] as? String).flatMap(URL.init(string:))
+            ?? URL(string: "https://github.com/passy-ai/psh-now/releases/latest")!
+        updateAvailable = (latest, link)
+        // The status menu rebuilds every time it opens, so the new row appears the next
+        // time the person opens the menu. The strip itself never nags about updates.
+    }.resume()
+}
+
 /// The app's one credential. `--config` points this elsewhere so a test can exercise
 /// pairing without touching the pairing a person is actually using.
 let defaultConfigURL = FileManager.default.homeDirectoryForCurrentUser
@@ -2598,6 +2642,15 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem.menu = menu
         refreshTitle()
 
+        // Update check: once at launch (after a beat, so it never delays the bar) and
+        // every six hours after. The result only surfaces in the menu; the strip never
+        // nagges about it.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { checkForUpdate() }
+        var updateTimer = Timer.scheduledTimer(withTimeInterval: 6 * 60 * 60, repeats: true) { _ in
+            checkForUpdate()
+        }
+        updateTimer.tolerance = 300
+
         feed.onState = { [weak self] state in
             DispatchQueue.main.async {
                 self?.connected = (state == "live")
@@ -3144,6 +3197,13 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let dashboard = settings.addItem(withTitle: "Dashboard",
                                          action: #selector(openDashboard), keyEquivalent: "")
         dashboard.target = self
+        if let update = updateAvailable {
+            let row = settings.addItem(withTitle: "New version \(update.version) — download",
+                                       action: #selector(openUpdate), keyEquivalent: "")
+            row.target = self
+        } else if let appVersion {
+            settings.addItem(withTitle: "Version \(appVersion)", action: nil, keyEquivalent: "")
+        }
 
         let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         settingsRow.submenu = settings
@@ -3153,6 +3213,11 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func shorten(_ text: String, _ limit: Int) -> String {
         text.count <= limit ? text : String(text.prefix(limit - 1)) + "…"
+    }
+
+    @objc private func openUpdate() {
+        guard let url = updateAvailable?.url else { return }
+        NSWorkspace.shared.open(url)
     }
 
     @objc private func approve(_ sender: NSMenuItem) {
@@ -3974,6 +4039,20 @@ struct PSHNotch {
         }
 
         switch args.first {
+        case "--check-update":
+            checkForUpdate()
+            // The check is async: give it a moment, then report what the app would show.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                if let update = updateAvailable {
+                    print("UPDATE \(update.version) \(update.url)")
+                } else if let appVersion {
+                    print("CURRENT \(appVersion)")
+                } else {
+                    print("SKIP no bundle version")
+                }
+                exit(0)
+            }
+            RunLoop.main.run()
         case "--handle-url":
             guard args.count > 1 else { die("usage: PSHNotch --handle-url <psh-notch://paired?...>") }
             exit(handleConnectURL(args[1]) ? 0 : 1)
