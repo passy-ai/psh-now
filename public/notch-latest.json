@@ -1,6 +1,6 @@
 {
-  "latest": "1.2.1",
-  "url": "https://github.com/passy-ai/psh-now/releases/tag/v1.2.1-notch",
-  "download": "https://github.com/passy-ai/psh-now/releases/download/v1.2.1-notch/psh-notch.dmg",
+  "latest": "1.2.2",
+  "url": "https://github.com/passy-ai/psh-now/releases/tag/v1.2.2-notch",
+  "download": "https://github.com/passy-ai/psh-now/releases/download/v1.2.2-notch/psh-notch.dmg",
   "notes": "psh notch for macOS. Releases are tagged v*-notch and the dmg lands on the Releases tab. Bump `latest`, `url` and `download` here in the same commit that cuts a notch tag. With `download` set the app installs the update itself; without it the menu row opens the page."
 }
