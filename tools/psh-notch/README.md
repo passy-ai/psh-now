@@ -344,7 +344,7 @@ screen, it settles at 460x222 with its top edge flush with the top of the displa
 the black strip at the top reads as the notch itself and the card appears to unroll
 out of it (0.26s, ease-out, from a 32pt strip to full height).
 
-![the card](preview.png)
+![the card](detail.png)
 
 With the bubble open, the bubble has moved to the left and the field is beside it as an
 outline on the same black, at the same card height: `--render bubble.png --answer`.
