@@ -1,5 +1,5 @@
 {
   "latest": "1.0",
-  "url": "https://github.com/passy-ai/psh-now/releases/latest",
-  "notes": "psh notch for macOS. Releases are tagged v*-notch; the dmg lands on the Releases tab. Bump `latest` here in the same commit that cuts a notch tag."
+  "url": "https://github.com/passy-ai/psh-now/releases",
+  "notes": "psh notch for macOS. Releases are tagged v*-notch and the dmg lands on the Releases tab. Bump `latest` here in the same commit that cuts a notch tag, and point `url` at that exact tag page (releases/tag/v1.2.0-notch) so the download is one click away."
 }

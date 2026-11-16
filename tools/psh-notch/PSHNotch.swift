@@ -161,7 +161,7 @@ func checkForUpdate() {
               let latest = json["latest"] as? String,
               isVersion(latest, newerThan: appVersion) else { return }
         let link = (json["url"] as? String).flatMap(URL.init(string:))
-            ?? URL(string: "https://github.com/passy-ai/psh-now/releases/latest")!
+            ?? URL(string: "https://github.com/passy-ai/psh-now/releases")!
         updateAvailable = (latest, link)
         // The status menu rebuilds every time it opens, so the new row appears the next
         // time the person opens the menu. The strip itself never nags about updates.
