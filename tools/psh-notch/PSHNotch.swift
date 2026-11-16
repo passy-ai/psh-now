@@ -3208,6 +3208,16 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         settingsRow.submenu = settings
         menu.addItem(settingsRow)
+        // The update row sits at the top level, right above Quit: a submenu was one click
+        // too deep for the one thing a person must be able to see. When current, the row
+        // still shows so the version is always findable.
+        if let update = updateAvailable {
+            let row = menu.addItem(withTitle: "New version \\(update.version) — download",
+                                   action: #selector(openUpdate), keyEquivalent: "")
+            row.target = self
+        } else if let appVersion {
+            menu.addItem(withTitle: "Version \\(appVersion)", action: nil, keyEquivalent: "")
+        }
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
 
