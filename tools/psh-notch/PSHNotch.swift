@@ -3321,13 +3321,19 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let dashboard = settings.addItem(withTitle: "Dashboard",
                                          action: #selector(openDashboard), keyEquivalent: "")
         dashboard.target = self
+        // The version lives at the bottom of Settings, not at the top of the menu: it is
+        // something you look up, while an available update is something you must see.
+        if let appVersion, updateAvailable == nil {
+            settings.addItem(.separator())
+            settings.addItem(withTitle: "Version v\(appVersion)", action: nil, keyEquivalent: "")
+        }
 
         let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         settingsRow.submenu = settings
         menu.addItem(settingsRow)
         // The update row sits at the top level, right above Quit: a submenu was one click
-        // too deep for the one thing a person must be able to see. When current, the row
-        // still shows so the version is always findable.
+        // too deep for the one thing a person must be able to see. When the app is current
+        // there is no row here at all, and the version is down in Settings.
         if let update = updateAvailable {
             // One click installs from here when the manifest named the dmg; otherwise the
             // row is a link to the release page.
@@ -3336,8 +3342,6 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let row = menu.addItem(withTitle: title,
                                    action: #selector(installOrOpenUpdate), keyEquivalent: "")
             row.target = self
-        } else if let appVersion {
-            menu.addItem(withTitle: "Version v\(appVersion)", action: nil, keyEquivalent: "")
         }
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
@@ -4175,6 +4179,22 @@ struct PSHNotch {
         }
 
         switch args.first {
+        case "--print-menu":
+            _ = NSApplication.shared
+            let approver = Approver()
+            checkForUpdate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                let m = NSMenu()
+                approver.menuNeedsUpdate(m)
+                for item in m.items {
+                    let sub = item.submenu.map { s in
+                        " [" + s.items.map { $0.title.isEmpty ? "-" : $0.title }.joined(separator: " / ") + "]"
+                    } ?? ""
+                    print("ROW \(item.title.isEmpty ? "-" : item.title)\(sub)")
+                }
+                exit(0)
+            }
+            RunLoop.main.run()
         case "--install-update":
             exitAfterInstall = true
             checkForUpdate()
@@ -4267,6 +4287,7 @@ struct PSHNotch {
                         [--background]               ...with nothing else focused, as a test
               --login-item on|off|status             launch at login, from a shell
               --selftest [--deny|--answer <text>]     decide the first pending request
+              --print-menu                          print the status menu as it would open
             """)
         default:
             let app = NSApplication.shared
