@@ -16,7 +16,10 @@ DMG="dist/psh-notch.dmg"
 BIN="$APP/Contents/MacOS/PSHNotch"
 # The version the app reports (and what the update check compares). The workflow sets it
 # from the tag; a laptop build falls back to the newest notch tag, then 1.0.
-VERSION="${PSH_NOTCH_VERSION:-$(git describe --tags --match 'v*-notch' --abbrev=0 2>/dev/null | sed 's/^v//;s/-notch$//')}"
+VERSION="${PSH_NOTCH_VERSION:-$(git describe --tags --match 'v*-notch' --abbrev=0 2>/dev/null || true)}"
+# Accept whatever a tag or an env hands us: v1.2.0-notch, 1.2.0-notch, v1.2.0.
+VERSION="${VERSION#v}"
+VERSION="${VERSION%-notch}"
 VERSION="${VERSION:-1.0}"
 
 echo "==> building PSHNotch.swift"
