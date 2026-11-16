@@ -3197,13 +3197,6 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let dashboard = settings.addItem(withTitle: "Dashboard",
                                          action: #selector(openDashboard), keyEquivalent: "")
         dashboard.target = self
-        if let update = updateAvailable {
-            let row = settings.addItem(withTitle: "New version \(update.version) — download",
-                                       action: #selector(openUpdate), keyEquivalent: "")
-            row.target = self
-        } else if let appVersion {
-            settings.addItem(withTitle: "Version \(appVersion)", action: nil, keyEquivalent: "")
-        }
 
         let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         settingsRow.submenu = settings
@@ -3212,11 +3205,11 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // too deep for the one thing a person must be able to see. When current, the row
         // still shows so the version is always findable.
         if let update = updateAvailable {
-            let row = menu.addItem(withTitle: "New version \\(update.version) — download",
+            let row = menu.addItem(withTitle: "New version \(update.version) — download",
                                    action: #selector(openUpdate), keyEquivalent: "")
             row.target = self
         } else if let appVersion {
-            menu.addItem(withTitle: "Version \\(appVersion)", action: nil, keyEquivalent: "")
+            menu.addItem(withTitle: "Version \(appVersion)", action: nil, keyEquivalent: "")
         }
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
