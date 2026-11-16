@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="132" viewBox="0 0 480 132" role="img" aria-label="psh notch idle state: the notch with one grey dot">
+  <rect width="480" height="132" fill="#ffffff"/>
+  <!-- the notch itself -->
+  <rect x="160" y="34" width="160" height="30" rx="15" fill="#0b0b0c"/>
+  <!-- the idle dot -->
+  <circle cx="181" cy="49" r="4" fill="#8d8d93"/>
+  <text x="240" y="96" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#6b6b70">psh notch, idle</text>
+</svg>

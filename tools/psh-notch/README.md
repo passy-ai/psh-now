@@ -96,7 +96,39 @@ The bundle is named `psh notch.app` on purpose: Finder, Spotlight, Raycast and L
 read the file name, so this is the name those lists show. The executable inside stays
 `PSHNotch`, which is what `CFBundleExecutable` points at.
 
-Open the dmg, drag **psh notch** to Applications, and launch it.
+Open the dmg, drag **psh notch** to Applications, and launch it. The window carries the
+idle notch at the top and one arrow between the app and Applications: the thing you are
+about to install, before you install it.
+
+### Updating from inside the app
+
+The status menu carries one update row, directly above **Quit**, so it is visible
+wherever the rest of the menu gets long. The app reads `/notch-latest.json` (the
+manifest `public/notch-latest.json` in this repo) at launch and every six hours, and
+when the manifest names a newer version the row says **Install update v1.2.0**.
+
+With `download` in the manifest the click does the whole install: download the dmg to
+`~/Library/Caches/psh-notch`, mount it, copy the app out, detach, then hand a four line
+shell script the job of waiting for the old process to exit, swapping the bundle and
+relaunching. No browser, no dragging, no stale copy left behind. Without `download` the
+row is a link to the release page instead, which is the safe fallback for a build that
+was moved somewhere it cannot rewrite itself (a mounted dmg, a read-only volume).
+
+```sh
+# what the app would do, from a terminal, without opening the menu
+PSH_NOTCH_LATEST_URL=http://localhost:4433/notch-latest.json \
+  "./dist/psh notch.app/Contents/MacOS/PSHNotch" --install-update
+```
+
+The manifest, for reference:
+
+```json
+{
+  "latest": "1.2.0",
+  "url": "https://github.com/passy-ai/psh-now/releases/tag/v1.2.0-notch",
+  "download": "https://github.com/passy-ai/psh-now/releases/download/v1.2.0-notch/psh-notch.dmg"
+}
+```
 
 Launch at login points at the copy that registered it. An app first opened from a build
 folder keeps that folder as its login item after it is moved, and then comes back at the

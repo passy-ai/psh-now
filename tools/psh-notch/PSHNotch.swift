@@ -135,8 +135,6 @@ let appVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionStrin
 /// a lab can point the check somewhere local without touching the code.
 let notchLatestURL = ProcessInfo.processInfo.environment["PSH_NOTCH_LATEST_URL"]
     ?? "https://psh.now/notch-latest.json"
-var updateAvailable: (version: String, url: URL)?
-
 /// Semver-ish: numeric on ".", so 1.10 > 1.9 and 1.0.1 > 1.0.
 func isVersion(_ a: String, newerThan b: String) -> Bool {
     let a = a.split(separator: "-").first.map(String.init) ?? a
@@ -151,21 +149,147 @@ func isVersion(_ a: String, newerThan b: String) -> Bool {
     return false
 }
 
+/// One update, as the manifest describes it: the version, the page, and, when the
+/// publisher named the dmg itself, the file the app can install without a browser.
+struct AvailableUpdate {
+    let version: String
+    let page: URL
+    let download: URL?
+}
+
+var updateAvailable: AvailableUpdate?
+
 func checkForUpdate() {
-    guard let appVersion, let url = URL(string: notchLatestURL) else { return }
+    guard let version = appVersion, let url = URL(string: notchLatestURL) else { return }
     var req = URLRequest(url: url)
     req.timeoutInterval = 10
     URLSession.shared.dataTask(with: req) { data, _, _ in
         guard let data,
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let latest = json["latest"] as? String,
-              isVersion(latest, newerThan: appVersion) else { return }
-        let link = (json["url"] as? String).flatMap(URL.init(string:))
+              isVersion(latest, newerThan: version) else { return }
+        let page = (json["url"] as? String).flatMap(URL.init(string:))
             ?? URL(string: "https://github.com/passy-ai/psh-now/releases")!
-        updateAvailable = (latest, link)
+        let download = (json["download"] as? String).flatMap(URL.init(string:))
+        updateAvailable = AvailableUpdate(version: latest, page: page, download: download)
         // The status menu rebuilds every time it opens, so the new row appears the next
         // time the person opens the menu. The strip itself never nags about updates.
     }.resume()
+}
+
+// --- Updating in place -----------------------------------------------------
+// The dmg is the installer: download it, mount it, copy the app out, swap it in, relaunch.
+// The swap cannot happen from inside the running process, so a small script waits for this
+// process to exit and does it. Every step is a plain tool (/usr/bin/hdiutil, ditto) so a
+// failure can be read in a log instead of guessed at.
+let updateCache = FileManager.default.homeDirectoryForCurrentUser
+    .appendingPathComponent("Library/Caches/psh-notch")
+/// Set while an update is downloading or installing; the menu row shows it.
+var updateStage: String?
+/// Set by `--install-update`: exit as soon as the swap script is spawned, so the script's
+/// wait-for-pid can complete. A menu install leaves this false and terminates normally.
+var exitAfterInstall = false
+
+func sh(_ tool: String, _ args: [String]) -> (Int32, String) {
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath: tool)
+    p.arguments = args
+    let pipe = Pipe()
+    p.standardOutput = pipe
+    p.standardError = pipe
+    do { try p.run() } catch { return (-1, "spawn failed: \(error)") }
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    p.waitUntilExit()
+    return (p.terminationStatus, String(decoding: data, as: UTF8.self))
+}
+
+/// True when this copy can be replaced where it lives (a dmg mount cannot).
+func canInstallInPlace() -> Bool {
+    let parent = (Bundle.main.bundlePath as NSString).deletingLastPathComponent
+    return FileManager.default.isWritableFile(atPath: parent)
+}
+
+func installUpdate(_ update: AvailableUpdate, onStage: @escaping (String) -> Void) {
+    guard let dmgURL = update.download else { return }
+    onStage("Downloading update")
+    try? FileManager.default.createDirectory(at: updateCache, withIntermediateDirectories: true)
+    let dest = updateCache.appendingPathComponent("psh-notch-\(update.version).dmg")
+    let task = URLSession.shared.downloadTask(with: dmgURL) { tmp, _, error in
+        guard let tmp, error == nil else {
+            DispatchQueue.main.async { onStage("Update download failed") }
+            return
+        }
+        try? FileManager.default.removeItem(at: dest)
+        do { try FileManager.default.moveItem(at: tmp, to: dest) }
+        catch { DispatchQueue.main.async { onStage("Update saved nowhere") }; return }
+        DispatchQueue.main.async {
+            installFromDisk(dest, version: update.version, page: update.page, onStage: onStage)
+        }
+    }
+    task.resume()
+}
+
+func installFromDisk(_ dmg: URL, version: String, page: URL, onStage: @escaping (String) -> Void) {
+    onStage("Installing update")
+    let mountPoint = updateCache.appendingPathComponent("mnt")
+    try? FileManager.default.removeItem(at: mountPoint)
+    try? FileManager.default.createDirectory(at: mountPoint, withIntermediateDirectories: true)
+
+    let (attachStatus, _) = sh("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-mountpoint", mountPoint.path, dmg.path])
+    guard attachStatus == 0 else { onStage("Could not mount the update"); return }
+    defer { _ = sh("/usr/bin/hdiutil", ["detach", mountPoint.path, "-force"]) }
+
+    let incoming = mountPoint.appendingPathComponent("psh notch.app")
+    guard FileManager.default.fileExists(atPath: incoming.path) else {
+        onStage("Update has no app inside"); return
+    }
+
+    // Copy out before detaching: the swap runs after this process is gone.
+    let staged = updateCache.appendingPathComponent("staged.app")
+    try? FileManager.default.removeItem(at: staged)
+    let (copyStatus, copyLog) = sh("/usr/bin/ditto", [incoming.path, staged.path])
+    guard copyStatus == 0 else {
+        log("update copy failed: \(copyLog)")
+        onStage("Update copy failed")
+        return
+    }
+
+    _ = sh("/usr/bin/hdiutil", ["detach", mountPoint.path, "-force"])
+
+    let appPath = Bundle.main.bundlePath
+    guard canInstallInPlace() else {
+        onStage("Open the update from GitHub")
+        NSWorkspace.shared.open(page)
+        return
+    }
+
+    let script = """
+    #!/bin/sh
+    # Wait for the old process, swap the bundle, relaunch. Written by psh notch.
+    APP="$1"; SRC="$2"; PID="$3"
+    while kill -0 "$PID" 2>/dev/null; do sleep 0.2; done
+    rm -rf "$APP"
+    /usr/bin/ditto "$SRC" "$APP" || exit 1
+    /usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null
+    rm -rf "$(dirname "$SRC")"
+    /usr/bin/open "$APP"
+    """
+    let scriptURL = updateCache.appendingPathComponent("swap.sh")
+    do { try script.write(to: scriptURL, atomically: true, encoding: .utf8) }
+    catch { onStage("Cannot write the swap"); return }
+
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath: "/bin/sh")
+    p.arguments = [scriptURL.path, appPath, staged.path, String(ProcessInfo.processInfo.processIdentifier)]
+    do { try p.run() } catch { onStage("Cannot start the swap"); return }
+
+    log("update \(version): installed, restarting")
+    if exitAfterInstall {
+        print("STAGE swap spawned, exiting for the swap")
+        fflush(stdout)
+        exit(0)
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { NSApp.terminate(nil) }
 }
 
 /// The app's one credential. `--config` points this elsewhere so a test can exercise
@@ -3205,8 +3329,12 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // too deep for the one thing a person must be able to see. When current, the row
         // still shows so the version is always findable.
         if let update = updateAvailable {
-            let row = menu.addItem(withTitle: "Update to v\(update.version)",
-                                   action: #selector(openUpdate), keyEquivalent: "")
+            // One click installs from here when the manifest named the dmg; otherwise the
+            // row is a link to the release page.
+            let verb = update.download == nil ? "Update to" : "Install update"
+            let title = updateStage.map { "\($0)…" } ?? "\(verb) v\(update.version)"
+            let row = menu.addItem(withTitle: title,
+                                   action: #selector(installOrOpenUpdate), keyEquivalent: "")
             row.target = self
         } else if let appVersion {
             menu.addItem(withTitle: "Version v\(appVersion)", action: nil, keyEquivalent: "")
@@ -3218,9 +3346,14 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         text.count <= limit ? text : String(text.prefix(limit - 1)) + "…"
     }
 
-    @objc private func openUpdate() {
-        guard let url = updateAvailable?.url else { return }
-        NSWorkspace.shared.open(url)
+    @objc private func installOrOpenUpdate() {
+        guard let update = updateAvailable else { return }
+        if update.download == nil || !canInstallInPlace() {
+            NSWorkspace.shared.open(update.page)
+            return
+        }
+        updateStage = "Downloading update"
+        installUpdate(update) { stage in updateStage = stage }
     }
 
     @objc private func approve(_ sender: NSMenuItem) {
@@ -4042,12 +4175,22 @@ struct PSHNotch {
         }
 
         switch args.first {
+        case "--install-update":
+            exitAfterInstall = true
+            checkForUpdate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                guard let update = updateAvailable else { print("STAGE no update"); exit(0) }
+                print("STAGE found \(update.version), download: \(update.download?.absoluteString ?? "none")")
+                installUpdate(update) { stage in print("STAGE \(stage)"); fflush(stdout) }
+            }
+            RunLoop.main.run()
         case "--check-update":
             checkForUpdate()
             // The check is async: give it a moment, then report what the app would show.
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 if let update = updateAvailable {
-                    print("UPDATE \(update.version) \(update.url)")
+                    let how = update.download == nil ? "page" : "install"
+                    print("UPDATE \(update.version) \(how) \(update.page)")
                 } else if let appVersion {
                     print("CURRENT \(appVersion)")
                 } else {

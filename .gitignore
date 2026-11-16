@@ -7,6 +7,9 @@ dist/
 *.log
 .DS_Store
 
+# A dmg built into the tool folder by hand is an artifact, not source.
+tools/psh-notch/*.dmg
+
 # Market research: working notes, not shipped. See research/README.md
 research/
 

@@ -31,29 +31,28 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 mv dist-build-PSHNotch "$BIN"
 chmod +x "$BIN"
 
-# An icon only if one is genuinely there. SVG is not a bundle icon, so it is skipped
-# rather than converted into something that would not draw.
+# The icon is the idle notch on a white plate, drawn by make-icon.swift, so the thing in
+# the dmg window is recognisable as this app. An icon.icns next to the source wins.
 ICON=""
-for candidate in icon.icns AppIcon.icns ../../public/icon.icns; do
+for candidate in icon.icns AppIcon.icns; do
     if [ -f "$candidate" ]; then ICON="$candidate"; break; fi
 done
 if [ -z "$ICON" ]; then
-    for candidate in icon.png ../../public/icon.png ../../public/favicon.png; do
-        if [ -f "$candidate" ]; then
-            if command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1; then
-                echo "==> converting $candidate to an icns"
-                ICONSET="dist/AppIcon.iconset"
-                rm -rf "$ICONSET"; mkdir -p "$ICONSET"
-                for size in 16 32 64 128 256 512; do
-                    sips -z "$size" "$size" "$candidate" --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
-                done
-                iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns" >/dev/null 2>&1 \
-                    && ICON="AppIcon.icns"
-                rm -rf "$ICONSET"
-            fi
-            break
-        fi
-    done
+    echo "==> drawing the app icon"
+    swiftc -O -o dist-build-mkicon make-icon.swift 2>&1 | sed 's/^/    /'
+    ./dist-build-mkicon dist/icon-1024.png | sed 's/^/    /'
+    rm -f dist-build-mkicon
+    if command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1; then
+        ICONSET="dist/AppIcon.iconset"
+        rm -rf "$ICONSET"; mkdir -p "$ICONSET"
+        for size in 16 32 64 128 256 512; do
+            sips -z "$size" "$size" dist/icon-1024.png --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
+        done
+        sips -z 1024 1024 dist/icon-1024.png --out "$ICONSET/icon_512x512@2x.png" >/dev/null
+        iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns" >/dev/null 2>&1 \
+            && ICON="AppIcon.icns"
+        rm -rf "$ICONSET"
+    fi
 fi
 if [ -n "$ICON" ]; then
     case "$ICON" in
@@ -63,7 +62,7 @@ if [ -n "$ICON" ]; then
     echo "==> icon: $ICON"
 else
     ICON_ENTRY=""
-    echo "==> icon: none found, skipping (no icns or png in this folder or public/)"
+    echo "==> icon: none"
 fi
 
 cat > "$APP/Contents/Info.plist" <<PLIST
@@ -97,16 +96,39 @@ codesign --verify --strict "$APP"
 
 echo "==> writing $DMG"
 # Two things in the window, not one: the app and a shortcut to Applications, so the install is a
-# drag rather than an instruction someone has to read.
-rm -rf dist/dmgroot
-mkdir -p dist/dmgroot
-cp -R "$APP" "dist/dmgroot/psh notch.app"
-ln -s /Applications dist/dmgroot/Applications
+# drag rather than an instruction someone has to read. The window carries the idle notch and one
+# arrow, drawn by make-dmg-background.swift, on a white plate.
+echo "==> drawing the window background"
+swiftc -O -o dist-build-mkbg make-dmg-background.swift 2>&1 | sed 's/^/    /'
+./dist-build-mkbg dist/dmg-bg.png | sed 's/^/    /'
+rm -f dist-build-mkbg
+
 rm -f "$DMG"
-hdiutil create -quiet -volname "psh notch" -srcfolder dist/dmgroot -ov -format UDZO "$DMG"
-rm -rf dist/dmgroot
+# dmgbuild writes the .DS_Store and the background alias itself. Finder automation would do the
+# same thing, but macOS refuses to grant a build shell permission to drive Finder, and a build
+# must not depend on that grant.
+if ! python3 -c "import dmgbuild" >/dev/null 2>&1; then
+    echo "==> preparing dmgbuild (one-time)"
+    python3 -m venv dist/.dmgvenv >/dev/null 2>&1 || true
+    dist/.dmgvenv/bin/pip install --quiet dmgbuild >/dev/null 2>&1 || true
+fi
+PYBUILD=""
+if python3 -c "import dmgbuild" >/dev/null 2>&1; then PYBUILD=python3
+elif [ -x dist/.dmgvenv/bin/python ] && dist/.dmgvenv/bin/python -c "import dmgbuild" >/dev/null 2>&1; then PYBUILD=dist/.dmgvenv/bin/python
+fi
 
-
+if [ -n "$PYBUILD" ]; then
+    "$PYBUILD" -m dmgbuild -s dmg-settings.py -D app="$APP" -D background="dist/dmg-bg.png" "psh notch" "$DMG" 2>&1 | sed 's/^/    /'
+fi
+if [ ! -f "$DMG" ]; then
+    echo "    dmgbuild unavailable, falling back to a plain window"
+    rm -rf dist/dmgroot
+    mkdir -p dist/dmgroot
+    cp -R "$APP" "dist/dmgroot/psh notch.app"
+    ln -s /Applications dist/dmgroot/Applications
+    hdiutil create -quiet -volname "psh notch" -srcfolder dist/dmgroot -ov -format UDZO "$DMG"
+    rm -rf dist/dmgroot
+fi
 # An older build sat in the same folder under the old name, and a stale copy next to the new
 # one is how someone installs the version nobody rebuilt.
 rm -rf dist/PSHNotch.app
