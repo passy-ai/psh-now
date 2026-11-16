@@ -3205,11 +3205,11 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // too deep for the one thing a person must be able to see. When current, the row
         // still shows so the version is always findable.
         if let update = updateAvailable {
-            let row = menu.addItem(withTitle: "New version \(update.version) — download",
+            let row = menu.addItem(withTitle: "Update to v\(update.version)",
                                    action: #selector(openUpdate), keyEquivalent: "")
             row.target = self
         } else if let appVersion {
-            menu.addItem(withTitle: "Version \(appVersion)", action: nil, keyEquivalent: "")
+            menu.addItem(withTitle: "Version v\(appVersion)", action: nil, keyEquivalent: "")
         }
         menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
