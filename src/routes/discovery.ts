@@ -8,7 +8,7 @@ import { productVersion } from "../lib/version";
 
 /**
  * Agent-native discovery surface, in the shape the ecosystem now expects
- * (see here.now, Pushary, and the llms.txt convention). Everything an LLM or
+ * (see the agent-discovery conventions emerging across the space, plus llms.txt). Everything an LLM or
  * harness needs to understand and use psh.now is reachable without a human reading
  * HTML:
  *

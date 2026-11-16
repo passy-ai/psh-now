@@ -1,0 +1,37 @@
+{
+  "name": "@psh/sdk",
+  "version": "1.0.0",
+  "description": "psh web push SDK — subscribe a site to a /api/v1 relay (psh.now or your own @psh/relay). One client class, one service worker.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./service-worker": {
+      "types": "./dist/service-worker.d.ts",
+      "import": "./dist/service-worker.js",
+      "require": "./dist/service-worker.cjs"
+    },
+    "./browser": "./dist/browser/psh.global.js",
+    "./browser/service-worker": "./dist/browser/psh-sw.global.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup && cd dist/browser && for f in *.global.js; do mv \"$f\" \"${f%.global.js}.js\"; done; cd ../.. && ls dist/browser/*.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "@types/webpush-js": "npm:@types/web-push@^3.6.4"
+  }
+}

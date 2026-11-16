@@ -1,0 +1,13 @@
+{
+  "name": "@psh/relay",
+  "version": "0.1.0",
+  "description": "Minimal self-hostable push relay for psh — own your DB, your VAPID keys, your data. Speaks the /api/v1 contract the @psh/sdk expects.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.ts"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

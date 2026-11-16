@@ -36,9 +36,9 @@ Both must be visible in the hero. Neither alone is the pitch.
 - Anything claiming a notification will reach you when the app is closed is
   **false today**. See `HANDOFF.md` for the notifications work.
 
-## What we are deliberately learning from Pushary
+## What we are deliberately learning from the category
 
-**One tap to answer** is the thing worth copying. Pushary's framing is right and
+**One tap to answer** is the thing worth copying. The category's best framing is right and
 ours should match it.
 
 The valuable case is **not** complicated reviews or open-ended questions. It is
