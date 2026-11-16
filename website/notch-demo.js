@@ -109,8 +109,11 @@
 
       function paint(index) {
         // A story step can still name a request a visitor has already answered; take
-        // whatever is open now instead of reopening a settled one.
-        if (decided[index]) index = nextOpen(index);
+        // whatever is open now instead of reopening a settled one. It can also walk off
+        // the end: "next" after the last request asks for EXAMPLES[EXAMPLES.length], and
+        // an unguarded read there threw, which killed the story and every handler with
+        // it. Wrapping through the queue keeps the demo looping instead of dying.
+        if (index >= EXAMPLES.length || decided[index]) index = nextOpen(index);
         if (index < 0) index = 0;
         var item = EXAMPLES[index];
         var left = queue();
@@ -220,7 +223,10 @@
             panel.classList.remove("is-sending");
             if (panel.__field) panel.__field.value = "";
           });
-          shown += 1;
+          // Advance through the queue and wrap at the end, so the story loops for as long
+          // as the page is open instead of marching past the last request.
+          var advance = nextOpen(shown + 1);
+          shown = advance < 0 ? 0 : advance;
           paint(shown);
           show("detail");
         }
