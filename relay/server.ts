@@ -34,6 +34,13 @@
 
 import { Database } from "bun:sqlite";
 
+// Read from the manifest so a published relay reports the version it was built
+// from, instead of a constant somebody forgets to bump.
+const RELAY_VERSION: string = (
+  await Bun.file(new URL("./package.json", import.meta.url)).json()
+).version;
+
+
 const PORT = Number(process.env.PSH_PORT ?? 8080);
 const DB_PATH = process.env.PSH_DB ?? "./psh.db";
 const SDK_DIST = process.env.PSH_SDK_DIST ?? "";
@@ -165,7 +172,7 @@ Bun.serve({
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
     const body = async () => await req.json().catch(() => ({}));
 
-    if (path === "/api/v1/health") return json({ ok: true, origin: ORIGIN });
+    if (path === "/api/v1/health") return json({ ok: true, origin: ORIGIN, version: RELAY_VERSION });
     if (path === "/api/v1/vapid-key")
       return json({ vapidPublicKey: VAPID_PUB });
 

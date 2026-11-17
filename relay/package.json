@@ -1,6 +1,6 @@
 {
   "name": "psh-now-relay",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minimal self-hostable push relay for psh \u2014 own your DB, your VAPID keys, your data. Speaks the /api/v1 contract the psh-now-sdk expects.",
   "license": "MIT",
   "type": "module",

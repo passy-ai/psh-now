@@ -1,7 +1,9 @@
 // psh SDK — unit tests for our own primitives.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { urlBase64ToUint8Array } from "../src/client";
+import { VERSION } from "../src/index";
 import { DEFAULT_API_URL } from "../src/types";
 
 test("base64url → bytes: 65-byte P-256-style key round-trips", () => {
@@ -28,4 +30,9 @@ test("base64url → bytes: urlsafe alphabet (- _) matches standard decode", () =
 
 test("default relay is psh.now", () => {
   assert.equal(DEFAULT_API_URL, "https://psh.now");
+});
+
+test("VERSION matches package.json, so a page can report what it is running", async () => {
+  const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+  assert.equal(VERSION, pkg.version);
 });

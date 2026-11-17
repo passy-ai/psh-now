@@ -1,0 +1,123 @@
+name: publish
+
+# Releases happen from tags, not from someone's laptop.
+#
+#   git tag sdk-v1.0.1   && git push origin sdk-v1.0.1
+#   git tag relay-v0.1.1 && git push origin relay-v0.1.1
+#
+# The tag is the version. If the tag and the manifest disagree, the job fails
+# before it uploads anything, which is the only way a version number cannot lie.
+
+on:
+  push:
+    tags:
+      - "sdk-v*"
+      - "relay-v*"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which package to build and verify"
+        required: true
+        type: choice
+        options: [sdk, relay]
+      publish:
+        description: "Upload to npm (off by default, this is a rehearsal)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Resolve package and version from the tag
+        id: target
+        run: |
+          set -eu
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            target="${{ inputs.target }}"
+            want=""
+          else
+            ref="${{ github.ref_name }}"
+            target="${ref%%-v*}"
+            want="${ref#*-v}"
+          fi
+          case "$target" in
+            sdk) dir=sdk ;;
+            relay) dir=relay ;;
+            *) echo "::error::unknown target '$target'"; exit 1 ;;
+          esac
+          have=$(node -p "require('./$dir/package.json').version")
+          if [ -n "$want" ] && [ "$want" != "$have" ]; then
+            echo "::error::tag asks for $want but $dir/package.json says $have"
+            exit 1
+          fi
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          echo "version=$have" >> "$GITHUB_OUTPUT"
+          echo "$dir $have" > /tmp/target
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: ${{ steps.target.outputs.dir == 'sdk' && 'npm' || '' }}
+          cache-dependency-path: ${{ steps.target.outputs.dir }}/package-lock.json
+
+      - name: SDK, install, typecheck, test, build, then check what a consumer gets
+        if: steps.target.outputs.dir == 'sdk'
+        working-directory: sdk
+        run: |
+          set -eu
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
+          tarball=$(npm pack --silent | tail -1)
+          echo "packed $tarball"
+          for f in package/dist/index.js package/dist/index.cjs package/dist/index.d.ts \
+                   package/dist/browser/psh.global.js package/dist/browser/psh-sw.global.js \
+                   package/README.md package/LICENSE; do
+            tar -tzf "$tarball" | grep -qx "$f" || { echo "::error::$tarball is missing $f"; exit 1; }
+          done
+
+      - name: Relay, check what a consumer gets
+        if: steps.target.outputs.dir == 'relay'
+        working-directory: relay
+        run: |
+          set -eu
+          tarball=$(npm pack --silent | tail -1)
+          echo "packed $tarball"
+          for f in package/server.ts package/README.md package/LICENSE package/package.json; do
+            tar -tzf "$tarball" | grep -qx "$f" || { echo "::error::$tarball is missing $f"; exit 1; }
+          done
+
+      - name: Publish
+        if: github.event_name == 'push' || inputs.publish
+        working-directory: ${{ steps.target.outputs.dir }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -eu
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN is not set, refusing to publish. Add it in Settings, Secrets, Actions."
+            exit 1
+          fi
+          npm publish --provenance --access public
+
+      - name: Summary
+        if: always()
+        run: |
+          [ -f /tmp/target ] && echo "### $(cat /tmp/target)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "published from tag ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ inputs.publish }}" = "true" ]; then
+            echo "published on demand" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "rehearsal, nothing was uploaded" >> "$GITHUB_STEP_SUMMARY"
+          fi

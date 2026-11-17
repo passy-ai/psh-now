@@ -1,6 +1,6 @@
 {
   "name": "psh-now-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "psh web push SDK \u2014 subscribe a site to a /api/v1 relay (psh.now or your own psh-now-relay). One client class, one service worker.",
   "license": "MIT",
   "type": "module",
