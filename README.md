@@ -474,6 +474,18 @@ product.
 CI typechecks and tests both packages and boots the relay on every push, because a
 package that only builds on one laptop is not a package.
 
+Releases come from tags, not from a laptop. The tag is the version, and the workflow
+refuses to upload when it disagrees with the manifest:
+
+```bash
+git tag sdk-v1.0.2   && git push origin sdk-v1.0.2     # psh-now-sdk
+git tag relay-v0.1.2 && git push origin relay-v0.1.2   # psh-now-relay
+```
+
+Each release runs the tests, packs the tarball, asserts the files a consumer actually
+receives, and publishes with a provenance statement. To rehearse without uploading, run
+the `publish` workflow by hand with publish left off.
+
 ## Testing
 
 ```bash
