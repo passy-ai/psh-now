@@ -1,0 +1,15 @@
+{
+  "name": "psh-now",
+  "version": "0.0.1",
+  "description": "Name reservation for psh.now, human approval for AI agents. Nothing to import: the install is a shell command.",
+  "license": "MIT",
+  "files": ["README.md"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passy-ai/psh-now.git",
+    "directory": "reserved-names/psh-now"
+  },
+  "homepage": "https://psh.now",
+  "bugs": { "url": "https://github.com/passy-ai/psh-now/issues" },
+  "keywords": ["psh", "psh.now", "reserved"]
+}
