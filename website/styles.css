@@ -656,26 +656,30 @@ main {
    Sized here rather than in em off the surrounding text, so the row is the same
    size whatever the sentence above it is set at. */
 .hero-marks {
-  --mark: 26px;
+  /* 22px and a 2px gap are measured off the design, not chosen: the three tiles cover
+     140 device pixels at 2x, which is 70px for three 22px squares and two 2px gaps,
+     and a 6px radius reproduces the corner it draws. The row is deliberately smaller
+     than the sentence above it, which is what makes it read as an aside about the
+     three answers rather than as three buttons competing with the headline. */
+  --mark: 22px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 4px;
-  /* Close to the sentence above: the tiles are the three answers to it, so they read
-     as part of the same thought rather than as a separate row of controls. */
-  margin: 6px 0 0;
+  gap: 2px;
+  /* The design leaves about 10px between the second line and the tiles. */
+  margin: 3px 0 0;
 }
 .h1-mark {
   display: inline-grid;
   place-items: center;
-  width: var(--mark, 34px);
-  height: var(--mark, 34px);
-  border-radius: 9px;
+  width: var(--mark, 22px);
+  height: var(--mark, 22px);
+  border-radius: 6px;
 }
 .h1-mark svg {
   display: block;
-  width: 60%;
-  height: 60%;
+  width: 55%;
+  height: 55%;
 }
 .h1-mark-no {
   background: #fdeeec;
@@ -702,27 +706,26 @@ main {
     text-wrap: balance;
   }
   .hero-marks {
-    --mark: 23px;
-    gap: 4px;
+    --mark: 20px;
+    gap: 3px;
     margin-top: 8px;
   }
 }
 /* The hero headline is static, the rotating word lived here. */
 
 .hero-sub {
-  margin: 20px auto 0;
-  /* Wide enough that the sentence breaks in two, as in the design, instead of the
-     four dense lines the old, longer copy needed at 620px. 720px is measured: at
-     21px the sentence needs 701px to still break after "anywhere". */
-  max-width: 720px;
-  font-size: 20px;
-  line-height: 1.55;
+  margin: 24px auto 0;
+  /* Measured off the design rather than judged by eye: its subtitle has a 13px cap
+     height and 30px between baselines, which is 18px type on a 1.65 line, and its
+     first line runs 620px wide before breaking. Setting it larger pushed the line
+     past where the design breaks it ("...from anywhere") and made the subhead
+     compete with the headline instead of supporting it. 620px also keeps the
+     break after "anywhere" instead of the four dense lines the old, longer copy
+     needed. */
+  max-width: 620px;
+  font-size: 18px;
+  line-height: 1.65;
   color: var(--muted);
-}
-@media (min-width: 640px) {
-  .hero-sub {
-    font-size: 21px;
-  }
 }
 
 .hero-cta {
