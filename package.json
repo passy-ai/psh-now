@@ -1,6 +1,6 @@
 {
   "name": "psh-now",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -24,7 +24,10 @@
     "migrate": "bun src/db/migrate.ts",
     "cli": "bun cli/psh.ts",
     "typecheck": "tsc --noEmit",
-    "test:mcp": "bun tests/mcp.ts"
+    "test:mcp": "bun tests/mcp.ts",
+    "build:sdk": "npm --prefix sdk run build",
+    "test:sdk": "npm --prefix sdk test",
+    "test:relay": "cd relay && bun run server.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

@@ -10,8 +10,9 @@ An agent that needs a decision sends a short **title** and **message** to psh.no
 tap **Approve** or **Deny** from one page, or answer in your own words, and the agent continues
 with the result. It exists because agents stall in terminals nobody is watching.
 
-- Works with any agent that can run a shell command or make an HTTP request. No SDK, no
-  session. A client that only speaks MCP connects to `/mcp`.
+- Works with any agent that can run a shell command or make an HTTP request. No SDK
+  required, no session. A client that only speaks MCP connects to `/mcp`, and one that
+  would rather not curl has a small SDK below.
 - One page for every agent and every machine, including sandboxes you cannot attach to.
 - Self hostable: MIT licensed, two containers, three environment variables.
 
@@ -420,6 +421,8 @@ primitive.
 ## Project layout
 
 ```
+sdk/                  @psh/sdk: subscribe a site, one client class and one worker
+relay/                @psh/relay: a relay you host yourself, own DB and VAPID keys
 src/
   index.ts            Elysia app + graceful shutdown
   env.ts              Validated configuration
@@ -445,6 +448,31 @@ drizzle/              Generated SQL migrations
 ```
 
 ---
+
+## Packages
+
+Two things in this repo are also things you can install on their own.
+
+**`@psh/sdk`** ([sdk/](sdk/README.md)) is the browser side of the relay contract: one
+client class, one service worker, no framework. It speaks `/api/v1`, so it works against
+psh.now or against a relay you run, and the relay it talks to is recorded in the push
+payload so click and impression tracking land in the right database.
+
+```js
+import { createPsh } from "@psh/sdk";
+
+const psh = createPsh({ apiUrl: "https://psh.now", siteKey: "pk_live_…" });
+await psh.subscribe();
+```
+
+**`@psh/relay`** ([relay/](relay/README.md)) is the smallest thing that can accept those
+subscriptions: one Bun process, SQLite, VAPID keys generated and persisted on first run,
+and an HTTP send endpoint behind a bearer key. It is not the psh.now gateway and does not
+try to be. It exists so "self-hosted" means the same contract rather than a different
+product.
+
+CI typechecks and tests both packages and boots the relay on every push, because a
+package that only builds on one laptop is not a package.
 
 ## Testing
 

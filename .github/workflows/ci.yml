@@ -93,6 +93,66 @@ jobs:
       - name: mcp conformance
         run: bun tests/mcp.ts
 
+  sdk:
+    # The package a stranger installs. If it does not typecheck, pass its own tests and
+    # bundle here, it is broken exactly where nobody would notice until publish.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: the package a consumer gets actually resolves
+        working-directory: sdk
+        run: |
+          npm pack --silent > /tmp/pkg.txt
+          PKG=$(tail -1 /tmp/pkg.txt)
+          test -f "$PKG"
+          tar -tzf "$PKG" | grep -qx 'package/dist/browser/psh.global.js'
+          tar -tzf "$PKG" | grep -qx 'package/dist/browser/psh-sw.global.js'
+          tar -tzf "$PKG" | grep -qx 'package/dist/index.d.ts'
+          echo "packed $PKG contains the browser bundles and types"
+
+  relay:
+    # Self-hosting is the promise, so this boots the relay the way the README says and
+    # asks it for the two things a browser asks for first.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: relay
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - name: boot and speak the contract
+        run: |
+          PSH_DB=/tmp/relay.db PSH_PORT=8080 PSH_ADMIN_KEY=ci-admin-or-long-enough \
+            bun run server.ts > /tmp/relay.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/api/v1/health && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8080/api/v1/health
+          curl -sf http://127.0.0.1:8080/api/v1/vapid-key | grep -q vapidPublicKey
+          curl -sf -X POST http://127.0.0.1:8080/api/v1/subscribe \
+            -H 'content-type: application/json' \
+            -d '{"siteKey":"pk_ci","endpoint":"https://example.invalid/x","p256dhKey":"a","authKey":"b"}' \
+            | grep -q ok
+      - name: show log on failure
+        if: failure()
+        run: tail -40 /tmp/relay.log
+
   compose:
     # Compose is the documented path, so a change that cannot start is a broken release.
     runs-on: ubuntu-latest

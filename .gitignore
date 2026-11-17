@@ -7,6 +7,9 @@ dist/
 *.log
 .DS_Store
 
+# npm pack output: a build artifact from checking what a consumer installs.
+sdk/*.tgz
+
 # A dmg built into the tool folder by hand is an artifact, not source.
 tools/psh-notch/*.dmg
 

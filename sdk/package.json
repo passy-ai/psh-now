@@ -1,7 +1,7 @@
 {
   "name": "@psh/sdk",
   "version": "1.0.0",
-  "description": "psh web push SDK — subscribe a site to a /api/v1 relay (psh.now or your own @psh/relay). One client class, one service worker.",
+  "description": "psh web push SDK \u2014 subscribe a site to a /api/v1 relay (psh.now or your own @psh/relay). One client class, one service worker.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -19,14 +19,41 @@
       "require": "./dist/service-worker.cjs"
     },
     "./browser": "./dist/browser/psh.global.js",
-    "./browser/service-worker": "./dist/browser/psh-sw.global.js"
+    "./browser/service-worker": "./dist/browser/psh-sw.global.js",
+    "./package.json": "./package.json"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsup && cd dist/browser && for f in *.global.js; do mv \"$f\" \"${f%.global.js}.js\"; done; cd ../.. && ls dist/browser/*.js",
+    "build": "tsup && node scripts/verify-dist.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "web-push",
+    "push-notifications",
+    "service-worker",
+    "vapid",
+    "notifications"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passy-ai/psh-now.git",
+    "directory": "sdk"
+  },
+  "homepage": "https://psh.now/sdk",
+  "bugs": {
+    "url": "https://github.com/passy-ai/psh-now/issues"
   },
   "devDependencies": {
     "tsup": "^8.5.1",
