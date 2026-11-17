@@ -666,8 +666,10 @@ main {
   justify-content: center;
   align-items: center;
   gap: 2px;
-  /* The design leaves about 10px between the second line and the tiles. */
-  margin: 3px 0 0;
+  /* 4.5px, swept against the design's row positions together with the gaps below
+     it: it is the value that puts the tiles, the button row, the note and the
+     prompt pill on the same rows as the design all at once. */
+  margin: 4.5px 0 0;
 }
 .h1-mark {
   display: inline-grid;
@@ -678,8 +680,11 @@ main {
 }
 .h1-mark svg {
   display: block;
-  width: 55%;
-  height: 55%;
+  /* The design draws 24 device pixels of stroke inside a 44 device pixel tile,
+     which is 60% of the tile, not the 55% this was set at. The 5% shortfall read
+     as three small, faint marks sitting lost in their own squares. */
+  width: 60%;
+  height: 60%;
 }
 .h1-mark-no {
   background: #fdeeec;
@@ -714,7 +719,12 @@ main {
 /* The hero headline is static, the rotating word lived here. */
 
 .hero-sub {
-  margin: 24px auto 0;
+  /* 22px, not the 24px this sat at: sweeping the gap against the design's row
+     positions halved the total drift of everything below the headline (subtitle,
+     tiles, buttons, note, prompt pill) from 16 device pixels to 10. The headline
+     itself was already pixel exact, so the space under it was the only thing
+     standing between the section and the design. */
+  margin: 22px auto 0;
   /* Measured off the design rather than judged by eye: its subtitle has a 13px cap
      height and 30px between baselines, which is 18px type on a 1.65 line, and its
      first line runs 620px wide before breaking. Setting it larger pushed the line
@@ -732,9 +742,9 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Measured off the design: the row of answers sits 40px above the buttons, so the
-     two actions read as the next step after them rather than crowding them. */
-  margin-top: 40px;
+  /* 38.5px rather than the 40px this was set at, so the button row lands on the
+     design's row given the tiles above it. */
+  margin-top: 38.5px;
 }
 .hero-buttons {
   display: flex;
@@ -743,7 +753,7 @@ main {
   justify-content: center;
 }
 .hero-note {
-  margin: 20px 0 12px;
+  margin: 20px 0 14px;
   font-size: 13px;
   color: var(--muted-2);
 }
