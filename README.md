@@ -421,8 +421,8 @@ primitive.
 ## Project layout
 
 ```
-sdk/                  @psh/sdk: subscribe a site, one client class and one worker
-relay/                @psh/relay: a relay you host yourself, own DB and VAPID keys
+sdk/                  psh-now-sdk: subscribe a site, one client class and one worker
+relay/                psh-now-relay: a relay you host yourself, own DB and VAPID keys
 src/
   index.ts            Elysia app + graceful shutdown
   env.ts              Validated configuration
@@ -453,19 +453,19 @@ drizzle/              Generated SQL migrations
 
 Two things in this repo are also things you can install on their own.
 
-**`@psh/sdk`** ([sdk/](sdk/README.md)) is the browser side of the relay contract: one
+**`psh-now-sdk`** ([sdk/](sdk/README.md)) is the browser side of the relay contract: one
 client class, one service worker, no framework. It speaks `/api/v1`, so it works against
 psh.now or against a relay you run, and the relay it talks to is recorded in the push
 payload so click and impression tracking land in the right database.
 
 ```js
-import { createPsh } from "@psh/sdk";
+import { createPsh } from "psh-now-sdk";
 
 const psh = createPsh({ apiUrl: "https://psh.now", siteKey: "pk_live_…" });
 await psh.subscribe();
 ```
 
-**`@psh/relay`** ([relay/](relay/README.md)) is the smallest thing that can accept those
+**`psh-now-relay`** ([relay/](relay/README.md)) is the smallest thing that can accept those
 subscriptions: one Bun process, SQLite, VAPID keys generated and persisted on first run,
 and an HTTP send endpoint behind a bearer key. It is not the psh.now gateway and does not
 try to be. It exists so "self-hosted" means the same contract rather than a different

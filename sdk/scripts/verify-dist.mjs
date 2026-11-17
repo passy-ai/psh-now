@@ -1,7 +1,7 @@
 // Fails the build if dist and package.json disagree.
 //
 // They did disagree: the build renamed tsup's `.global.js` bundles to `.js`, while the
-// export map, the README and @psh/relay all asked for `.global.js`. Nothing caught it
+// export map, the README and psh-now-relay all asked for `.global.js`. Nothing caught it
 // because nobody imported the subpath here, and the break would only surface after
 // publish, in someone else's bundler.
 import { existsSync, readFileSync } from "node:fs";

@@ -1,7 +1,7 @@
-// relay/server.ts — @psh/relay: minimal self-hostable push relay.
+// relay/server.ts, psh-now-relay: minimal self-hostable push relay.
 //
 // Own your DB, own your VAPID keys, own your data. Speaks the exact /api/v1
-// contract the @psh/sdk service worker and clients expect, so the SDK and all
+// contract the psh-now-sdk service worker and clients expect, so the SDK and all
 // psh apps can point at it with one URL.
 //
 //   bun install && PSH_ADMIN_KEY=secret bun run server.ts
@@ -12,7 +12,7 @@
 //   PSH_ADMIN_KEY   bearer key for POST /api/v1/send (required for sends;
 //                   generated once and persisted if not set)
 //   PSH_ORIGIN      public origin used in push payloads, default http://localhost:PSH_PORT
-//   PSH_SDK_DIST    optional path to the @psh/sdk dist dir; serves the browser
+//   PSH_SDK_DIST    optional path to the psh-now-sdk dist dir; serves the browser
 //                   bundle at /sdk/psh.global.js and the SW at /psh-sw.js
 //
 // Contract (same as psh.now/api/v1):
@@ -28,7 +28,7 @@
 //   GET  /              → test page (if sdk dist available)
 //   GET  /api/v1/health → { ok: true }
 //
-// Single-tenant by design: any siteKey is accepted and auto-registered —
+// Single-tenant by design: any siteKey is accepted and auto-registered ,
 // you are the operator of this relay. Multi-tenant/key management is the
 // hosted/enterprise layer, not this package.
 
@@ -139,7 +139,7 @@ const serveSdkAsset = (path: string) => {
 
 const TEST_PAGE = `<!doctype html><html><head><title>psh relay</title></head>
 <body style="font-family:sans-serif">
-<h3>psh relay — SDK test</h3>
+<h3>psh relay, SDK test</h3>
 <button id="sub">Subscribe</button> <button id="send">Send test push</button>
 <pre id="log" style="white-space:pre-wrap"></pre>
 <script src="/sdk/psh.global.js"></script>
@@ -237,4 +237,4 @@ Bun.serve({
 });
 
 console.log(`[relay] listening on ${ORIGIN}  (db: ${DB_PATH})`);
-if (!SDK_DIST) console.log("[relay] tip: set PSH_SDK_DIST to the @psh/sdk dist dir to get the test page + SW hosting");
+if (!SDK_DIST) console.log("[relay] tip: set PSH_SDK_DIST to the psh-now-sdk dist dir to get the test page + SW hosting");

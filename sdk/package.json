@@ -1,7 +1,7 @@
 {
-  "name": "@psh/sdk",
+  "name": "psh-now-sdk",
   "version": "1.0.0",
-  "description": "psh web push SDK \u2014 subscribe a site to a /api/v1 relay (psh.now or your own @psh/relay). One client class, one service worker.",
+  "description": "psh web push SDK \u2014 subscribe a site to a /api/v1 relay (psh.now or your own psh-now-relay). One client class, one service worker.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",

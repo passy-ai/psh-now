@@ -1,7 +1,7 @@
-// psh SDK — public types and the wire contract.
+// psh SDK, public types and the wire contract.
 //
 // The contract is deliberately tiny: one client class, one service worker,
-// five HTTP calls. Every server that speaks /api/v1 (psh.now, @psh/relay)
+// five HTTP calls. Every server that speaks /api/v1 (psh.now, psh-now-relay)
 // works with every client that uses this SDK.
 
 export interface PshConfig {

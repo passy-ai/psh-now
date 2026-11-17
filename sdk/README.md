@@ -1,28 +1,28 @@
-# @psh/sdk
+# psh-now-sdk
 
 Web push SDK for psh. One client class, one service worker, five HTTP calls.
-Works with [psh.now](https://psh.now) or your own relay —
-[`@psh/relay`](../relay/) is the self-host option: own DB, own keys, own data.
+Works with [psh.now](https://psh.now) or your own relay ,
+[`psh-now-relay`](../relay/) is the self-host option: own DB, own keys, own data.
 
 ## Install
 
 ```bash
-npm install @psh/sdk
+npm install psh-now-sdk
 ```
 
 Or without npm: the browser build ships as plain files you can host yourself:
 
-- `dist/browser/psh.global.js` — the client as `<script>` (global `Psh`)
-- `dist/browser/psh-sw.global.js` — the service worker (serve it at `/psh-sw.js`)
+- `dist/browser/psh.global.js`, the client as `<script>` (global `Psh`)
+- `dist/browser/psh-sw.global.js`, the service worker (serve it at `/psh-sw.js`)
 
 ## Use
 
 ```ts
-import { createPsh } from "@psh/sdk"
+import { createPsh } from "psh-now-sdk"
 
 const psh = createPsh({
   siteKey: "pk_your-site",           // from your relay
-  apiUrl: "https://psh.now",         // or your own @psh/relay URL
+  apiUrl: "https://psh.now",         // or your own psh-now-relay URL
   onSubscribe: (sub) => console.log("subscribed", sub.endpoint),
 })
 
@@ -70,7 +70,7 @@ Your relay sends pushes as JSON:
 ```
 
 `data.apiUrl` is where the service worker sends impression/click/dismiss beacons
-— each deployment's pushes route tracking to itself. `data.url` is where a
+, each deployment's pushes route tracking to itself. `data.url` is where a
 click lands.
 
 ## Design
