@@ -2713,6 +2713,31 @@ final class NotchPanelView: NSView {
             options: [.mouseEnteredAndExited, .activeAlways],
             owner: self
         ))
+        // Re-adding the area under a pointer that never moved delivers no `mouseEntered`, and
+        // removing it delivers no `mouseExited`: AppKit only reports a real crossing. So every
+        // rebuild is a chance for `hovering` to describe an earlier pointer position, and the
+        // timers that read it close the list under a pointer that is plainly on it. Ask the
+        // pointer instead of assuming the events will arrive.
+        adoptPointerPosition()
+    }
+
+    /// Is the pointer on the hoverable band, asked of the pointer rather than remembered?
+    ///
+    /// The band is the tracking area's rect, converted out to the screen, so this and AppKit
+    /// agree on the one thing that matters: whether the pointer is on the black.
+    func pointerInside() -> Bool {
+        guard let window, window.isVisible, window.alphaValue > 0 else { return false }
+        let local = convert(window.convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
+        let h = shapeHeight > 0 ? min(shapeHeight, bounds.height) : bounds.height
+        return NSRect(x: 0, y: bounds.maxY - h, width: bounds.width, height: h).contains(local)
+    }
+
+    /// Take the pointer's real position as the hover state, and report a change once.
+    func adoptPointerPosition() {
+        let inside = pointerInside()
+        guard inside != hovering else { return }
+        hovering = inside
+        if mode == .compact || inside { onHover?(inside) }
     }
 
     override func mouseEntered(with event: NSEvent) {
@@ -3123,6 +3148,66 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// request or a screenshot. Cleans up after itself and leaves nothing on screen.
     /// Prints the menu exactly as the status item would show it, so a change to the menu can
     /// be checked without a human opening it. Structure only: titles, separators, submenus.
+    /// Reproduces the hover bug headlessly: open the list, park the pointer on it, wait past
+    /// the automatic close, and report whether the list survived.
+    ///
+    /// The bug it exists to catch: after a decision the list reopens under a pointer that never
+    /// moved, AppKit delivers no `mouseEntered` for the rebuilt tracking area, and the timer armed
+    /// when the request arrived withdrew the list "even though I'm in the correct spot".
+    ///
+    /// `CGWarpMouseCursorPosition` moves the pointer for real, so this exercises the same
+    /// enter/exit delivery the app gets, rather than the code's own idea of where the pointer is.
+    func runHoverProbe(seconds: Double = 7) {
+        guard ensurePanel() != nil, let panel, let bar = panelView, let list = listView else {
+            die("the panels could not be created")
+        }
+        currentConfig = nil
+        asks = sampleAsks()
+        applyAsks()
+
+        // Park the pointer in the notch band before anything opens, the way it sits when a second
+        // request arrives and the human is already reading the first.
+        //
+        // Two coordinate systems meet here: the panel's frame is AppKit's, bottom-left origin,
+        // while `CGWarpMouseCursorPosition` takes the global display space, top-left origin. Handing
+        // it an AppKit y put the pointer at the bottom of the screen, so an earlier version of this
+        // probe passed without ever touching the notch - a vacuous pass, worse than a failure.
+        let screenHeight = NSScreen.main?.frame.maxY ?? 0
+        let target = NSPoint(x: panel.frame.midX, y: panel.frame.maxY - 8)
+        CGWarpMouseCursorPosition(CGPoint(x: target.x, y: screenHeight - target.y))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+
+        // The real path, not `openList()` directly: a request arriving arms the automatic close,
+        // and that timer is what withdraws the list under a stationary pointer. Calling `openList`
+        // instead left no timer to catch, so a build with the bug still passed.
+        autoExpand()
+        guard listPanel?.isVisible == true else { die("the list did not open") }
+
+        print("pointer    inside bar=\(bar.pointerInside()) inside list=\(list.pointerInside())")
+        print("hover      bar=\(bar.hovering) list=\(list.hovering)")
+        print("list open  \(listPanel?.isVisible == true)")
+
+        // The automatic close is five seconds. Wait past it with the pointer stationary.
+        RunLoop.current.run(until: Date().addingTimeInterval(seconds))
+
+        let stayed = listPanel?.isVisible == true
+        print("after \(Int(seconds))s  list open=\(stayed)  pointer inside list=\(list.pointerInside())")
+
+        // Deliberately checks the staying half only. The closing half needs a real `mouseExited`,
+        // and nothing here can produce one: `CGWarpMouseCursorPosition` generates no crossings at
+        // all (verified against a plain window with a tracking area, which never fired enter or
+        // exit), and a posted `.mouseMoved` does not reach a non-activating borderless panel in this
+        // session. A check that cannot fail is worse than none, so the pointer-leaves path stays a
+        // manual check rather than a green line that means nothing.
+        print(stayed
+            ? "PASS the list stayed while the pointer was on it"
+            : "FAIL the list withdrew under a stationary pointer")
+
+        withdrawList()
+        panel.orderOut(nil)
+        exit(stayed ? 0 : 1)
+    }
+
     func runMenuProbe() {
         let menu = NSMenu()
         menu.delegate = self
@@ -3638,14 +3723,27 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: hover, the only link between the layers
 
-    private var barHovered: Bool { panelView?.hovering ?? false }
-    private var listHovered: Bool { listView?.hovering ?? false }
+    /// Where the pointer is, asked when it is needed.
+    ///
+    /// These used to be the cached `hovering` flags, which go stale exactly when it matters: the
+    /// pointer on a panel that was just shown again gets no `mouseEntered`, and one on a panel that
+    /// was ordered out gets no `mouseExited`. A timer reading a stale flag decided the list was
+    /// abandoned while the pointer sat on it.
+    private var barHovered: Bool { panelView?.pointerInside() ?? false }
+    private var listHovered: Bool { listView?.pointerInside() ?? false }
+
+    /// True when the pointer is on either layer, which is what keeps the list on screen.
+    private var pointerOnNotch: Bool { barHovered || listHovered }
 
     /// The pointer on the bar opens layer 2. Focus of the bar never changes: it is not
     /// hover-dependent and does not withdraw.
     private func barHoverChanged(_ inside: Bool) {
         if inside {
             withdrawTimer?.invalidate()
+            // Hover cancels the automatic close. Without this the five-second clock armed when the
+            // request arrived kept running while the request was being read, and withdrew the list
+            // the moment it elapsed - whatever the pointer was doing.
+            autoExpandTimer?.invalidate()
             openList()
         } else {
             scheduleWithdraw()
@@ -3656,6 +3754,7 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func listHoverChanged(_ inside: Bool) {
         if inside {
             withdrawTimer?.invalidate()
+            autoExpandTimer?.invalidate()
             return
         }
         if listView?.detailCard?.isAnswering == true { leaveAnswerMode() }
@@ -3668,7 +3767,7 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         withdrawTimer?.invalidate()
         let timer = Timer(timeInterval: 0.18, repeats: false) { [weak self] _ in
             guard let self else { return }
-            guard !self.barHovered, !self.listHovered else { return }
+            guard !self.pointerOnNotch else { return }
             self.withdrawList()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -3683,7 +3782,6 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         list.setUnpaired(currentConfig == nil)
         list.setAsks(asks)
         list.hideBadgeRow()
-        let first = !listOpen
         listOpen = true
         // Measure first, then place. Collapsing to zero and growing meant the first paint was an
         // empty slab at the wrong size, and its corners were drawn before the final height
@@ -3710,6 +3808,9 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         list.layoutSubtreeIfNeeded()
         list.needsDisplay = true
         list.displayIfNeeded()
+        // The list has just been shown under wherever the pointer is. Take that as the truth now
+        // rather than waiting for an enter that AppKit will not send.
+        list.adoptPointerPosition()
     }
 
     /// Withdraws upward into the bar. The bar does not move, because it is a different window.
@@ -3720,6 +3821,10 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         listPanel.becomesKeyOnlyIfNeeded = true
         // Ordered out outright: no intermediate frame, and no zero-size window left on screen.
         listPanel.orderOut(nil)
+        // An ordered-out window sends no `mouseExited`, so the flag would stay true for a panel
+        // that is no longer on screen and the bar would think the pointer never left it. Clear it
+        // from the pointer, which by definition is not on a window that is gone.
+        listView?.adoptPointerPosition()
     }
 
     /// A new request opens the list by itself, then it withdraws. Hover always wins: while the
@@ -3728,9 +3833,17 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // One gate for every caller: hidden never opens anything.
         guard !notchHidden else { return }
         openList()
+        // The reopen rebuilt the tracking areas with the pointer on the notch, which delivers no
+        // enter, so the list would have believed it was abandoned from the first instant. This is
+        // the second hover that "made it work" after leaving and coming back.
+        listView?.adoptPointerPosition()
+        panelView?.adoptPointerPosition()
+        // Hover wins now, not at the timer: a pointer already in place means no automatic close.
+        guard !pointerOnNotch else { return }
         autoExpandTimer?.invalidate()
         let timer = Timer(timeInterval: 5, repeats: false) { [weak self] _ in
-            guard let self, !self.barHovered, !self.listHovered else { return }
+            guard let self else { return }
+            guard !self.pointerOnNotch else { return }
             self.withdrawList()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -4244,6 +4357,10 @@ struct PSHNotch {
             keyProbe()
         case "--states":
             Approver().runStateProbe()
+        case "--hoverprobe":
+            Approver().runHoverProbe(
+                seconds: Double(value(of: "--seconds", in: args) ?? "7") ?? 7
+            )
         case "--menu":
             Approver().runMenuProbe()
         case "--preview":

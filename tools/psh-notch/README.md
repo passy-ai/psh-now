@@ -427,10 +427,29 @@ Verified against the live host on 2026-10-18:
   22 and 32pt. That check paid for itself twice: `maskedCorners` is ignored on a
   view-backed layer, which rounded the top corners too, and an `NSBezierPath` arc for the
   bottom-left corner swept the long way round and cut a diagonal across the left edge
+- the list staying open under a stationary pointer, from `--hoverprobe`: the pointer is placed
+  on the notch, a request arrives (which arms the automatic close), and the list must still be
+  on screen five seconds later. That check found a real bug and then nearly found it in its own
+  first draft. Hover was decided from cached `mouseEntered`/`mouseExited` flags, and rebuilding a
+  tracking area under a pointer that never moved delivers neither, so after a decision the
+  reopened list believed it was abandoned and the five-second clock armed when the request
+  arrived withdrew it "even though I'm in the correct spot". Leaving and coming back worked
+  because that is a real crossing. The probe itself passed vacuously twice first: once because
+  the warp was handed bottom-left coordinates in a top-left API, which parked the pointer at the
+  bottom of the screen, and once because it called `openList()` directly and never armed the
+  timer. Worth knowing before trusting any probe here.
 
 Not verified: the open animation itself. A headless run can only reduce it to end states,
 which is what `--layout` prints (`closed: bubble x 164 w 44, field hidden` -> `open: bubble
 x 0 w 44, field x 54 w 318`), and that is not the same as watching it move.
+
+Not verified either: that the list closes once the pointer leaves. `CGWarpMouseCursorPosition`
+generates no crossings at all - checked against a plain window with its own tracking area, which
+never fired enter or exit - and a posted `.mouseMoved` does not reach a non-activating borderless
+panel from here, so nothing in this harness can produce a `mouseExited`. The closing path is
+therefore reasoned rather than measured: it is unchanged, it still runs `scheduleWithdraw()` on
+exit, and its guard now asks the pointer instead of reading a flag that may be stale. A check
+that cannot fail would be worse than none, so the probe asserts only the staying half and says so.
 
 Partly verified by real use: two requests on a real account were approved from a running
 client on 2026-10-18 (the server logged `status=approved` at 20:27:56 and 20:27:57), so a
