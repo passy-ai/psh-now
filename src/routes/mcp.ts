@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { env } from "../env";
 import { apiKeyFromHeaders } from "../lib/crypto";
 import { productVersion } from "../lib/version";
+import { clientAgentForKey, parseClientInfo, recordClientIdentity } from "../services/keys";
 import { handleApprovalRequest } from "./hook";
 import type { HookBody } from "./hook";
 
@@ -109,13 +110,36 @@ export function mcpDescriptor() {
   };
 }
 
-/** MCP arguments to the body the approval handler already understands. */
-function toHookBody(args: Record<string, unknown>): HookBody | { error: string } {
+/** The client label recorded for the key making this call, if it ever handshook. */
+async function clientAgentFor(headers: Headers): Promise<string | null> {
+  const raw = apiKeyFromHeaders(headers);
+  if (!raw) return null;
+  try {
+    return await clientAgentForKey(raw);
+  } catch {
+    // A missing label must never stop the ask.
+    return null;
+  }
+}
+
+/**
+ * MCP arguments to the body the approval handler already understands.
+ *
+ * `agent` is the caller's self-declared label, and an MCP client has no field for
+ * one - so it names the client that handshook (`dsh-mcp-client 0.0.1`) when we know
+ * it, and falls back to "mcp" otherwise. Falls back rather than inventing a name:
+ * a harness that never handshook still shows up as an MCP caller, and the key's own
+ * label covers the rest.
+ */
+function toHookBody(
+  args: Record<string, unknown>,
+  clientAgent: string | null,
+): HookBody | { error: string } {
   const message = typeof args.message === "string" ? args.message.trim() : "";
   if (!message) return { error: "message is required" };
 
   const title = typeof args.title === "string" ? args.title.trim() : undefined;
-  const body: HookBody = { message, agent: "mcp", kind: "ask" };
+  const body: HookBody = { message, agent: clientAgent ?? "mcp", kind: "ask" };
   if (title) body.title = title;
 
   const seconds = args.timeoutSec;
@@ -172,11 +196,24 @@ export const mcpRoutes = new Elysia()
 
       switch (rpc.method) {
         case "initialize": {
-          const asked = (rpc.params as { protocolVersion?: unknown } | undefined)?.protocolVersion;
+          const params = rpc.params as
+            | { protocolVersion?: unknown; clientInfo?: unknown }
+            | undefined;
+          const asked = params?.protocolVersion;
           const version =
             typeof asked === "string" && PROTOCOL_VERSIONS.includes(asked)
               ? asked
               : PROTOCOL_VERSIONS[0];
+
+          // The one native place a client says who it is: `<name> <version>`. It used
+          // to be dropped here, so every MCP ask was recorded as the constant "mcp"
+          // and two agents on one workspace were indistinguishable. The key comes from
+          // this same request's headers; a keyless handshake records nothing.
+          const identity = parseClientInfo(params?.clientInfo);
+          if (identity) {
+            await recordClientIdentity(apiKeyFromHeaders(request.headers), identity);
+          }
+
           return rpcResult(rpc.id, {
             protocolVersion: version,
             capabilities: { tools: { listChanged: false } },
@@ -227,7 +264,11 @@ export const mcpRoutes = new Elysia()
             typeof params.arguments === "object" && params.arguments !== null
               ? (params.arguments as Record<string, unknown>)
               : {};
-          const hookBody = toHookBody(args);
+          // Name the client from the handshake it already sent, when it sent one.
+          // Read per call rather than cached: a key can be used by more than one
+          // client, and the most recent handshake is the best guess there is.
+          const clientAgent = await clientAgentFor(request.headers);
+          const hookBody = toHookBody(args, clientAgent);
           if ("error" in hookBody) {
             return rpcError(rpc.id, -32602, hookBody.error);
           }

@@ -48,7 +48,7 @@ import { pairingTokens, sessions } from "../db/schema";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { apiKeyFromHeaders, sha256 } from "../lib/crypto";
 import { countAlerts, countPending } from "../services/prompts";
-import { createApiKey, listApiKeys, randomAgentName, renameApiKey, revealApiKey, revokeApiKey } from "../services/keys";
+import { clientLabel, createApiKey, listApiKeys, randomAgentName, renameApiKey, revealApiKey, revokeApiKey } from "../services/keys";
 import { createSession, getSessionById } from "../services/sessions";
 import { createClaim, verifyClaim, verifyClaimByEmail } from "../services/claims";
 import { onlineDeviceCount } from "../lib/realtime";
@@ -723,6 +723,14 @@ export const authRoutes = new Elysia({ prefix: "/api/v1" })
         id: k.id,
         name: k.name,
         prefix: k.prefix,
+        /**
+         * Who this key's client said it was in the MCP `initialize` handshake, e.g.
+         * "dsh-mcp-client 0.0.1". Null until it connects, and self-declared when set:
+         * a label for the human, not an identity we verified.
+         */
+        client: clientLabel(k),
+        clientTitle: k.clientTitle,
+        clientSeenAt: k.clientSeenAt,
         createdAt: k.createdAt,
         lastUsedAt: k.lastUsedAt,
         revokedAt: k.revokedAt,

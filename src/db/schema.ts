@@ -178,6 +178,20 @@ export const apiKeys = pgTable(
     /** Encrypted raw key, so a paired operator can reveal it. */
     keyEnc: text("key_enc"),
     prefix: text("prefix").notNull(),
+    /**
+     * Who the client says it is: `<name> <version>`, taken from the MCP
+     * `initialize` handshake's `clientInfo`. Every MCP client sends one, so this
+     * is the only thing that tells two agents apart without asking.
+     *
+     * Self-declared, not authenticated: `initialize` carries no key of its own and
+     * a client may send anything, so this is a label for the human - the same
+     * trust level as `prompts.agent` - never an authorization input.
+     */
+    clientName: text("client_name"),
+    clientTitle: text("client_title"),
+    clientVersion: text("client_version"),
+    /** When the handshake last reported that identity. */
+    clientSeenAt: timestamp("client_seen_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

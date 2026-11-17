@@ -29,6 +29,27 @@ const REQUIRED_COLUMNS: Array<{
     column: "free_top_up_at",
     repair: `alter table "tenants" add column if not exists "free_top_up_at" timestamp with time zone`,
   },
+  // The client identity the MCP handshake reports (0003_client_identity).
+  {
+    table: "api_keys",
+    column: "client_name",
+    repair: `alter table "api_keys" add column if not exists "client_name" text`,
+  },
+  {
+    table: "api_keys",
+    column: "client_title",
+    repair: `alter table "api_keys" add column if not exists "client_title" text`,
+  },
+  {
+    table: "api_keys",
+    column: "client_version",
+    repair: `alter table "api_keys" add column if not exists "client_version" text`,
+  },
+  {
+    table: "api_keys",
+    column: "client_seen_at",
+    repair: `alter table "api_keys" add column if not exists "client_seen_at" timestamp with time zone`,
+  },
 ];
 
 async function present(table: string, column: string): Promise<boolean> {

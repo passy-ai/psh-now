@@ -83,6 +83,20 @@ async function mintKey(): Promise<string> {
   return json.apiKey;
 }
 
+/**
+ * A channel key (`psh_agent_...`), which is the credential the docs hand an agent.
+ *
+ * Distinct from `mintKey`'s account key: the account key lives on `tenants`, so it
+ * has no `api_keys` row to carry the client identity the handshake reports. Tests
+ * about that identity need the row that actually exists.
+ */
+async function mintAgentKey(): Promise<string> {
+  const res = await fetch(`${BASE}/api/v1/mint`, { method: "POST" });
+  const json = (await res.json()) as { channelKey?: string };
+  if (!json.channelKey) throw new Error("no agent key minted");
+  return json.channelKey;
+}
+
 async function pendingPrompts(key: string): Promise<Array<{ id: string; title: string }>> {
   const res = await fetch(`${BASE}/api/v1/approvals?status=pending`, {
     headers: { "x-psh-key": key },
@@ -356,6 +370,74 @@ try {
   };
   check("the descriptor points at /mcp", descriptor.transport?.url === `${BASE}/mcp`, String(descriptor.transport?.url));
   check("the descriptor lists psh_ask", descriptor.tools?.[0]?.name === "psh_ask");
+
+  console.log("\nthe client handshake");
+  // The one native place a client says who it is. Every ask used to be recorded as
+  // the constant "mcp" because `initialize` was answered and its `clientInfo` dropped.
+  const identify = (key: string | undefined, clientInfo: unknown) =>
+    rpc(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-06-18", clientInfo },
+      },
+      { key },
+    );
+
+  const handshakeKey = await mintAgentKey();
+  const handshake = await identify(handshakeKey, {
+    name: "dsh-mcp-client",
+    title: "DeepSeek Harness",
+    version: "0.0.1",
+  });
+  check(
+    "initialize still answers the protocol version",
+    handshake.body.result?.protocolVersion === "2025-06-18",
+    JSON.stringify(handshake.body),
+  );
+
+  // Named after the handshake rather than the constant, which is the whole point.
+  await callTool(handshakeKey, { title: "mcp named ask", message: "Identify the client", timeoutSec: 1 }, 2);
+  const agentOf = await fetch(`${BASE}/api/v1/approvals?limit=5`, {
+    headers: { "x-psh-key": handshakeKey },
+  })
+    .then((r) => r.json() as Promise<{ prompts?: Array<{ title?: string; agent?: string }> }>)
+    .then((j) => j.prompts?.find((p) => p.title === "mcp named ask")?.agent);
+  check("the ask is named after the client that handshook", agentOf === "dsh-mcp-client 0.0.1", String(agentOf));
+
+  // A client that never handshakes keeps the old constant, so nothing regresses.
+  const silentKey = await mintAgentKey();
+  await callTool(silentKey, { title: "mcp silent ask", message: "No handshake first", timeoutSec: 1 }, 3);
+  const silentAgent = await fetch(`${BASE}/api/v1/approvals?limit=5`, {
+    headers: { "x-psh-key": silentKey },
+  })
+    .then((r) => r.json() as Promise<{ prompts?: Array<{ title?: string; agent?: string }> }>)
+    .then((j) => j.prompts?.find((p) => p.title === "mcp silent ask")?.agent);
+  check("a client that never handshakes is still 'mcp'", silentAgent === "mcp", String(silentAgent));
+
+  // Malformed handshakes must be answered, not rejected: the protocol accepts them.
+  for (const [label, info] of [
+    ["absent", undefined],
+    ["null", null],
+    ["a string", "curl"],
+    ["numbers", { name: 42, version: 1.5 }],
+    ["an oversized name", { name: "z".repeat(5_000) }],
+  ] as const) {
+    const reply = await identify(handshakeKey, info);
+    check(
+      `a malformed clientInfo (${label}) is still answered`,
+      reply.body.result?.protocolVersion === "2025-06-18",
+      JSON.stringify(reply.body).slice(0, 160),
+    );
+  }
+
+  const keyless = await identify(undefined, { name: "intruder", version: "6.6.6" });
+  check(
+    "a keyless handshake is answered without recording anything",
+    keyless.body.result?.protocolVersion === "2025-06-18" && !keyless.body.error,
+    JSON.stringify(keyless.body).slice(0, 160),
+  );
 } finally {
   if (server) {
     server.kill();
