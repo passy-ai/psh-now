@@ -649,71 +649,12 @@ main {
 .hero h1 .line {
   display: block;
 }
-/* The three decisions, on a row of their own under the sentence: deny, answer,
-   approve. They used to sit inline in the middle of the copy, which broke the
-   sentence in two and left a line starting with three tiles. Given their own row
-   the tiles read as what the product offers rather than as punctuation.
-   Sized here rather than in em off the surrounding text, so the row is the same
-   size whatever the sentence above it is set at. */
-.hero-marks {
-  /* 22px and a 2px gap are measured off the design, not chosen: the three tiles cover
-     140 device pixels at 2x, which is 70px for three 22px squares and two 2px gaps,
-     and a 6px radius reproduces the corner it draws. The row is deliberately smaller
-     than the sentence above it, which is what makes it read as an aside about the
-     three answers rather than as three buttons competing with the headline. */
-  --mark: 22px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-  /* 4.5px, swept against the design's row positions together with the gaps below
-     it: it is the value that puts the tiles, the button row, the note and the
-     prompt pill on the same rows as the design all at once. */
-  margin: 4.5px 0 0;
-}
-.h1-mark {
-  display: inline-grid;
-  place-items: center;
-  width: var(--mark, 22px);
-  height: var(--mark, 22px);
-  border-radius: 6px;
-}
-.h1-mark svg {
-  display: block;
-  /* The design draws 24 device pixels of stroke inside a 44 device pixel tile,
-     which is 60% of the tile, not the 55% this was set at. The 5% shortfall read
-     as three small, faint marks sitting lost in their own squares. */
-  width: 60%;
-  height: 60%;
-}
-.h1-mark-no {
-  background: #fdeeec;
-  box-shadow: inset 0 0 0 1px rgba(163, 44, 33, 0.16);
-  color: #b23a2c;
-}
-.h1-mark-answer {
-  background: #eef2f8;
-  box-shadow: inset 0 0 0 1px rgba(18, 48, 110, 0.13);
-  color: #22304a;
-}
-.h1-mark-yes {
-  background: #e9f6ee;
-  box-shadow: inset 0 0 0 1px rgba(24, 108, 60, 0.16);
-  color: #1d7a45;
-}
-/* The tiles carry their own size now, so the phone step down is a smaller tile and
-   a tighter gap, not a change of em on the sentence. */
 @media (max-width: 699px) {
   .hero h1 .line {
     display: inline;
   }
   .hero h1 {
     text-wrap: balance;
-  }
-  .hero-marks {
-    --mark: 20px;
-    gap: 3px;
-    margin-top: 8px;
   }
 }
 /* The hero headline is static, the rotating word lived here. */
@@ -736,15 +677,21 @@ main {
   font-size: 18px;
   line-height: 1.65;
   color: var(--muted);
+  /* Balance, because the copy breaks into a 600px line and a 117px stub ("on any
+     device") when left to fill greedily. Two even lines read as one sentence; a
+     long line with one word's worth under it read as a mistake. */
+  text-wrap: balance;
 }
 
 .hero-cta {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* 38.5px rather than the 40px this was set at, so the button row lands on the
-     design's row given the tiles above it. */
-  margin-top: 38.5px;
+  /* 48px, up from the 38.5px that was measured with the row of answer tiles still
+     sitting between the sentence and these buttons. With that row gone the space
+     above the buttons is the only thing separating the two, so it carries the whole
+     break between the claim and the action. */
+  margin-top: 48px;
 }
 .hero-buttons {
   display: flex;
