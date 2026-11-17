@@ -265,6 +265,12 @@ button {
     display: block;
   }
 }
+/* viewer.js hides the redundant link once it knows you are signed in. Needed because
+   the display:block above is an author rule and would beat the attribute's own
+   display:none, leaving the link visible at exactly the widths it matters. */
+.nav-link[hidden] {
+  display: none;
+}
 .nav-toggle {
   display: none;
   align-items: center;
@@ -643,42 +649,33 @@ main {
 .hero h1 .line {
   display: block;
 }
-/* The headline says what an agent can get back: deny, answer, approve, set inline
-   the way a product mark sits inside a statement. Sized in em so they track the type. */
-.h1-marks {
-  /* inline-block, not inline-flex: a flex box fragments across a line break, and the
-     fragment pushed the following line's text in by its own width on a phone. */
-  display: inline-block;
-  white-space: nowrap;
-  /* Left only: whatever follows the tiles is part of the same clause (in the hero it is
-     a comma), and a right margin left a space stranded in front of it. */
-  margin: 0 0 0 0.14em;
-  /* middle centres the tile on the x-height band, which is right for the glyphs but
-     leaves a 1.16em tile hanging under the baseline; the nudge lifts it onto the cap
-     band instead, where the eye reads the sentence as one line. In em, so it tracks
-     whatever size the sentence is set in. */
-  vertical-align: middle;
-  transform: translateY(-0.07em);
+/* The three decisions, on a row of their own under the sentence: deny, answer,
+   approve. They used to sit inline in the middle of the copy, which broke the
+   sentence in two and left a line starting with three tiles. Given their own row
+   the tiles read as what the product offers rather than as punctuation.
+   Sized here rather than in em off the surrounding text, so the row is the same
+   size whatever the sentence above it is set at. */
+.hero-marks {
+  --mark: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  /* Close to the sentence above: the tiles are the three answers to it, so they read
+     as part of the same thought rather than as a separate row of controls. */
+  margin: 6px 0 0;
 }
-.h1-mark + .h1-mark { margin-left: 0.07em; }
-/* The verbs and their three tiles are one phrase: broken between them, a line started
-   with three buttons and no words. */
-.h1-clause {
-  white-space: nowrap;
-}
-/* "One" rides with the tiles: broken apart, the line started with three buttons. */
-.h1-lead { white-space: nowrap; }
 .h1-mark {
   display: inline-grid;
   place-items: center;
-  width: 1.2em;
-  height: 1.2em;
-  border-radius: 0.35em;
+  width: var(--mark, 34px);
+  height: var(--mark, 34px);
+  border-radius: 9px;
 }
 .h1-mark svg {
   display: block;
-  width: 0.75em;
-  height: 0.75em;
+  width: 60%;
+  height: 60%;
 }
 .h1-mark-no {
   background: #fdeeec;
@@ -695,9 +692,8 @@ main {
   box-shadow: inset 0 0 0 1px rgba(24, 108, 60, 0.16);
   color: #1d7a45;
 }
-/* Three tiles plus the word after them stop fitting one line around 660px, which
-   left "stop" stranded on its own row. Below 700px the headline flows as one
-   sentence instead, balanced. */
+/* The tiles carry their own size now, so the phone step down is a smaller tile and
+   a tighter gap, not a change of em on the sentence. */
 @media (max-width: 699px) {
   .hero h1 .line {
     display: inline;
@@ -705,33 +701,37 @@ main {
   .hero h1 {
     text-wrap: balance;
   }
-  .h1-marks {
-    margin: 0 0.12em;
-  }
-  .h1-mark + .h1-mark {
-    margin-left: 0.05em;
-  }
-  .h1-mark {
-    width: 1.12em;
-    height: 1.12em;
+  .hero-marks {
+    --mark: 23px;
+    gap: 4px;
+    margin-top: 8px;
   }
 }
 /* The hero headline is static, the rotating word lived here. */
 
 .hero-sub {
-  margin: 22px auto 0;
-  /* Narrower than the headline, so the sentence breaks in two instead of four. */
-  max-width: 620px;
-  font-size: 18px;
-  line-height: 1.65;
+  margin: 20px auto 0;
+  /* Wide enough that the sentence breaks in two, as in the design, instead of the
+     four dense lines the old, longer copy needed at 620px. 720px is measured: at
+     21px the sentence needs 701px to still break after "anywhere". */
+  max-width: 720px;
+  font-size: 20px;
+  line-height: 1.55;
   color: var(--muted);
+}
+@media (min-width: 640px) {
+  .hero-sub {
+    font-size: 21px;
+  }
 }
 
 .hero-cta {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 34px;
+  /* Measured off the design: the row of answers sits 40px above the buttons, so the
+     two actions read as the next step after them rather than crowding them. */
+  margin-top: 40px;
 }
 .hero-buttons {
   display: flex;

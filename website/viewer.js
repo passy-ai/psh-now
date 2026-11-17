@@ -23,7 +23,9 @@
     .then(function (res) { return res.ok ? res.json() : null; })
     .then(function (viewer) {
       if (!viewer || !viewer.signedIn) return;
-      login.textContent = "Dashboard";
+      // Signed in, the plain "Log in" link and the blue button both went to /app, so the
+      // bar said the same thing twice. The link goes; the button carries the words.
+      login.hidden = true;
       cta.textContent = "Go to dashboard";
     })
     .catch(function () { /* offline, or a host without the endpoint: keep the default */ });
