@@ -89,16 +89,23 @@ effect on the next reconnect.
 ### The dmg, and the one warning
 
 `./package.sh` builds `dist/psh notch.app` and wraps it in `dist/psh-notch.dmg`
-(about 210 KB). The bundle sets `LSUIElement`, so it is a menu bar app: no Dock icon and
+(about 290 KB). The bundle sets `LSUIElement`, so it is a menu bar app: no Dock icon and
 no window when it starts.
 
 The bundle is named `psh notch.app` on purpose: Finder, Spotlight, Raycast and Login Items
 read the file name, so this is the name those lists show. The executable inside stays
 `PSHNotch`, which is what `CFBundleExecutable` points at.
 
-Open the dmg, drag **psh notch** to Applications, and launch it. The window carries the
-idle notch at the top and one arrow between the app and Applications: the thing you are
-about to install, before you install it.
+Open the dmg, drag **psh notch** to Applications, and launch it.
+
+The window is a plain Finder window: two icons, the app and a shortcut to Applications, and
+nothing painted behind them. That last part is deliberate and it is what replaced an earlier
+version that drew a white plate with the idle notch and a drag arrow on it. A painted window
+is a fixed colour, so on a Mac in dark mode it opened as a glaring white slab; drawing it dark
+instead only moves the problem to everyone in light mode. Leaving the background unset lets
+Finder draw its own icon-view surface, so the window matches the appearance the person actually
+uses and follows them when they switch. The icons are sized to each other (`icon_size` 128), so
+the app icon no longer sits noticeably smaller than the folder beside it.
 
 ### Updating from inside the app
 

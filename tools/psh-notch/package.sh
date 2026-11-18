@@ -95,16 +95,13 @@ codesign --force --sign - --timestamp=none "$APP" 2>&1 | sed 's/^/    /'
 codesign --verify --strict "$APP"
 
 echo "==> writing $DMG"
-# Two things in the window, not one: the app and a shortcut to Applications, so the install is a
-# drag rather than an instruction someone has to read. The window carries the idle notch and one
-# arrow, drawn by make-dmg-background.swift, on a white plate.
-echo "==> drawing the window background"
-swiftc -O -o dist-build-mkbg make-dmg-background.swift 2>&1 | sed 's/^/    /'
-./dist-build-mkbg dist/dmg-bg.png | sed 's/^/    /'
-rm -f dist-build-mkbg
-
+# Two icons, not one: the app and a shortcut to Applications, so the install is a drag
+# rather than an instruction someone has to read. No background image on purpose - see
+# dmg-settings.py. A painted plate cannot know whether the person opening it uses light or
+# dark mode, and the answer is one of the two, so leaving it to Finder is what makes the
+# window look like a Finder window instead of a coloured slab.
 rm -f "$DMG"
-# dmgbuild writes the .DS_Store and the background alias itself. Finder automation would do the
+# dmgbuild writes the .DS_Store and the icon layout itself. Finder automation would do the
 # same thing, but macOS refuses to grant a build shell permission to drive Finder, and a build
 # must not depend on that grant.
 if ! python3 -c "import dmgbuild" >/dev/null 2>&1; then
@@ -118,7 +115,7 @@ elif [ -x dist/.dmgvenv/bin/python ] && dist/.dmgvenv/bin/python -c "import dmgb
 fi
 
 if [ -n "$PYBUILD" ]; then
-    "$PYBUILD" -m dmgbuild -s dmg-settings.py -D app="$APP" -D background="dist/dmg-bg.png" "psh notch" "$DMG" 2>&1 | sed 's/^/    /'
+    "$PYBUILD" -m dmgbuild -s dmg-settings.py -D app="$APP" "psh notch" "$DMG" 2>&1 | sed 's/^/    /'
 fi
 if [ ! -f "$DMG" ]; then
     echo "    dmgbuild unavailable, falling back to a plain window"
