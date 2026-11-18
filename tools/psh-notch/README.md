@@ -99,13 +99,18 @@ read the file name, so this is the name those lists show. The executable inside 
 Open the dmg, drag **psh notch** to Applications, and launch it.
 
 The window is a plain Finder window: two icons, the app and a shortcut to Applications, and
-nothing painted behind them. That last part is deliberate and it is what replaced an earlier
-version that drew a white plate with the idle notch and a drag arrow on it. A painted window
-is a fixed colour, so on a Mac in dark mode it opened as a glaring white slab; drawing it dark
+nothing painted behind them. That last part is deliberate and it replaced an earlier version
+that drew a white plate with the idle notch and a drag arrow on it. A painted window is a
+fixed colour, so on a Mac in dark mode it opened as a glaring white slab; drawing it dark
 instead only moves the problem to everyone in light mode. Leaving the background unset lets
-Finder draw its own icon-view surface, so the window matches the appearance the person actually
-uses and follows them when they switch. The icons are sized to each other (`icon_size` 128), so
-the app icon no longer sits noticeably smaller than the folder beside it.
+Finder draw its own icon-view surface, so the window matches the appearance the person
+actually uses and follows them when they switch.
+
+The rest of the layout is copied from Quotio's installer rather than eyeballed, because that
+is the window this is meant to look like. Its dmg was mounted and its `.DS_Store` read, which
+gave `iconSize` 100, `textSize` 16, `showIconPreview` true, icons at `(150, 190)` and
+`(450, 185)`, and a `600x400` window at `(200, 248)`. Every `icvp` field, both icon positions
+and the window bounds now compare equal to it.
 
 ### Updating from inside the app
 

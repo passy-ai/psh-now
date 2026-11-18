@@ -21,15 +21,20 @@ symlinks = {"Applications": "/Applications"}
 # keep in step with the icons.
 background = None
 
-window_rect = ((240, 240), (640, 400))
+# Same window box as Quotio's (600x400 at 200,248), because the icon positions are read
+# against it: 150 and 450 sit evenly in a 600 wide window, and would drift right in a wider one.
+window_rect = ((200, 248), (600, 400))
 default_view = "icon-view"
-# Size to the two icons rather than to the window: at 96 the app icon was noticeably
-# smaller than the folder beside it, which reads as a mistake rather than a choice.
-icon_size = 128
-text_size = 12
+# These are not guesses. Quotio's installer - the window this is meant to look like - was
+# mounted and its .DS_Store read: iconSize 100, textSize 16, showIconPreview true, icons at
+# (150, 190) and (450, 185). Matching them is the difference between "looks like a Finder
+# window" and "looks like that window".
+icon_size = 100
+text_size = 16
+show_icon_preview = True
 icon_locations = {
-    "psh notch.app": (170, 200),
-    "Applications": (470, 200),
+    "psh notch.app": (150, 190),
+    "Applications": (450, 185),
 }
 show_status_bar = False
 show_tab_view = False
