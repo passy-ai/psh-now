@@ -119,6 +119,16 @@ wherever the rest of the menu gets long. The app reads `/notch-latest.json` (the
 manifest `public/notch-latest.json` in this repo) at launch and every six hours, and
 when the manifest names a newer version the row says **Install update v1.2.0**.
 
+The bottom two rows are drawn the way the rest of the Mac's menus are: an SF Symbol for
+what the row does (**arrow.triangle.2.circlepath** on the update row, **xmark.square** on
+Quit) and the version as an `NSMenuItemBadge` on the right of Quit. The badge is only
+there while the app is current — with an update waiting, the row above already says which
+version is on offer, and two versions side by side invite a misread. The glyphs are
+symbol images passed through untinted, because `labelColor` resolved from no drawing
+appearance gives white, which is invisible in light mode; as templates, AppKit inks them
+itself in both appearances. The version used to be its own row at the bottom of Settings
+and is a badge now, so it costs no row.
+
 With `download` in the manifest the click does the whole install: download the dmg to
 `~/Library/Caches/psh-notch`, mount it, copy the app out, detach, then hand a four line
 shell script the job of waiting for the old process to exit, swapping the bundle and

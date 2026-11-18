@@ -3406,12 +3406,11 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let dashboard = settings.addItem(withTitle: "Dashboard",
                                          action: #selector(openDashboard), keyEquivalent: "")
         dashboard.target = self
-        // The version lives at the bottom of Settings, not at the top of the menu: it is
-        // something you look up, while an available update is something you must see.
-        if let appVersion, updateAvailable == nil {
-            settings.addItem(.separator())
-            settings.addItem(withTitle: "Version v\(appVersion)", action: nil, keyEquivalent: "")
-        }
+        // The version used to sit here as its own row. It is a badge on Quit now, which is
+        // where the reference puts it and where it costs no row: a line reading "Version
+        // v1.2.2" was one more thing to scan past in a menu opened to see what is waiting.
+        // It stays in Settings only when there is no badge to carry it - while an update is
+        // waiting, the update row above Quit already says which version is on offer.
 
         let settingsRow = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         settingsRow.submenu = settings
@@ -3427,8 +3426,33 @@ final class Approver: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let row = menu.addItem(withTitle: title,
                                    action: #selector(installOrOpenUpdate), keyEquivalent: "")
             row.target = self
+            row.image = menuGlyph("arrow.triangle.2.circlepath")
         }
-        menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        // The two rows everyone quits through, drawn to match the rest of the Mac's menus:
+        // a glyph on the left for what the row does, and the version as a badge on the right,
+        // which is where an app puts it when the row above is about updating. Without them
+        // this was plain text sitting under a list of requests and read as more of the list.
+        let quit = menu.addItem(withTitle: "Quit",
+                                 action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quit.image = menuGlyph("xmark.square")
+        if let appVersion, updateAvailable == nil {
+            // Only while current: when an update is waiting the row above already carries the
+            // version this app is on, and two versions side by side ask the reader to compare
+            // them at a glance, which is the moment they get it wrong.
+            if #available(macOS 14.0, *) {
+                quit.badge = NSMenuItemBadge(string: appVersion)
+            }
+        }
+    }
+
+    /// A menu row's glyph, straight from the system symbol set. Deliberately not tinted:
+    /// `labelColor` resolves against the current drawing appearance, and asking for it while
+    /// building a menu from no appearance at all gives white - which is invisible in light
+    /// mode. These symbols are already template images, so AppKit inks them itself, correctly
+    /// in both appearances and again when the person switches between them.
+    private func menuGlyph(_ symbol: String) -> NSImage? {
+        NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 13, weight: .regular))
     }
 
     private func shorten(_ text: String, _ limit: Int) -> String {
@@ -4303,7 +4327,15 @@ struct PSHNotch {
                     let sub = item.submenu.map { s in
                         " [" + s.items.map { $0.title.isEmpty ? "-" : $0.title }.joined(separator: " / ") + "]"
                     } ?? ""
-                    print("ROW \(item.title.isEmpty ? "-" : item.title)\(sub)")
+                    // Glyph and badge are what the last two rows are made of, so print them:
+                    // a menu checked only by its titles cannot tell an icon row from plain text.
+                    let glyph = item.image == nil ? "" : " icon"
+                    var badge = ""
+                    if #available(macOS 14.0, *), let b = item.badge {
+                        badge = " badge=\(b.stringValue ?? "\(b.itemCount)")"
+                    }
+                    let key = item.keyEquivalent.isEmpty ? "" : " key=\(item.keyEquivalent.uppercased())"
+                    print("ROW \(item.title.isEmpty ? "-" : item.title)\(sub)\(glyph)\(badge)\(key)")
                 }
                 exit(0)
             }
